@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	echoMiddlewares "github.com/labstack/echo/v4/middleware"
@@ -11,14 +10,13 @@ import (
 )
 
 type Server struct {
-	router    *echo.Echo
-	logger    *logger.AppLogger
-	cfg       *config.Config
-	db        any // TODO: fix it when we add a db
-	dbContext context.Context
+	router *echo.Echo
+	logger *logger.AppLogger
+	cfg    *config.Config
+	db     any // TODO: fix it when we add a db
 }
 
-func NewServer(dbCtx context.Context, cfg *config.Config) (*Server, error) {
+func NewServer(cfg *config.Config) (*Server, error) {
 	appLogger := logger.NewAppLogger(cfg)
 
 	appLogger.InitLogger(cfg.Logger.Path)
@@ -27,11 +25,10 @@ func NewServer(dbCtx context.Context, cfg *config.Config) (*Server, error) {
 	e := echo.New()
 
 	s := &Server{
-		router:    e,
-		logger:    appLogger,
-		cfg:       cfg,
-		db:        nil,
-		dbContext: dbCtx,
+		router: e,
+		logger: appLogger,
+		cfg:    cfg,
+		db:     nil,
 	}
 
 	registerRoutes(e, s)

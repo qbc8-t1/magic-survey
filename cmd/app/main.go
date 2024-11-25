@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -19,9 +18,7 @@ func main() {
 		log.Fatalln(fmt.Errorf("load config error: %w", err))
 	}
 
-	dbContext := context.Background()
-
-	s, err := server.NewServer(dbContext, conf)
+	s, err := server.NewServer(conf)
 	if err != nil {
 		log.Fatal(fmt.Errorf("could not start server: %w", err))
 	}
