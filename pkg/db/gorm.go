@@ -12,6 +12,8 @@ import (
 var DB *gorm.DB
 
 func InitDB(cfg *config.Config, logger *applog.AppLogger) (*gorm.DB, error) {
+	gormLogger := applog.NewGormLogger(logger)
+
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		cfg.Postgres.Host,
@@ -22,7 +24,10 @@ func InitDB(cfg *config.Config, logger *applog.AppLogger) (*gorm.DB, error) {
 		cfg.Postgres.SslMode,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn))
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: gormLogger,
+	})
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}

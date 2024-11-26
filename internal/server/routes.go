@@ -16,7 +16,7 @@ func registerRoutes(app *fiber.App, s *Server) {
 	auth := api.Group("/v1/auth")
 
 	// 1. +get data
-	// 2. init db connection
+	// 2. +init db connection
 	// 3. password hashing
 	// 4. signup
 	// 5.login
