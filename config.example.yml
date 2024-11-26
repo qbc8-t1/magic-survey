@@ -1,0 +1,16 @@
+server:
+  host:
+  port:
+  mode:
+  appVersion:
+postgres:
+  host:
+  port:
+  user:
+  password:
+  dbname:
+  SslMode:
+logger:
+  level:
+  encoding:
+  path:
