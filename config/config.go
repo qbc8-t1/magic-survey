@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/spf13/viper"
 )
 
@@ -29,7 +30,7 @@ type Postgres struct {
 	User     string
 	Password string
 	Dbname   string
-	SslMode  bool
+	SslMode  string
 }
 
 type Config struct {
