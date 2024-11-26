@@ -1,10 +1,12 @@
 package server
 
-import (
-	"github.com/labstack/echo/v4"
-)
+import "github.com/gofiber/fiber/v2"
 
-func registerRoutes(e *echo.Echo, s *Server) {
-	s.router.GET("/health", healthCheck)
+func registerRoutes(app *fiber.App, server *Server) {
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ok",
+		})
+	})
 
 }
