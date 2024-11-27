@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
+	"github.com/QBC8-Team1/magic-survey/domain/repository"
 	"gorm.io/gorm"
 )
 
@@ -12,12 +13,12 @@ type userRepository struct {
 }
 
 // NewUserRepository creates a new instance of userRepository
-func NewUserRepository(db *gorm.DB) *userRepository {
+func NewUserRepository(db *gorm.DB) repository.IUserRepository {
 	return &userRepository{db: db}
 }
 
 // CreateUser creates a new user in the database
-func (r *userRepository) CreateUser(user model.User) error {
+func (r *userRepository) CreateUser(user *model.User) error {
 	fmt.Println(user)
 	return r.db.Create(&user).Error
 }

@@ -1,9 +1,10 @@
 package server
 
 import (
-	repository "github.com/QBC8-Team1/magic-survey/domain/infra"
 	"github.com/QBC8-Team1/magic-survey/domain/model"
+	repository "github.com/QBC8-Team1/magic-survey/persistance"
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func registerRoutes(app *fiber.App, s *Server) {
@@ -18,27 +19,41 @@ func registerRoutes(app *fiber.App, s *Server) {
 
 	// 1. +get data
 	// 2. +init db connection
-	// 3. password hashing(add salt row in db)
+	// 3. password hashing (add salt row in db)
 	// 4. signup
-	// 5.login
-	// 6. setup smtp server for sending email
+	// 5. login
+	// 6. setup SMTP server for sending email
 	// 7. send verification code
 	auth.Post("signup", func(c *fiber.Ctx) error {
-		var user model.User
-		if err := c.BodyParser(&user); err != nil {
+		var userDTO model.CreateUserDTO
+		if err := c.BodyParser(&userDTO); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid input",
 			})
 		}
 
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userDTO.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to hash password",
+			})
+		}
+		userDTO.Password = string(hashedPassword)
+
+		userModel := model.ToUserModel(&userDTO)
+
 		userRepo := repository.NewUserRepository(s.db)
+		if err := userRepo.CreateUser(userModel); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err,
+			})
+		}
 
-		userRepo.CreateUser(user)
+		userResponse := model.ToUserResponse(userModel)
 
-		return c.JSON(fiber.Map{
-			"status": "ok",
-			"data":   user,
+		return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+			"status": "success",
+			"data":   userResponse,
 		})
 	})
-
 }
