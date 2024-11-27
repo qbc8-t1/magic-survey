@@ -1,5 +1,11 @@
 package repository
 
-type User interface {
-	CreateUser() error
+import "github.com/QBC8-Team1/magic-survey/domain/model"
+
+// UserRepository is the interface that defines the repository methods
+type IUserRepository interface {
+	CreateUser(user *model.User) error
+	GetUserByID(id int) (*model.User, error)
+	UpdateUser(user *model.User) error
+	DeleteUser(id int) error
 }

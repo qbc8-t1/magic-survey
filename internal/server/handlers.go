@@ -1,8 +1,7 @@
 package server
 
 import (
-	"github.com/labstack/echo/v4"
-	"net/http"
+	"github.com/gofiber/fiber/v2"
 )
 
 type jsonResponse struct {
@@ -10,8 +9,8 @@ type jsonResponse struct {
 	Message any  `json:"message"`
 }
 
-func healthCheck(c echo.Context) error {
-	return c.JSON(http.StatusOK, jsonResponse{
+func healthCheck(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(jsonResponse{
 		Success: true,
 		Message: "ok",
 	})
