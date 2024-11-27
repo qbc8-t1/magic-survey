@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func HelloHandlerQuestion(service service.IQuestionService) func(c *fiber.Ctx) error {
+func HelloHandlerQuestionnaire(service service.IQuestionService) func(c *fiber.Ctx) error {
 	// closure
 	return func(c *fiber.Ctx) error {
 		return nil

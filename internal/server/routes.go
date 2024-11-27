@@ -20,5 +20,12 @@ func QuestionRoutes(app *fiber.App, server *Server) {
 	questionRepo := repository.NewQuestionRpository(server.db)
 	questionService := service.NewQuestionService(questionRepo)
 
-	app.Get("/hello", handler.HelloHandler(questionService))
+	app.Get("/hello", handler.HelloHandlerQuestion(questionService))
+}
+
+func QuestionnaireRoutes(app *fiber.App, server *Server) {
+	questionnaireRepo := repository.NewQuestionnaireRpository(server.db)
+	questionnaireService := service.NewQuestionnaireService(questionnaireRepo)
+
+	app.Get("/hello", handler.HelloHandlerQuestionnaire(questionnaireService))
 }
