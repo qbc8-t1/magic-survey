@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/QBC8-Team1/magic-survey/internal/service"
+	"github.com/QBC8-Team1/magic-survey/service"
 	"github.com/gofiber/fiber/v2"
 )
 

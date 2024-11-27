@@ -1,6 +1,6 @@
 package service
 
-import "github.com/QBC8-Team1/magic-survey/internal/domain/repository"
+import "github.com/QBC8-Team1/magic-survey/domain/repository"
 
 type IQuestionService interface {
 }

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/QBC8-Team1/magic-survey/internal/domain/model"
+	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"gorm.io/gorm"
 )
 

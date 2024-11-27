@@ -1,9 +1,9 @@
 package server
 
 import (
-	"github.com/QBC8-Team1/magic-survey/internal/domain/repository"
-	"github.com/QBC8-Team1/magic-survey/internal/handler"
-	"github.com/QBC8-Team1/magic-survey/internal/service"
+	"github.com/QBC8-Team1/magic-survey/domain/repository"
+	"github.com/QBC8-Team1/magic-survey/handler"
+	"github.com/QBC8-Team1/magic-survey/service"
 	"github.com/gofiber/fiber/v2"
 )
 
