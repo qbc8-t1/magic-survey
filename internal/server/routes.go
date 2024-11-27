@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	repository "github.com/QBC8-Team1/magic-survey/persistance"
+	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -51,9 +52,7 @@ func registerRoutes(app *fiber.App, s *Server) {
 
 		userResponse := model.ToUserResponse(userModel)
 
-		return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-			"status": "success",
-			"data":   userResponse,
-		})
+		return response.Success(c, 201, "userCreated!!", userResponse)
+
 	})
 }

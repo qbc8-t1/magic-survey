@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -10,8 +11,10 @@ type jsonResponse struct {
 }
 
 func healthCheck(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusOK).JSON(jsonResponse{
-		Success: true,
-		Message: "ok",
-	})
+	user := map[string]interface{}{
+		"data": 222,
+	}
+
+	return response.Success(c, 201, "Healthy", user)
+
 }
