@@ -2,7 +2,7 @@ package model
 
 import "gorm.io/gorm"
 
-type Question struct {
+type Questions struct {
 	gorm.Model
 	Title           string         `gorm:"type:varchar;not null"`
 	Type            string         `gorm:"type:enum('multichoice','descriptive');not null"`
