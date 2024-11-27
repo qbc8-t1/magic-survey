@@ -3,10 +3,10 @@ package repository
 import "gorm.io/gorm"
 
 type IQuestionRepository interface {
-	// CreateQuestion() error
-	// GetQuestion() error
-	// UpdateQuestion() error
-	// DeleteQuestion() error
+	Add() error
+	Get() error
+	Update() error
+	Delete() error
 }
 
 type QuestionRepository struct {
