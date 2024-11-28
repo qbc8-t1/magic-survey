@@ -1,16 +1,16 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
+import "time"
 
 // User represents the database model for a user
 type User struct {
-	gorm.Model
-	Name         string `gorm:"not null"`
-	Email        string `gorm:"not null;unique"`
-	NationalCode string `gorm:"not null;unique"`
-	Password     string `gorm:"not null"`
+	ID           uint      `gorm:"primaryKey;autoIncrement"`
+	Name         string    `gorm:"not null"`
+	CreatedAt    time.Time `gorm:"not null"`
+	UpdatedAt    time.Time `gorm:"not null"`
+	Email        string    `gorm:"not null;unique"`
+	NationalCode string    `gorm:"not null;unique"`
+	Password     string    `gorm:"not null"`
 }
 
 // CreateUserDTO represents the data needed to create a new user

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
-	"github.com/QBC8-Team1/magic-survey/domain/repository"
+	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +13,7 @@ type userRepository struct {
 }
 
 // NewUserRepository creates a new instance of userRepository
-func NewUserRepository(db *gorm.DB) repository.IUserRepository {
+func NewUserRepository(db *gorm.DB) domain_repository.IUserRepository {
 	return &userRepository{db: db}
 }
 
