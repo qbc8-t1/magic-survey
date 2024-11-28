@@ -6,6 +6,8 @@ import "github.com/QBC8-Team1/magic-survey/domain/model"
 type IUserRepository interface {
 	CreateUser(user *model.User) error
 	GetUserByID(id int) (*model.User, error)
+	GetUserByEmail(email string) (*model.User, error)
+	GetUserByNationalCode(nationalCode string) (*model.User, error)
 	UpdateUser(user *model.User) error
 	DeleteUser(id int) error
 }

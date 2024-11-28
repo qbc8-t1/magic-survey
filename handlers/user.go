@@ -29,7 +29,7 @@ func UserCreate(userService service.UserService) fiber.Handler {
 		}
 		createdUser, err := userService.CreateUser(user)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "couldnt create the user", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		return c.Status(fiber.StatusCreated).JSON(model.ToUserResponse(createdUser))

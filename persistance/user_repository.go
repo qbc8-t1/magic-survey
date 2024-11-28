@@ -32,6 +32,24 @@ func (r *userRepository) GetUserByID(id int) (*model.User, error) {
 	return &user, nil
 }
 
+// GetUserByEmail fetches a user by their Email
+func (r *userRepository) GetUserByEmail(email string) (*model.User, error) {
+	var user model.User
+	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// GetUserByNationalCode fetches a user by their Email
+func (r *userRepository) GetUserByNationalCode(nationalCode string) (*model.User, error) {
+	var user model.User
+	if err := r.db.Where("national_code = ?", nationalCode).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 // UpdateUser updates an existing user in the database
 func (r *userRepository) UpdateUser(user *model.User) error {
 	return r.db.Save(user).Error
