@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
+	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -18,14 +19,17 @@ func UserCreate(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var dto model.CreateUserDTO
 		if err := c.BodyParser(&dto); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
 		}
 
 		user := model.ToUserModel(&dto)
-
+		err := user.Validate()
+		if err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
+		}
 		createdUser, err := userService.CreateUser(user)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			return response.Error(c, fiber.StatusInternalServerError, "couldnt create the user", nil)
 		}
 
 		return c.Status(fiber.StatusCreated).JSON(model.ToUserResponse(createdUser))
