@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"github.com/QBC8-Team1/magic-survey/domain/model"
-	repository "github.com/QBC8-Team1/magic-survey/persistance"
+	"github.com/QBC8-Team1/magic-survey/domain/repository"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 // 1. +get data
@@ -16,7 +15,7 @@ import (
 // 5. login
 // 6. setup SMTP server for sending email
 // 7. send verification code
-func UserCreate(db *gorm.DB) func(c *fiber.Ctx) error {
+func UserCreate(repo repository.IUserRepository) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		var userDTO model.CreateUserDTO
 		if err := c.BodyParser(&userDTO); err != nil {
@@ -35,8 +34,7 @@ func UserCreate(db *gorm.DB) func(c *fiber.Ctx) error {
 
 		userModel := model.ToUserModel(&userDTO)
 
-		userRepo := repository.NewUserRepository(db)
-		if err := userRepo.CreateUser(userModel); err != nil {
+		if err := repo.CreateUser(userModel); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "failed to create user",
 			})
