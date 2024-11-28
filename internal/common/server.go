@@ -26,6 +26,5 @@ func (s *Server) Run() error {
 	}))
 
 	addr := fmt.Sprintf("%s:%s", s.Cfg.Server.Host, s.Cfg.Server.Port)
-	fmt.Println(addr)
 	return s.App.Listen(addr)
 }
