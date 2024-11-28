@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS "questionnaires" (
   "random_or_sequential" questionnaires_sequence_enum,
   "can_back_to_previous_question" bool,
   "title" varchar,
-  "max_allowed_submitions_count" int,
+  "max_allowed_submissions_count" int,
   "answers_visibile_for" questionnaires_visibility_enum,
   "created_at" timestamp DEFAULT now(),
   CONSTRAINT "FK_questionnaires.owner_id"

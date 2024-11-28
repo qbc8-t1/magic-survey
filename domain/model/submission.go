@@ -12,15 +12,16 @@ const (
 	SubmissionsStatusClosed    SubmissionsStatusEnum = "closed"
 )
 
-// Submission represents the submitions table
+// Submission represents the submissions table
 type Submission struct {
 	ID                     uint `gorm:"primaryKey"`
 	QuestionnaireID        uint
 	UserID                 uint
-	Status                 SubmissionsStatusEnum `gorm:"type:submitions_status_enum;default:'answering'"`
+	Status                 SubmissionsStatusEnum `gorm:"type:submissions_status_enum;default:'answering'"`
 	LastAnsweredQuestionID *uint
 	SubmittedAt            *time.Time
 	SpentMinutes           *int
 	Questionnaire          Questionnaire `gorm:"foreignKey:QuestionnaireID"`
 	User                   User          `gorm:"foreignKey:UserID"`
+	Answers                []Answer      `gorm:"foreignKey:SubmissionID"`
 }

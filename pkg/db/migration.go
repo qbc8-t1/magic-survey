@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 
+	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"gorm.io/gorm"
 )
 
@@ -12,7 +13,20 @@ func migrate(gormDB *gorm.DB) error {
 		return err
 	}
 
-	return gormDB.AutoMigrate()
+	return gormDB.AutoMigrate(
+		&model.User{},
+		&model.Questionnaire{},
+		&model.Notification{},
+		&model.Option{},
+		&model.Permission{},
+		&model.Role{},
+		&model.RolePermission{},
+		&model.RoleUser{},
+		&model.SuperAdmin{},
+		&model.UsersWithVisibleAnswers{},
+		&model.Submission{},
+		&model.Answer{},
+	)
 }
 
 func insertTypesTable(db *gorm.DB) error {

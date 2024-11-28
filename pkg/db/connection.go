@@ -34,7 +34,6 @@ func InitDB(cfg *config.Config, logger *applog.AppLogger) (*gorm.DB, error) {
 
 	// deleteAllTablesAndTypes(db)
 	err = migrate(db)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate: %w", err)
 	}
