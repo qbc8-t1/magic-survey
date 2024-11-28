@@ -1,16 +1,22 @@
 package model
 
 import (
-	"gorm.io/gorm"
+	"errors"
+	"strings"
+	"time"
+
+	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 )
 
 // User represents the database model for a user
 type User struct {
-	gorm.Model
-	Name         string `gorm:"not null"`
-	Email        string `gorm:"not null;unique"`
-	NationalCode string `gorm:"not null;unique"`
-	Password     string `gorm:"not null"`
+	ID           uint      `gorm:"primaryKey;autoIncrement"`
+	Name         string    `gorm:"not null"`
+	CreatedAt    time.Time `gorm:"not null"`
+	UpdatedAt    time.Time `gorm:"not null"`
+	Email        string    `gorm:"not null;unique"`
+	NationalCode string    `gorm:"not null;unique"`
+	Password     string    `gorm:"not null"`
 }
 
 // CreateUserDTO represents the data needed to create a new user
@@ -71,4 +77,29 @@ func UpdateUserModel(user *User, dto *UpdateUserDTO) {
 	if dto.Password != "" {
 		user.Password = dto.Password // TODOs: Hash the password before saving
 	}
+}
+
+// Validate checks the User struct for common validation rules.
+func (u *User) Validate() error {
+	// Validate Name
+	if strings.TrimSpace(u.Name) == "" {
+		return errors.New("name is required")
+	}
+
+	// Validate Email
+	if !utils.IsValidEmail(u.Email) {
+		return errors.New("invalid email format")
+	}
+
+	// Validate NationalCode
+	if len(u.NationalCode) != 10 || !utils.IsAllDigits(u.NationalCode) {
+		return errors.New("national code must be a 10-digit number")
+	}
+
+	// Validate Password
+	if len(u.Password) < 6 {
+		return errors.New("password must be at least 6 characters long")
+	}
+
+	return nil
 }

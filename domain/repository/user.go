@@ -1,4 +1,4 @@
-package repository
+package domain_repository
 
 import "github.com/QBC8-Team1/magic-survey/domain/model"
 

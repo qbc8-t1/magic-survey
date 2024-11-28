@@ -1,25 +1,15 @@
 package server
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"gorm.io/gorm"
 
 	"github.com/QBC8-Team1/magic-survey/config"
+	"github.com/QBC8-Team1/magic-survey/internal/common"
 	"github.com/QBC8-Team1/magic-survey/pkg/db"
 	"github.com/QBC8-Team1/magic-survey/pkg/logger"
 )
 
-type Server struct {
-	app    *fiber.App
-	logger *logger.AppLogger
-	cfg    *config.Config
-	db     *gorm.DB
-}
-
-func NewServer(cfg *config.Config) (*Server, error) {
+func NewServer(cfg *config.Config) (*common.Server, error) {
 	appLogger := logger.NewAppLogger(cfg)
 
 	appLogger.InitLogger(cfg.Logger.Path)
@@ -29,28 +19,16 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 	db, err := db.InitDB(cfg, appLogger)
 	if err != nil {
-		appLogger.Fatal("Counldnt init the db")
+		appLogger.Panic("Counldnt init the db")
 	}
 
-	s := &Server{
-		app:    app,
-		logger: appLogger,
-		cfg:    cfg,
-		db:     db,
+	s := &common.Server{
+		App:    app,
+		Logger: appLogger,
+		Cfg:    cfg,
+		DB:     db,
 	}
 
 	registerRoutes(app, s)
 	return s, nil
-}
-
-func (s *Server) Run() error {
-	s.app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "*",
-		AllowHeaders: "*",
-	}))
-
-	addr := fmt.Sprintf("%s:%s", s.cfg.Server.Host, s.cfg.Server.Port)
-
-	return s.app.Listen(addr)
 }
