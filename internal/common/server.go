@@ -18,7 +18,6 @@ type Server struct {
 }
 
 func (s *Server) Run() error {
-	fmt.Println("addr")
 
 	s.App.Use(cors.New(cors.Config{
 		AllowOrigins: "*",

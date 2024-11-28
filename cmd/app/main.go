@@ -15,16 +15,16 @@ func main() {
 
 	conf, err := config.LoadConfig(*configPath)
 	if err != nil {
-		log.Fatalln(fmt.Errorf("load config error: %w", err))
+		log.Panic(fmt.Errorf("load config error: %w", err))
 	}
 
 	s, err := server.NewServer(conf)
 	if err != nil {
-		log.Fatal(fmt.Errorf("could not start server: %w", err))
+		log.Panic(fmt.Errorf("could not start server: %w", err))
 	}
 
 	err = s.Run()
 	if err != nil {
-		log.Fatalln(fmt.Errorf("error while running server: %w", err))
+		log.Panic(fmt.Errorf("error while running server: %w", err))
 	}
 }
