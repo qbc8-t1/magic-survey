@@ -11,7 +11,7 @@ import (
 // RegisterUserRoutes registers routes related to user management
 func RegisterUserRoutes(auth fiber.Router, s *common.Server) {
 	userRepo := repository.NewUserRepository(s.DB)
-	userService := service.NewUserService(userRepo, s.Cfg.Secret, s.Cfg.AuthExpMinute, s.Cfg.AuthRefreshMinute)
+	userService := service.NewUserService(userRepo, s.Cfg.Secret, s.Cfg.AuthExpMinute, s.Cfg.AuthRefreshMinute, s.Cfg.Server.MailPass)
 
 	auth.Post("signup", handlers.UserCreate(*userService))
 	auth.Post("verify", handlers.Verify2FACode(*userService))

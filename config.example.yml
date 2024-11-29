@@ -6,6 +6,7 @@ server:
   secret:
   authExpMin:
   authExpRefreshMin:
+  mailPass:
 postgres:
   host:
   port:

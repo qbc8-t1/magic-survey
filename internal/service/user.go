@@ -15,6 +15,7 @@ import (
 
 var (
 	ErrUserOnCreate       = errors.New("Cant Create the user")
+	ErrUserOnUpdate       = errors.New("Cant Create the user")
 	ErrEmailExists        = errors.New("mail already exits")
 	ErrNationalCodeExists = errors.New("national code already exits")
 	ErrWrongEmailPass     = errors.New("wrong mail or password")
@@ -30,15 +31,18 @@ type UserService struct {
 	repo                  domain_repository.IUserRepository
 	authSecret            string
 	expMin, refreshExpMin uint
+	mailPass              string
 }
 
 // NewUserService creates a new instance of UserService
-func NewUserService(repo domain_repository.IUserRepository, authSecret string, expMin, refreshExpMin uint) *UserService {
+func NewUserService(repo domain_repository.IUserRepository, authSecret string, expMin, refreshExpMin uint, mailPass string) *UserService {
 	return &UserService{
 		repo:          repo,
 		authSecret:    authSecret,
 		expMin:        expMin,
-		refreshExpMin: refreshExpMin}
+		refreshExpMin: refreshExpMin,
+		mailPass:      mailPass,
+	}
 }
 
 // CreateUser handles business logic for creating a user
@@ -67,7 +71,7 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 	}
 
 	twoFACode := utils.GenerateRandomCode()
-	err = mail.SendMail(user.Email, "Your 2FA Code", fmt.Sprintf("Your 2FA code is: %s", twoFACode))
+	err = mail.SendMail(s.mailPass, user.Email, "Your 2FA Code", fmt.Sprintf("Your 2FA code is: %s", twoFACode))
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +164,13 @@ func (s *UserService) Verify2FACode(userEmail string, enteredCode string) (*mode
 	err = s.repo.RemoveTwoFACode(user.Email)
 	if err != nil {
 		return nil, ErrCantDeleteCode
+	}
+
+	user.IsActive = true
+	user.UpdatedAt = time.Now()
+	err = s.repo.UpdateUser(user)
+	if err != nil {
+		return nil, ErrUserOnUpdate
 	}
 
 	return &model.AuthResponse{
