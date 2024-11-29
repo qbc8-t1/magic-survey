@@ -8,10 +8,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// 5. login
 // 6. setup SMTP server for sending email
 // 7. send verification code
 // 8. handle 2 step verification
+// 9. tests
 
 func UserCreate(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
