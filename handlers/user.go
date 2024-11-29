@@ -3,17 +3,16 @@ package handlers
 import (
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
+	"github.com/QBC8-Team1/magic-survey/pkg/jwt"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 
-// 1. +get data
-// 2. +init db connection
-// 3. password hashing (add salt row in db)
-// 4. signup
+// 3. password hashing
 // 5. login
 // 6. setup SMTP server for sending email
 // 7. send verification code
+// 8. handle 2 step verification
 
 func UserCreate(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -31,7 +30,42 @@ func UserCreate(userService service.UserService) fiber.Handler {
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
+		token, err := jwt.GenerateToken(createdUser.ID)
 
-		return c.Status(fiber.StatusCreated).JSON(model.ToUserResponse(createdUser))
+		c.Cookie(&fiber.Cookie{
+			Name:     "Authorization",
+			Value:    token,
+			Expires:  jwt.GetTokenExpiry(),
+			Secure:   true,
+			HTTPOnly: true,
+			SameSite: fiber.CookieSameSiteStrictMode,
+		})
+		return response.Success(c, fiber.StatusCreated, "User Created", model.ToUserResponse(createdUser))
+	}
+}
+
+func Login(userService service.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var req model.LoginRequest
+		if err := c.BodyParser(&req); err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+		}
+
+		user, err := userService.LoginUser(&req)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Failed to generate token", nil)
+		}
+		token, err := jwt.GenerateToken(user.ID)
+
+		c.Cookie(&fiber.Cookie{
+			Name:     "token",
+			Value:    token,
+			Expires:  jwt.GetTokenExpiry(), // Token expiry time
+			Secure:   true,
+			HTTPOnly: true,
+			SameSite: fiber.CookieSameSiteStrictMode,
+		})
+
+		return response.Success(c, fiber.StatusOK, "Login successful", model.ToUserResponse(user))
 	}
 }

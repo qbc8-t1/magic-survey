@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"gorm.io/gorm"
@@ -19,7 +17,6 @@ func NewUserRepository(db *gorm.DB) domain_repository.IUserRepository {
 
 // CreateUser creates a new user in the database
 func (r *userRepository) CreateUser(user *model.User) error {
-	fmt.Println(user)
 	return r.db.Create(&user).Error
 }
 

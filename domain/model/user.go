@@ -57,6 +57,11 @@ type UpdateUserDTO struct {
 	Password     string `json:"password,omitempty"`
 }
 
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
 // UserResponse represents the user data returned in API responses
 type UserResponse struct {
 	ID           uint   `json:"id"`

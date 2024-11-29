@@ -22,6 +22,7 @@ type Server struct {
 	Port       string
 	Mode       ServerMode
 	AppVersion string
+	JwtSecret  string
 }
 
 type Postgres struct {
