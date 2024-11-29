@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"fmt"
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
+	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"gorm.io/gorm"
 	"time"
 )
@@ -60,16 +60,14 @@ func (r *userRepository) DeleteUser(id int) error {
 }
 
 func (r *userRepository) StoreTwoFACode(email string, code string, expiresAt time.Time) error {
-	// Create the TwoFACode instance
 	twoFACode := &model.TwoFACode{
 		Email:     email,
 		Code:      code,
 		ExpiresAt: expiresAt,
 	}
 
-	// Save it to the database
 	if err := r.db.Create(twoFACode).Error; err != nil {
-		return fmt.Errorf("failed to store 2FA code: %w", err)
+		return service.ErrCantSaveCode
 	}
 
 	return nil
@@ -78,8 +76,16 @@ func (r *userRepository) StoreTwoFACode(email string, code string, expiresAt tim
 func (r *userRepository) GetTwoFACode(email string) (*model.TwoFACode, error) {
 	twoFACode := &model.TwoFACode{}
 	if err := r.db.Where("email = ?", email).Order("created_at desc").First(&twoFACode).Error; err != nil {
-		return nil, fmt.Errorf("failed to get 2FA code: %w", err)
+		return nil, service.ErrCantGetCode
 	}
 
 	return twoFACode, nil
+}
+
+func (r *userRepository) RemoveTwoFACode(email string) error {
+	if err := r.db.Where("email = ?", email).Delete(&model.TwoFACode{}).Error; err != nil {
+		return service.ErrCantDeleteCode
+	}
+
+	return nil
 }

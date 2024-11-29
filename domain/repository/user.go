@@ -15,4 +15,5 @@ type IUserRepository interface {
 	DeleteUser(id int) error
 	StoreTwoFACode(email string, code string, expiresAt time.Time) error
 	GetTwoFACode(email string) (*model.TwoFACode, error)
+	RemoveTwoFACode(email string) error
 }

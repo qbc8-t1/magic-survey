@@ -44,7 +44,7 @@ func Verify2FACode(userService service.UserService) fiber.Handler {
 			if errors.Is(err, service.ErrInvalid2FACode) {
 				return response.Error(c, fiber.StatusUnauthorized, service.ErrInvalid2FACode.Error(), nil)
 			}
-			return response.Error(c, fiber.StatusInternalServerError, service.ErrCodeVerification.Error(), nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		return response.Success(c, fiber.StatusOK, "2FA verification successful", tokens)

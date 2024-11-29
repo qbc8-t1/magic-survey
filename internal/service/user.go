@@ -21,6 +21,9 @@ var (
 	ErrInvalid2FACode     = errors.New("wrong code")
 	ErrCodeExpired        = errors.New("code expired")
 	ErrCodeVerification   = errors.New("cant verify code")
+	ErrCantSaveCode       = errors.New("cant save code")
+	ErrCantDeleteCode     = errors.New("cant delete code")
+	ErrCantGetCode        = errors.New("cant get code")
 )
 
 type UserService struct {
@@ -152,6 +155,11 @@ func (s *UserService) Verify2FACode(userEmail string, enteredCode string) (*mode
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	err = s.repo.RemoveTwoFACode(user.Email)
+	if err != nil {
+		return nil, ErrCantDeleteCode
 	}
 
 	return &model.AuthResponse{
