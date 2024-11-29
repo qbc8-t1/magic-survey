@@ -63,6 +63,11 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type AuthResponse struct {
+	AccessToken  string
+	RefreshToken string
+}
+
 // UserResponse represents the user data returned in API responses
 type UserResponse struct {
 	ID           UserId `json:"id"`

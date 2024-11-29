@@ -2,8 +2,6 @@ package jwt
 
 import (
 	"errors"
-	"time"
-
 	jwt2 "github.com/golang-jwt/jwt/v5"
 )
 
@@ -40,9 +38,4 @@ func ParseToken(tokenString string, secret []byte) (*UserClaims, error) {
 	}
 
 	return claim, nil
-}
-
-// GetTokenExpiry returns the token expiry time
-func GetTokenExpiry() time.Time {
-	return time.Now().Add(24 * time.Hour)
 }

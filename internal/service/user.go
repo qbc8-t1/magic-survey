@@ -2,13 +2,13 @@ package service
 
 import (
 	"errors"
-	"github.com/QBC8-Team1/magic-survey/pkg/jwt"
-	jwt2 "github.com/golang-jwt/jwt/v5"
-	"time"
-
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
+	"github.com/QBC8-Team1/magic-survey/pkg/jwt"
+	t "github.com/QBC8-Team1/magic-survey/pkg/time"
 	"github.com/QBC8-Team1/magic-survey/pkg/utils"
+	jwt2 "github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
 var (
@@ -34,7 +34,7 @@ func NewUserService(repo domain_repository.IUserRepository, authSecret string, e
 }
 
 // CreateUser handles business logic for creating a user
-func (s *UserService) CreateUser(user *model.User) (*model.User, error) {
+func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) {
 	res, err := s.repo.GetUserByEmail(user.Email)
 	if res != nil {
 		return nil, ErrEmailExists
@@ -55,9 +55,9 @@ func (s *UserService) CreateUser(user *model.User) (*model.User, error) {
 
 	accessToken, err := jwt.CreateToken([]byte(s.authSecret), &jwt.UserClaims{
 		RegisteredClaims: jwt2.RegisteredClaims{
-			ExpiresAt: jwt2.NewNumericDate(time.AddMinutes(s.expMin, true)),
+			ExpiresAt: jwt2.NewNumericDate(t.AddMinutes(s.expMin, true)),
 		},
-		UserID: uint(userID),
+		UserID: uint(user.ID),
 	})
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (s *UserService) CreateUser(user *model.User) (*model.User, error) {
 
 	refreshToken, err := jwt.CreateToken([]byte(s.authSecret), &jwt.UserClaims{
 		RegisteredClaims: jwt2.RegisteredClaims{
-			ExpiresAt: jwt2.NewNumericDate(time.AddMinutes(s.refreshExpMin, true)),
+			ExpiresAt: jwt2.NewNumericDate(t.AddMinutes(s.refreshExpMin, true)),
 		},
 		UserID: uint(user.ID),
 	})
@@ -73,11 +73,14 @@ func (s *UserService) CreateUser(user *model.User) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return user, err
+	return &model.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, err
 }
 
 // LoginUser handles user logging in logics
-func (s *UserService) LoginUser(user *model.LoginRequest) (*model.User, error) {
+func (s *UserService) LoginUser(user *model.LoginRequest) (*model.AuthResponse, error) {
 	res, err := s.repo.GetUserByEmail(user.Email)
 	if res == nil {
 		return nil, ErrWrongEmailPass
@@ -87,5 +90,29 @@ func (s *UserService) LoginUser(user *model.LoginRequest) (*model.User, error) {
 	if err != nil {
 		return nil, ErrWrongEmailPass
 	}
-	return res, err
+
+	accessToken, err := jwt.CreateToken([]byte(s.authSecret), &jwt.UserClaims{
+		RegisteredClaims: jwt2.RegisteredClaims{
+			ExpiresAt: jwt2.NewNumericDate(t.AddMinutes(s.expMin, true)),
+		},
+		UserID: uint(res.ID),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := jwt.CreateToken([]byte(s.authSecret), &jwt.UserClaims{
+		RegisteredClaims: jwt2.RegisteredClaims{
+			ExpiresAt: jwt2.NewNumericDate(t.AddMinutes(s.refreshExpMin, true)),
+		},
+		UserID: uint(res.ID),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return &model.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, err
 }

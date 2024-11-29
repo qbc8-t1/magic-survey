@@ -2,10 +2,8 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
-	"github.com/QBC8-Team1/magic-survey/pkg/jwt"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
@@ -27,12 +25,12 @@ func UserCreate(userService service.UserService) fiber.Handler {
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
-		createdUser, err := userService.CreateUser(user)
+		tokens, err := userService.CreateUser(user)
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
-		return response.Success(c, fiber.StatusCreated, "User Created", model.ToUserResponse(createdUser))
+		return response.Success(c, fiber.StatusCreated, "User Created", tokens)
 	}
 }
 
@@ -43,24 +41,12 @@ func Login(userService service.UserService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "Invalid request payload", nil)
 		}
 
-		user, err := userService.LoginUser(&req)
-		fmt.Println(err)
+		tokens, err := userService.LoginUser(&req)
 
 		if errors.Is(err, service.ErrWrongEmailPass) {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
-		token, err := jwt.GenerateToken(uint(user.ID))
-
-		c.Cookie(&fiber.Cookie{
-			Name:     "token",
-			Value:    token,
-			Expires:  jwt.GetTokenExpiry(), // Token expiry time
-			Secure:   true,
-			HTTPOnly: true,
-			SameSite: fiber.CookieSameSiteStrictMode,
-		})
-
-		return response.Success(c, fiber.StatusOK, "Login successful", model.ToUserResponse(user))
+		return response.Success(c, fiber.StatusOK, "Login successful", tokens)
 	}
 }

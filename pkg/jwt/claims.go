@@ -1,13 +1,8 @@
 package jwt
 
-import (
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
-)
+import jwt2 "github.com/golang-jwt/jwt/v5"
 
 type UserClaims struct {
-	jwt.RegisteredClaims
-	UserID   uuid.UUID
-	Role     string
-	Sections []string
+	jwt2.RegisteredClaims
+	UserID uint
 }
