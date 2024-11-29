@@ -10,6 +10,7 @@ import (
 )
 
 type GenderEnum string
+type UserId uint
 
 const (
 	Male   GenderEnum = "male"
@@ -64,7 +65,7 @@ type LoginRequest struct {
 
 // UserResponse represents the user data returned in API responses
 type UserResponse struct {
-	ID           uint   `json:"id"`
+	ID           UserId `json:"id"`
 	Name         string `json:"name"`
 	Email        string `json:"email"`
 	NationalCode string `json:"national_code"`
@@ -73,7 +74,7 @@ type UserResponse struct {
 // ToUserResponse maps a User model to a UserResponse DTO
 func ToUserResponse(user *User) *UserResponse {
 	return &UserResponse{
-		ID:           user.ID,
+		ID:           UserId(user.ID),
 		Name:         user.GetFullName(),
 		Email:        user.Email,
 		NationalCode: user.NationalCode,

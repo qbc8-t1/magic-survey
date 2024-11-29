@@ -3,7 +3,9 @@ server:
   port:
   mode:
   appVersion:
-  jwtSecret:
+  secret:
+  authExpMin:
+  authExpRefreshMin:
 postgres:
   host:
   port:

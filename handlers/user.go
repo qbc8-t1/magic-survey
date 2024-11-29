@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"github.com/QBC8-Team1/magic-survey/pkg/jwt"
@@ -8,7 +10,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// 3. password hashing
 // 5. login
 // 6. setup SMTP server for sending email
 // 7. send verification code
@@ -30,16 +31,7 @@ func UserCreate(userService service.UserService) fiber.Handler {
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
-		token, err := jwt.GenerateToken(createdUser.ID)
 
-		c.Cookie(&fiber.Cookie{
-			Name:     "Authorization",
-			Value:    token,
-			Expires:  jwt.GetTokenExpiry(),
-			Secure:   true,
-			HTTPOnly: true,
-			SameSite: fiber.CookieSameSiteStrictMode,
-		})
 		return response.Success(c, fiber.StatusCreated, "User Created", model.ToUserResponse(createdUser))
 	}
 }
@@ -52,10 +44,13 @@ func Login(userService service.UserService) fiber.Handler {
 		}
 
 		user, err := userService.LoginUser(&req)
-		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "Failed to generate token", nil)
+		fmt.Println(err)
+
+		if errors.Is(err, service.ErrWrongEmailPass) {
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
-		token, err := jwt.GenerateToken(user.ID)
+
+		token, err := jwt.GenerateToken(uint(user.ID))
 
 		c.Cookie(&fiber.Cookie{
 			Name:     "token",
