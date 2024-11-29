@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/QBC8-Team1/magic-survey/config"
-	"github.com/QBC8-Team1/magic-survey/domain/model"
 	applog "github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,10 +28,14 @@ func InitDB(cfg *config.Config, logger *applog.AppLogger) (*gorm.DB, error) {
 		Logger: gormLogger,
 	})
 
-	err = db.AutoMigrate(&model.User{})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	// deleteAllTablesAndTypes(db)
+	err = migrate(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to migrate: %w", err)
 	}
 
 	return db, nil
