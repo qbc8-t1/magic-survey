@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	jwt2 "github.com/QBC8-Team1/magic-survey/pkg/jwt"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
@@ -20,12 +19,10 @@ type CustomClaims struct {
 // WithAuthMiddleware validates JWT tokens and fetches user data from the database
 func WithAuthMiddleware(db *gorm.DB, secret string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Extract token from Authorization header
 		tokenString := c.Get("Authorization")
 		if tokenString == "" {
 			return c.SendStatus(fiber.StatusUnauthorized)
 		}
-		fmt.Println(tokenString)
 
 		claims, err := jwt2.ParseToken(tokenString, []byte(secret))
 		if err != nil {
