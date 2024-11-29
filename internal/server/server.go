@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"gorm.io/gorm"
 
 	"github.com/QBC8-Team1/magic-survey/config"
 	"github.com/QBC8-Team1/magic-survey/pkg/logger"
@@ -15,7 +14,7 @@ type Server struct {
 	app    *fiber.App
 	logger *logger.AppLogger
 	cfg    *config.Config
-	db     *gorm.DB
+	db     any // TODO: fix it when we add a db
 }
 
 func NewServer(cfg *config.Config) (*Server, error) {
