@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"errors"
-	"fmt"
 	jwt2 "github.com/golang-jwt/jwt/v5"
 	"strings"
 )
@@ -25,8 +24,6 @@ func ParseToken(tokenString string, secret []byte) (*UserClaims, error) {
 	var claim *UserClaims
 	if token.Claims != nil {
 		cc, ok := token.Claims.(*UserClaims)
-		fmt.Println(cc.UserID)
-		fmt.Println(cc.ExpiresAt)
 
 		if ok {
 			claim = cc

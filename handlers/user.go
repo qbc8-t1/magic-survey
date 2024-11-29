@@ -8,9 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// 6. setup SMTP server for sending email
-// 7. send verification code
-// 8. handle 2 step verification
 // 9. tests
 
 func UserCreate(userService service.UserService) fiber.Handler {
@@ -31,6 +28,26 @@ func UserCreate(userService service.UserService) fiber.Handler {
 		}
 
 		return response.Success(c, fiber.StatusCreated, "User Created", tokens)
+	}
+}
+
+// Verify2FACode handles the verification of the 2FA code
+func Verify2FACode(userService service.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var req model.Verify2FACodeRequest
+		if err := c.BodyParser(&req); err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "Invalid request payload", err)
+		}
+
+		tokens, err := userService.Verify2FACode(req.Email, req.Code)
+		if err != nil {
+			if errors.Is(err, service.ErrInvalid2FACode) {
+				return response.Error(c, fiber.StatusUnauthorized, service.ErrInvalid2FACode.Error(), nil)
+			}
+			return response.Error(c, fiber.StatusInternalServerError, service.ErrCodeVerification.Error(), nil)
+		}
+
+		return response.Success(c, fiber.StatusOK, "2FA verification successful", tokens)
 	}
 }
 

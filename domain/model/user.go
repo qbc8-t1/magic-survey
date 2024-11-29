@@ -64,8 +64,23 @@ type LoginRequest struct {
 }
 
 type AuthResponse struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken   string
+	RefreshToken  string
+	TwoFACodeSent bool
+}
+
+type TwoFACode struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement"`
+	Email     string    `gorm:"not null"`
+	Code      string    `gorm:"not null"`
+	ExpiresAt time.Time `gorm:"not null"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Verify2FACodeRequest struct {
+	Email string `json:"email" validate:"required"`
+	Code  string `json:"code" validate:"required"`
 }
 
 // UserResponse represents the user data returned in API responses
@@ -112,7 +127,7 @@ func UpdateUserModel(user *User, dto *UpdateUserDTO) {
 		user.NationalCode = dto.NationalCode
 	}
 	if dto.Password != "" {
-		user.Password = dto.Password // TODOs: Hash the password before saving
+		user.Password = dto.Password
 	}
 }
 
@@ -130,7 +145,7 @@ func (u *User) Validate() error {
 
 	// Validate Email
 	if !utils.IsValidEmail(u.Email) {
-		return errors.New("invalid email format")
+		return errors.New("invalid mail format")
 	}
 
 	// Validate NationalCode

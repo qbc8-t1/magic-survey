@@ -1,9 +1,11 @@
 package repository
 
 import (
+	"fmt"
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"gorm.io/gorm"
+	"time"
 )
 
 type userRepository struct {
@@ -55,4 +57,29 @@ func (r *userRepository) UpdateUser(user *model.User) error {
 // DeleteUser deletes a user from the database
 func (r *userRepository) DeleteUser(id int) error {
 	return r.db.Delete(&model.User{}, id).Error
+}
+
+func (r *userRepository) StoreTwoFACode(email string, code string, expiresAt time.Time) error {
+	// Create the TwoFACode instance
+	twoFACode := &model.TwoFACode{
+		Email:     email,
+		Code:      code,
+		ExpiresAt: expiresAt,
+	}
+
+	// Save it to the database
+	if err := r.db.Create(twoFACode).Error; err != nil {
+		return fmt.Errorf("failed to store 2FA code: %w", err)
+	}
+
+	return nil
+}
+
+func (r *userRepository) GetTwoFACode(email string) (*model.TwoFACode, error) {
+	twoFACode := &model.TwoFACode{}
+	if err := r.db.Where("email = ?", email).Order("created_at desc").First(&twoFACode).Error; err != nil {
+		return nil, fmt.Errorf("failed to get 2FA code: %w", err)
+	}
+
+	return twoFACode, nil
 }
