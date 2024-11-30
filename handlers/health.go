@@ -8,5 +8,5 @@ import (
 
 func HealthCheck(c *fiber.Ctx) error {
 	user := c.Locals("user").(model.User)
-	return response.Success(c, 200, "Hello "+user.Name, nil)
+	return response.Success(c, 200, "Hello "+user.GetFullName(), nil)
 }

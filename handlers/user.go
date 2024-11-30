@@ -8,8 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// 9. tests
-
 func UserCreate(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var dto model.CreateUserDTO

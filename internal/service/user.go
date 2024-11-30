@@ -15,7 +15,7 @@ import (
 
 var (
 	ErrUserOnCreate       = errors.New("Cant Create the user")
-	ErrUserOnUpdate       = errors.New("Cant Create the user")
+	ErrUserOnUpdate       = errors.New("Cant Update the user")
 	ErrEmailExists        = errors.New("mail already exits")
 	ErrNationalCodeExists = errors.New("national code already exits")
 	ErrWrongEmailPass     = errors.New("wrong mail or password")
@@ -61,6 +61,14 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 	user.IsActive = false
+
+	fmt.Println(user)
+	switch user.Gender {
+	case "male":
+		user.Gender = model.Male
+	case "female":
+		user.Gender = model.Female
+	}
 
 	hashedPassword, err := utils.HashPassword(user.Password)
 	user.Password = hashedPassword

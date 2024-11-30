@@ -25,16 +25,16 @@ type User struct {
 	Birthdate      string     `gorm:"size:255"`
 	City           string     `gorm:"size:255"`
 	NationalCode   string     `gorm:"size:10;unique"`
-	Gender         GenderEnum `gorm:"type:gender_enum"`
+	Gender         GenderEnum `gorm:"type:gender_enum;not null"`
 	Email          string     `gorm:"unique;size:255"`
 	Password       string     `gorm:"not null"`
+	IsActive       bool       `gorm:"not null"`
 	Credit         int64
 	CreatedAt      time.Time
 	UpdatedAt      time.Time       `gorm:"not null"`
 	Questionnaires []Questionnaire `gorm:"foreignKey:OwnerID"`
 	Notifications  []Notification  `gorm:"foreignKey:UserID"`
 	SuperAdmin     *SuperAdmin     `gorm:"foreignKey:UserID"`
-	IsActive       bool            `gorm:"not null;"`
 }
 
 func (u *User) GetFullName() string {
@@ -70,6 +70,7 @@ type AuthResponse struct {
 	TwoFACodeSent bool
 }
 
+// TwoFACode stores 2FA codes for users
 type TwoFACode struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement"`
 	Email     string    `gorm:"not null"`
@@ -79,6 +80,7 @@ type TwoFACode struct {
 	UpdatedAt time.Time
 }
 
+// Verify2FACodeRequest validates 2FA code
 type Verify2FACodeRequest struct {
 	Email string `json:"email" validate:"required"`
 	Code  string `json:"code" validate:"required"`
@@ -90,6 +92,12 @@ type UserResponse struct {
 	Name         string `json:"name"`
 	Email        string `json:"email"`
 	NationalCode string `json:"national_code"`
+	Gender       string `json:"gender"`
+}
+
+// GetFullName returns the full name of a user
+func (u *User) GetFullName() string {
+	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
 }
 
 // ToUserResponse maps a User model to a UserResponse DTO
@@ -99,6 +107,7 @@ func ToUserResponse(user *User) *UserResponse {
 		Name:         user.GetFullName(),
 		Email:        user.Email,
 		NationalCode: user.NationalCode,
+		Gender:       string(user.Gender),
 	}
 }
 
@@ -109,55 +118,49 @@ func ToUserModel(dto *CreateUserDTO) *User {
 		LastName:     dto.LastName,
 		Email:        dto.Email,
 		NationalCode: dto.NationalCode,
-		Password:     dto.Password, // TODO: Hash the password before saving
+		Password:     dto.Password,
+		Gender:       dto.Gender,
 	}
 }
 
 // UpdateUserModel updates the fields of a User model from an UpdateUserDTO
 func UpdateUserModel(user *User, dto *UpdateUserDTO) {
-	if dto.FirstName != "" {
-		user.FirstName = dto.FirstName
+	if dto.FirstName != nil {
+		user.FirstName = *dto.FirstName
 	}
-	if dto.LastName != "" {
-		user.LastName = dto.LastName
+	if dto.LastName != nil {
+		user.LastName = *dto.LastName
 	}
-	if dto.Email != "" {
-		user.Email = dto.Email
+	if dto.Email != nil {
+		user.Email = *dto.Email
 	}
-	if dto.NationalCode != "" {
-		user.NationalCode = dto.NationalCode
+	if dto.NationalCode != nil {
+		user.NationalCode = *dto.NationalCode
 	}
-	if dto.Password != "" {
-		user.Password = dto.Password
+	if dto.Password != nil {
+		user.Password = *dto.Password
+	}
+	if dto.Gender != nil {
+		user.Gender = *dto.Gender
 	}
 }
 
 // Validate checks the User struct for common validation rules.
 func (u *User) Validate() error {
-	// Validate FirstName
 	if strings.TrimSpace(u.FirstName) == "" {
 		return errors.New("first name is required")
 	}
-
-	// Validate LastName
 	if strings.TrimSpace(u.LastName) == "" {
 		return errors.New("last name is required")
 	}
-
-	// Validate Email
 	if !utils.IsValidEmail(u.Email) {
-		return errors.New("invalid mail format")
+		return errors.New("invalid email format")
 	}
-
-	// Validate NationalCode
 	if len(u.NationalCode) != 10 || !utils.IsAllDigits(u.NationalCode) {
 		return errors.New("national code must be a 10-digit number")
 	}
-
-	// Validate Password
 	if len(u.Password) < 6 {
 		return errors.New("password must be at least 6 characters long")
 	}
-
 	return nil
 }
