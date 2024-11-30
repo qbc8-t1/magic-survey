@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS "users" (
   "gender" gender_enum null,
   "email" varchar unique,
   "password" varchar,
-  "credit" bigint,
+  "wallet_balance" bigint,
   "created_at" timestamp DEFAULT now()
 );
 

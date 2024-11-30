@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
@@ -22,5 +23,6 @@ func (s *UserService) CreateUser(user *model.User) (*model.User, error) {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 	err := s.repo.CreateUser(user)
+	fmt.Println(err)
 	return user, err
 }
