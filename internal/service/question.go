@@ -1,6 +1,8 @@
 package service
 
-import domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
+import (
+	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
+)
 
 type IQuestionService interface {
 }
@@ -11,6 +13,6 @@ type QuestionService struct {
 }
 
 // NewQuestionService creates a new QuestionService object
-func NewQuestionService(domain_repository.IQuestionRepository) *QuestionService {
-	return &QuestionService{}
+func NewQuestionService(repo domain_repository.IQuestionRepository) *QuestionService {
+	return &QuestionService{repo: repo}
 }

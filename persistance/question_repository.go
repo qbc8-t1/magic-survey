@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"gorm.io/gorm"
@@ -18,6 +20,7 @@ func NewQuestionRpository(db *gorm.DB) domain_repository.IQuestionRepository {
 
 // CreateQuestion adds a new question to the database
 func (r *QuestionRepository) CreateQuestion(question *model.Question) error {
+	question.CreatedAt = time.Now()
 	return r.db.Create(&question).Error
 }
 
@@ -28,8 +31,15 @@ func (r *QuestionRepository) GetQuestionByID(id uint) (*model.Question, error) {
 	return &question, result.Error
 }
 
+func (r *QuestionRepository) GetQuestionsByID(ids []uint) (*[]model.Question, error) {
+	var questions []model.Question
+	result := r.db.Find(&questions, ids)
+	return &questions, result.Error
+}
+
 // UpdateQuestion gets a question and updates it in database
 func (r *QuestionRepository) UpdateQuestion(question *model.Question) error {
+	question.UpdatedAt = time.Now()
 	return r.db.Save(&question).Error
 }
 

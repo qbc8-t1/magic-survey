@@ -14,4 +14,9 @@ func RegisterQuestionRoutes(app *fiber.App, s *common.Server) {
 	questionService := service.NewQuestionService(questionRepo)
 
 	app.Get("/hello", handlers.HelloHandlerQuestion(questionService))
+	app.Post("/create-question")
+	app.Get("/get-question")
+	app.Put("/update-question")
+	app.Delete("/delete-question")
+	app.Get("/get-all-questions")
 }

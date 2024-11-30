@@ -21,6 +21,7 @@ type Question struct {
 	DependsOnQuestionID *uint
 	DependsOnOptionID   *uint
 	CreatedAt           time.Time
+	UpdatedAt           time.Time
 	Questionnaire       Questionnaire `gorm:"foreignKey:QuestionnaireID"`
 	Options             []Option      `gorm:"foreignKey:QuestionID"`
 }
