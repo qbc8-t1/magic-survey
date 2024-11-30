@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-var jwtSecret = []byte("test")
-
 func CreateToken(secret []byte, claims *UserClaims) (string, error) {
 	return jwt2.NewWithClaims(jwt2.SigningMethodHS512, claims).SignedString(secret)
 }
