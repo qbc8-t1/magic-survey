@@ -37,39 +37,6 @@ type User struct {
 	SuperAdmin     *SuperAdmin     `gorm:"foreignKey:UserID"`
 }
 
-func (u *User) GetFullName() string {
-	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
-}
-
-// CreateUserDTO represents the data needed to create a new user
-type CreateUserDTO struct {
-	FirstName    string `json:"first_name" validate:"required"`
-	LastName     string `json:"last_name" validate:"required"`
-	Email        string `json:"email" validate:"required,email"`
-	NationalCode string `json:"national_code" validate:"required"`
-	Password     string `json:"password" validate:"required"`
-}
-
-// UpdateUserDTO represents the data needed to update an existing user
-type UpdateUserDTO struct {
-	FirstName    string `json:"last_name,omitempty"`
-	LastName     string `json:"first_name,omitempty"`
-	Email        string `json:"email,omitempty" validate:"email"`
-	NationalCode string `json:"national_code,omitempty"`
-	Password     string `json:"password,omitempty"`
-}
-
-type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
-
-type AuthResponse struct {
-	AccessToken   string
-	RefreshToken  string
-	TwoFACodeSent bool
-}
-
 // TwoFACode stores 2FA codes for users
 type TwoFACode struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement"`
@@ -78,6 +45,39 @@ type TwoFACode struct {
 	ExpiresAt time.Time `gorm:"not null"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+// CreateUserDTO represents the data needed to create a new user
+type CreateUserDTO struct {
+	FirstName    string     `json:"first_name" validate:"required"`
+	LastName     string     `json:"last_name" validate:"required"`
+	Email        string     `json:"email" validate:"required,email"`
+	NationalCode string     `json:"national_code" validate:"required"`
+	Password     string     `json:"password" validate:"required"`
+	Gender       GenderEnum `json:"gender" validate:"required,oneof=male female"`
+}
+
+// UpdateUserDTO represents the data needed to update an existing user
+type UpdateUserDTO struct {
+	FirstName    *string     `json:"first_name,omitempty"`
+	LastName     *string     `json:"last_name,omitempty"`
+	Email        *string     `json:"email,omitempty" validate:"email"`
+	NationalCode *string     `json:"national_code,omitempty"`
+	Password     *string     `json:"password,omitempty"`
+	Gender       *GenderEnum `json:"gender,omitempty" validate:"omitempty,oneof=male female"`
+}
+
+// LoginRequest represents user login data
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+// AuthResponse represents authentication responses
+type AuthResponse struct {
+	AccessToken   string `json:"access_token"`
+	RefreshToken  string `json:"refresh_token"`
+	TwoFACodeSent bool   `json:"two_fa_code_sent"`
 }
 
 // Verify2FACodeRequest validates 2FA code

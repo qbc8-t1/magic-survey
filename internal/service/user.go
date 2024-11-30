@@ -62,7 +62,6 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 	user.UpdatedAt = time.Now()
 	user.IsActive = false
 
-	fmt.Println(user)
 	switch user.Gender {
 	case "male":
 		user.Gender = model.Male
