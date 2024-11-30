@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// QuestionRoutes registers routes related to question management
 func QuestionRoutes(app *fiber.App, s *common.Server) {
 	questionRepo := repository.NewQuestionRpository(s.DB)
 	questionService := service.NewQuestionService(questionRepo)

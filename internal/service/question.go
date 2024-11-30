@@ -10,6 +10,7 @@ type QuestionService struct {
 	repo domain_repository.IQuestionRepository
 }
 
+// NewQuestionService creates a new QuestionService object
 func NewQuestionService(domain_repository.IQuestionRepository) IQuestionService {
 	return &QuestionService{}
 }

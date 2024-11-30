@@ -7,27 +7,33 @@ import (
 )
 
 type QuestionRepository struct {
+	// dependency injection
 	db *gorm.DB
 }
 
+// NewQuestionRepository creates a new instance of QuestionRepository
 func NewQuestionRpository(db *gorm.DB) domain_repository.IQuestionRepository {
 	return &QuestionRepository{db: db}
 }
 
-func (r *QuestionRepository) CreateQuestion(question model.Question) error {
+// CreateQuestion adds a new question to the database
+func (r *QuestionRepository) CreateQuestion(question *model.Question) error {
 	return r.db.Create(&question).Error
 }
 
-func (r *QuestionRepository) GetQuestionById(ids []uint) (*model.Question, error) {
+// GetQuestionByID gets a question from database based on its ID
+func (r *QuestionRepository) GetQuestionByID(id uint) (*model.Question, error) {
 	var question model.Question
-	result := r.db.First(&question, ids)
+	result := r.db.First(&question, id)
 	return &question, result.Error
 }
 
-func (r *QuestionRepository) UpdateQuestion(question model.Question) error {
+// UpdateQuestion gets a question and updates it in database
+func (r *QuestionRepository) UpdateQuestion(question *model.Question) error {
 	return r.db.Save(&question).Error
 }
 
+// DeleteQuestion deletes a question from database
 func (r *QuestionRepository) DeleteQuestion(id uint) error {
 	return r.db.Delete(&model.Question{}, id).Error
 }
