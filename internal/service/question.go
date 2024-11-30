@@ -11,6 +11,6 @@ type QuestionService struct {
 }
 
 // NewQuestionService creates a new QuestionService object
-func NewQuestionService(domain_repository.IQuestionRepository) IQuestionService {
+func NewQuestionService(domain_repository.IQuestionRepository) *QuestionService {
 	return &QuestionService{}
 }
