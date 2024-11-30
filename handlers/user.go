@@ -1,19 +1,12 @@
 package handlers
 
 import (
+	"errors"
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
-
-// 1. +get data
-// 2. +init db connection
-// 3. password hashing (add salt row in db)
-// 4. signup
-// 5. login
-// 6. setup SMTP server for sending email
-// 7. send verification code
 
 func UserCreate(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -27,11 +20,48 @@ func UserCreate(userService service.UserService) fiber.Handler {
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
-		createdUser, err := userService.CreateUser(user)
+		tokens, err := userService.CreateUser(user)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "couldnt create the user", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
-		return c.Status(fiber.StatusCreated).JSON(model.ToUserResponse(createdUser))
+		return response.Success(c, fiber.StatusCreated, "User Created", tokens)
+	}
+}
+
+// Verify2FACode handles the verification of the 2FA code
+func Verify2FACode(userService service.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var req model.Verify2FACodeRequest
+		if err := c.BodyParser(&req); err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "Invalid request payload", err)
+		}
+
+		tokens, err := userService.Verify2FACode(req.Email, req.Code)
+		if err != nil {
+			if errors.Is(err, service.ErrInvalid2FACode) {
+				return response.Error(c, fiber.StatusUnauthorized, service.ErrInvalid2FACode.Error(), nil)
+			}
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
+		}
+
+		return response.Success(c, fiber.StatusOK, "2FA verification successful", tokens)
+	}
+}
+
+func Login(userService service.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var req model.LoginRequest
+		if err := c.BodyParser(&req); err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+		}
+
+		tokens, err := userService.LoginUser(&req)
+
+		if errors.Is(err, service.ErrWrongEmailPass) {
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+
+		return response.Success(c, fiber.StatusOK, "Login successful", tokens)
 	}
 }

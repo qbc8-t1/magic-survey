@@ -2,9 +2,9 @@ package utils
 
 import "regexp"
 
-// IsValidEmail checks if an email address is in a valid format.
+// IsValidEmail checks if an mail address is in a valid format.
 func IsValidEmail(email string) bool {
-	// Simple email regex for validation
+	// Simple mail regex for validation
 	regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(regex)
 	return re.MatchString(email)
