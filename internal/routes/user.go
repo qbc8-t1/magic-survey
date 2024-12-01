@@ -13,7 +13,7 @@ import (
 func RegisterUserRoutes(auth fiber.Router, s *common.Server) {
 	// ---------------- init requirements
 	userRepo := repository.NewUserRepository(s.DB)
-	userService := service.NewUserService(userRepo, s.Cfg.Secret, s.Cfg.AuthExpMinute, s.Cfg.AuthRefreshMinute, s.Cfg.Server.MailPass, s.Cfg.Server.FromMail)
+	userService := service.NewUserService(userRepo, s.Cfg.Secret, s.Cfg.AuthExpMinute, s.Cfg.AuthRefreshMinute, s.Cfg.Server.MailPass, s.Cfg.Server.FromMail, s.Cfg.Server.MaxSecondForChangeBirthdate)
 
 	// ---------------- middleware
 	withAuthMiddleware := middleware.WithAuthMiddleware(s.DB, s.Cfg.Secret)
@@ -26,5 +26,7 @@ func RegisterUserRoutes(auth fiber.Router, s *common.Server) {
 	auth.Post("login", handlers.Login(*userService))
 
 	// with auth
-	auth.Get("profile", withAuthMiddleware, handlers.Profile(*userService))
+	auth.Get("profile", withAuthMiddleware, handlers.ShowProfile(*userService))
+	auth.Put("profile", withAuthMiddleware, handlers.UpdateProfile(*userService))
+	auth.Post("credit", withAuthMiddleware, handlers.IncreaseCredit(*userService))
 }

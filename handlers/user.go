@@ -27,7 +27,7 @@ func ShowUser(userService service.UserService) fiber.Handler {
 	}
 }
 
-func Profile(userService service.UserService) fiber.Handler {
+func ShowProfile(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// read user from withAuth middleware
 		user := c.Locals("user").(model.User)
@@ -38,6 +38,58 @@ func Profile(userService service.UserService) fiber.Handler {
 		}
 
 		return response.Success(c, fiber.StatusCreated, "User profile found", res)
+	}
+}
+
+func UpdateProfile(userService service.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// base validation
+		var dto model.UpdateUserDTO
+		if err := c.BodyParser(&dto); err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
+		}
+
+		// all validation params
+		user := c.Locals("user").(model.User)
+		newUser := model.ToUserModelForUpdate(user, &dto)
+		err := newUser.Validate()
+		if err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
+		}
+
+		// call service
+
+		res, err := userService.UpdateUser(&user, &newUser)
+
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
+		}
+
+		return response.Success(c, fiber.StatusCreated, "User updated successfully", res)
+	}
+}
+
+func IncreaseCredit(userService service.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var dto model.IncreaseCreditDTO
+		if err := c.BodyParser(&dto); err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
+		}
+
+		value, err := strconv.Atoi(dto.Value)
+		if err != nil || value <= 0 || value > 100000000 {
+			return response.Error(c, fiber.StatusBadRequest, "Invalid value, it must be a positive integer", err)
+		}
+		// all validation params
+		user := c.Locals("user").(model.User)
+
+		res, err := userService.IncreaseCredit(&user, int64(value))
+
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
+		}
+
+		return response.Success(c, fiber.StatusCreated, "User updated successfully", res)
 	}
 }
 

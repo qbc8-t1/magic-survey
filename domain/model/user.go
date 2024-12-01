@@ -55,16 +55,25 @@ type CreateUserDTO struct {
 	NationalCode string     `json:"national_code" validate:"required"`
 	Password     string     `json:"password" validate:"required"`
 	Gender       GenderEnum `json:"gender" validate:"required,oneof=male female"`
+	Birthdate    string     `json:"birthdate,required"`
+	City         string     `json:"city,required"`
 }
 
 // UpdateUserDTO represents the data needed to update an existing user
 type UpdateUserDTO struct {
-	FirstName    *string     `json:"first_name,omitempty"`
-	LastName     *string     `json:"last_name,omitempty"`
-	Email        *string     `json:"email,omitempty" validate:"email"`
-	NationalCode *string     `json:"national_code,omitempty"`
-	Password     *string     `json:"password,omitempty"`
-	Gender       *GenderEnum `json:"gender,omitempty" validate:"omitempty,oneof=male female"`
+	FirstName string `json:"first_name,required"`
+	LastName  string `json:"last_name,required"`
+	Birthdate string `json:"birthdate,required"`
+	City      string `json:"city,required"`
+	//Gender    *GenderEnum `json:"gender,omitempty" validate:"omitempty,oneof=male female"`
+	//Email        *string     `json:"email,omitempty" validate:"email"`
+	//NationalCode *string     `json:"national_code,omitempty"`
+	//Password     *string     `json:"password,omitempty"`
+}
+
+// IncreaseCreditDTO represents the data needed to update credit user
+type IncreaseCreditDTO struct {
+	Value string `json:"value,required"`
 }
 
 // LoginRequest represents user login data
@@ -90,9 +99,14 @@ type Verify2FACodeRequest struct {
 type UserResponse struct {
 	ID           UserId `json:"id"`
 	Name         string `json:"name"`
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
 	Email        string `json:"email"`
 	NationalCode string `json:"national_code"`
 	Gender       string `json:"gender"`
+	Birthdate    string `json:"birthdate"`
+	City         string `json:"city"`
+	Credit       int64  `json:"credit"`
 }
 
 // PublicUserResponse represents the user data returned in API responses
@@ -112,9 +126,14 @@ func ToUserResponse(user *User) *UserResponse {
 	return &UserResponse{
 		ID:           UserId(user.ID),
 		Name:         user.GetFullName(),
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
 		Email:        user.Email,
 		NationalCode: user.NationalCode,
 		Gender:       string(user.Gender),
+		City:         user.City,
+		Birthdate:    user.Birthdate,
+		Credit:       user.Credit,
 	}
 }
 
@@ -139,8 +158,17 @@ func ToUserModel(dto *CreateUserDTO) *User {
 	}
 }
 
+// ToUserModelForUpdate maps a UpdateUserDTO to a User model
+func ToUserModelForUpdate(user User, dto *UpdateUserDTO) User {
+	user.FirstName = dto.FirstName
+	user.LastName = dto.LastName
+	user.Birthdate = dto.Birthdate
+	user.City = dto.City
+	return user
+}
+
 // UpdateUserModel updates the fields of a User model from an UpdateUserDTO
-func UpdateUserModel(user *User, dto *UpdateUserDTO) {
+/*func UpdateUserModel(user *User, dto *UpdateUserDTO) {
 	if dto.FirstName != nil {
 		user.FirstName = *dto.FirstName
 	}
@@ -159,7 +187,7 @@ func UpdateUserModel(user *User, dto *UpdateUserDTO) {
 	if dto.Gender != nil {
 		user.Gender = *dto.Gender
 	}
-}
+}*/
 
 // Validate checks the User struct for common validation rules.
 func (u *User) Validate() error {
@@ -178,5 +206,15 @@ func (u *User) Validate() error {
 	if len(u.Password) < 6 {
 		return errors.New("password must be at least 6 characters long")
 	}
+	isValid, message := utils.IsValidBirthdate(u.Birthdate)
+	if !isValid {
+		return errors.New("birthdate - " + message)
+	}
+
+	isValid, message = utils.IsValidCity(u.City)
+	if !isValid {
+		return errors.New("city - " + message)
+	}
+
 	return nil
 }
