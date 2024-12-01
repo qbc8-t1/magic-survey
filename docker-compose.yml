@@ -1,4 +1,16 @@
 services:
+  elk:
+    image: sebp/elk
+    container_name: elk
+    ports:
+      - "5601:5601"  # Kibana
+      - "9200:9200"  # Elasticsearch
+      - "5044:5044"  # Logstash
+    environment:
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"  # Adjust JVM heap size for Elasticsearch
+    volumes:
+      - elk-data:/var/lib/elasticsearch  # Persistent storage for Elasticsearch data
+      - ./logstash.conf:/etc/logstash/conf.d/logstash.conf:ro
   app:
     build:
       context: .
@@ -24,3 +36,4 @@ services:
 
 volumes:
   db_data:
+  elk-data:
