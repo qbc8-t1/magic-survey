@@ -25,6 +25,7 @@ var (
 	ErrCantSaveCode       = errors.New("cant save code")
 	ErrCantDeleteCode     = errors.New("cant delete code")
 	ErrCantGetCode        = errors.New("cant get code")
+	ErrUserIdNotFound     = errors.New("user id not found")
 )
 
 type UserService struct {
@@ -94,6 +95,15 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 		RefreshToken:  "",
 		TwoFACodeSent: true,
 	}, nil
+}
+
+// Show User
+func (s *UserService) ShowUser(id int) (*model.PublicUserResponse, error) {
+	user, err := s.repo.GetUserByID(id)
+	if err != nil {
+		return nil, ErrUserIdNotFound
+	}
+	return model.ToPublicUserResponse(user), nil
 }
 
 // LoginUser handles user logging in logics

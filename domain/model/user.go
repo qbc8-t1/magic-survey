@@ -95,6 +95,13 @@ type UserResponse struct {
 	Gender       string `json:"gender"`
 }
 
+// PublicUserResponse represents the user data returned in API responses
+type PublicUserResponse struct {
+	ID     UserId `json:"id"`
+	Name   string `json:"name"`
+	Gender string `json:"gender"`
+}
+
 // GetFullName returns the full name of a user
 func (u *User) GetFullName() string {
 	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
@@ -108,6 +115,15 @@ func ToUserResponse(user *User) *UserResponse {
 		Email:        user.Email,
 		NationalCode: user.NationalCode,
 		Gender:       string(user.Gender),
+	}
+}
+
+// ToPublicUserResponse maps a User model to a UserResponse DTO
+func ToPublicUserResponse(user *User) *PublicUserResponse {
+	return &PublicUserResponse{
+		ID:     UserId(user.ID),
+		Name:   user.GetFullName(),
+		Gender: string(user.Gender),
 	}
 }
 

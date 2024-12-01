@@ -13,6 +13,8 @@ func RegisterUserRoutes(auth fiber.Router, s *common.Server) {
 	userRepo := repository.NewUserRepository(s.DB)
 	userService := service.NewUserService(userRepo, s.Cfg.Secret, s.Cfg.AuthExpMinute, s.Cfg.AuthRefreshMinute, s.Cfg.Server.MailPass)
 
+	//auth.Get("profile", handlers.ShowUser(*userService))
+	auth.Get("user/:id", handlers.ShowUser(*userService))
 	auth.Post("signup", handlers.UserCreate(*userService))
 	auth.Post("verify", handlers.Verify2FACode(*userService))
 	auth.Post("login", handlers.Login(*userService))
