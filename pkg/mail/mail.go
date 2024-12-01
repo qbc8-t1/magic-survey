@@ -5,8 +5,8 @@ import (
 	"net/smtp"
 )
 
-func SendMail(pass, to, subject, body string) error {
-	from := "mahdimomeni6@gmail.com"
+func SendMail(from, pass, to, subject, body string) error {
+	//from := "mahdimomeni6@gmail.com"
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 
