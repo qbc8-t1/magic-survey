@@ -13,35 +13,30 @@ func HelloQuestionHandler(service service.IQuestionService) func(c *fiber.Ctx) e
 }
 
 func CreateQuestionHandler(service service.IQuestionService) func(c *fiber.Ctx) error {
-	// closure
 	return func(c *fiber.Ctx) error {
 		return nil
 	}
 }
 
 func GetQuestionHandler(service service.IQuestionService) func(c *fiber.Ctx) error {
-	// closure
 	return func(c *fiber.Ctx) error {
 		return nil
 	}
 }
 
 func GetQuestionsHandler(service service.IQuestionService) func(c *fiber.Ctx) error {
-	// closure
 	return func(c *fiber.Ctx) error {
 		return nil
 	}
 }
 
 func UpdateQuestionHandler(service service.IQuestionService) func(c *fiber.Ctx) error {
-	// closure
 	return func(c *fiber.Ctx) error {
 		return nil
 	}
 }
 
 func DeleteQuestionHandler(service service.IQuestionService) func(c *fiber.Ctx) error {
-	// closure
 	return func(c *fiber.Ctx) error {
 		return nil
 	}

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // QuestionsTypeEnum represents the questions_type_enum type in Postgres
@@ -16,7 +18,7 @@ const (
 
 // Question represents the questions table
 type Question struct {
-	ID                  uint              `gorm:"primaryKey"`
+	ID                  uuid.UUID         `gorm:"primaryKey"`
 	Title               string            `gorm:"size:255;not null"`
 	Type                QuestionsTypeEnum `gorm:"type:questions_type_enum;not null"`
 	QuestionnaireID     uint
@@ -39,7 +41,7 @@ type CreateQuestionDTO struct {
 	FilePath            *string           `json:"file_path" validate:"omitempty"`
 	DependsOnQuestionID *uint             `json:"depends_on_question_id" validate:"omitempty"`
 	DependsOnOptionID   *uint             `json:"depends_on_option_id" validate:"omitempty"`
-	Options             []Option          `json:"options,omitempty"` // Nested validation if needed
+	Options             []Option          `json:"options,omitempty"`
 }
 
 // UpdateQuestionDTO represents the data needed to update an existing question
@@ -56,7 +58,7 @@ type UpdateQuestionDTO struct {
 
 // QuestionResponse represents the question data returned in API responses
 type QuestionResponse struct {
-	ID                  uint              `json:"id"`
+	ID                  uuid.UUID         `json:"id"`
 	Title               string            `json:"title"`
 	Type                QuestionsTypeEnum `json:"type"`
 	QuestionnaireID     uint              `json:"questionnaire_id"`

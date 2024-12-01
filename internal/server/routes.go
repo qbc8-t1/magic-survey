@@ -10,8 +10,10 @@ import (
 func registerRoutes(app *fiber.App, s *common.Server) {
 	app.Get("/health", handlers.HealthCheck)
 
-	api := app.Group("/api")
-	auth := api.Group("/v1/auth")
+	api := app.Group("/api/v1")
+	auth := api.Group("/auth")
+	questions := api.Group("/questions")
 
 	routes.RegisterUserRoutes(auth, s)
+	routes.RegisterQuestionRoutes(questions, s)
 }

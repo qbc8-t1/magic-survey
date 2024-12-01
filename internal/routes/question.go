@@ -9,14 +9,14 @@ import (
 )
 
 // QuestionRoutes registers routes related to question management
-func RegisterQuestionRoutes(app *fiber.App, s *common.Server) {
+func RegisterQuestionRoutes(api fiber.Router, s *common.Server) {
 	questionRepo := repository.NewQuestionRpository(s.DB)
 	questionService := service.NewQuestionService(questionRepo)
 
-	app.Get("/hello", handlers.HelloQuestionHandler(questionService))
-	app.Post("/questions", handlers.CreateQuestionHandler(questionService))
-	app.Get("/questions/:id", handlers.GetQuestionHandler(questionService))
-	app.Get("/questions", handlers.GetQuestionsHandler(questionService))
-	app.Put("/questions/:id", handlers.UpdateQuestionHandler(questionService))
-	app.Delete("/questions/:id", handlers.DeleteQuestionHandler(questionService))
+	api.Get("/hello", handlers.HelloQuestionHandler(questionService))
+	api.Post("", handlers.CreateQuestionHandler(questionService))
+	api.Get("/:id", handlers.GetQuestionHandler(questionService))
+	api.Get("", handlers.GetQuestionsHandler(questionService))
+	api.Put("/:id", handlers.UpdateQuestionHandler(questionService))
+	api.Delete("/:id", handlers.DeleteQuestionHandler(questionService))
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -26,13 +27,13 @@ func (r *QuestionRepository) CreateQuestion(question *model.Question) error {
 }
 
 // GetQuestionByID gets a question from database based on its ID
-func (r *QuestionRepository) GetQuestionByID(id uint) (*model.Question, error) {
+func (r *QuestionRepository) GetQuestionByID(id uuid.UUID) (*model.Question, error) {
 	var question model.Question
 	result := r.db.First(&question, id)
 	return &question, result.Error
 }
 
-func (r *QuestionRepository) GetQuestionsByID(ids []uint) (*[]model.Question, error) {
+func (r *QuestionRepository) GetQuestionsByID(ids []uuid.UUID) (*[]model.Question, error) {
 	var questions []model.Question
 	result := r.db.Find(&questions, ids)
 	return &questions, result.Error
@@ -45,6 +46,6 @@ func (r *QuestionRepository) UpdateQuestion(question *model.Question) error {
 }
 
 // DeleteQuestion deletes a question from database
-func (r *QuestionRepository) DeleteQuestion(id uint) error {
+func (r *QuestionRepository) DeleteQuestion(id uuid.UUID) error {
 	return r.db.Delete(&model.Question{}, id).Error
 }
