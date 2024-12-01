@@ -1,20 +1,22 @@
 server:
-  host:
-  port:
+  host: "127.0.0.1"
+  port: "8080"
   mode:
   appVersion:
-  secret:
-  authExpMin:
-  authExpRefreshMin:
-  mailPass:
+  MailPass: "pass"
+  FromMail: "youremail@gmail.com"
+  Secret: "abc"
+  AuthExpMinute: 600
+  AuthRefreshMinute: 1200
+  MaxSecondForChangeBirthdate: 99400
 postgres:
-  host:
-  port:
-  user:
+  host: "127.0.0.1"
+  port: "5432"
+  user: "postgres"
   password:
-  dbname:
-  SslMode:
+  dbname: "golang_test"
+  SslMode: "disable"
 logger:
   level:
   encoding:
-  path:
+  path: "./log.log"
