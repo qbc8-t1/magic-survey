@@ -3,6 +3,10 @@ server:
   port:
   mode:
   appVersion:
+  secret:
+  authExpMin:
+  authExpRefreshMin:
+  mailPass:
 postgres:
   host:
   port:

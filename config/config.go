@@ -18,10 +18,14 @@ type Logger struct {
 	Path  string
 }
 type Server struct {
-	Host       string
-	Port       string
-	Mode       ServerMode
-	AppVersion string
+	Host              string
+	Port              string
+	Mode              ServerMode
+	AppVersion        string
+	Secret            string
+	AuthExpMinute     uint `json:"authExpMin"`
+	AuthRefreshMinute uint `json:"authExpRefreshMin"`
+	MailPass          string
 }
 
 type Postgres struct {

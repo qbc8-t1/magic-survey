@@ -6,10 +6,13 @@ toolchain go1.23.0
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/spf13/viper v1.19.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.29.0
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	gorm.io/driver/postgres v1.5.10
+	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.12
 )
 
@@ -33,6 +36,7 @@ require (
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-sqlite3 v1.14.24 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
@@ -46,7 +50,6 @@ require (
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/sync v0.9.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
