@@ -23,6 +23,20 @@ func ShowUser(userService service.UserService) fiber.Handler {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
+		return response.Success(c, fiber.StatusCreated, "User found", res)
+	}
+}
+
+func Profile(userService service.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// read user from withAuth middleware
+		user := c.Locals("user").(model.User)
+		res, err := userService.Profile(&user)
+
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
+		}
+
 		return response.Success(c, fiber.StatusCreated, "User profile found", res)
 	}
 }

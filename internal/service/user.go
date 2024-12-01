@@ -33,16 +33,18 @@ type UserService struct {
 	authSecret            string
 	expMin, refreshExpMin uint
 	mailPass              string
+	fromMail              string
 }
 
 // NewUserService creates a new instance of UserService
-func NewUserService(repo domain_repository.IUserRepository, authSecret string, expMin, refreshExpMin uint, mailPass string) *UserService {
+func NewUserService(repo domain_repository.IUserRepository, authSecret string, expMin, refreshExpMin uint, mailPass string, fromMail string) *UserService {
 	return &UserService{
 		repo:          repo,
 		authSecret:    authSecret,
 		expMin:        expMin,
 		refreshExpMin: refreshExpMin,
 		mailPass:      mailPass,
+		fromMail:      fromMail,
 	}
 }
 
@@ -79,7 +81,7 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 	}
 
 	twoFACode := utils.GenerateRandomCode()
-	err = mail.SendMail(s.mailPass, user.Email, "Your 2FA Code", fmt.Sprintf("Your 2FA code is: %s", twoFACode))
+	err = mail.SendMail(s.fromMail, s.mailPass, user.Email, "Your 2FA Code", fmt.Sprintf("Your 2FA code is: %s", twoFACode))
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +106,11 @@ func (s *UserService) ShowUser(id int) (*model.PublicUserResponse, error) {
 		return nil, ErrUserIdNotFound
 	}
 	return model.ToPublicUserResponse(user), nil
+}
+
+// Profile User
+func (s *UserService) Profile(user *model.User) (*model.UserResponse, error) {
+	return model.ToUserResponse(user), nil
 }
 
 // LoginUser handles user logging in logics
