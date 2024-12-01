@@ -13,10 +13,10 @@ func RegisterQuestionRoutes(app *fiber.App, s *common.Server) {
 	questionRepo := repository.NewQuestionRpository(s.DB)
 	questionService := service.NewQuestionService(questionRepo)
 
-	app.Get("/hello", handlers.HelloHandlerQuestion(questionService))
-	app.Post("/create-question")
-	app.Get("/get-question")
-	app.Put("/update-question")
-	app.Delete("/delete-question")
-	app.Get("/get-all-questions")
+	app.Get("/hello", handlers.HelloQuestionHandler(questionService))
+	app.Post("/questions", handlers.CreateQuestionHandler(questionService))
+	app.Get("/questions/:id", handlers.GetQuestionHandler(questionService))
+	app.Get("/questions", handlers.GetQuestionsHandler(questionService))
+	app.Put("/questions/:id", handlers.UpdateQuestionHandler(questionService))
+	app.Delete("/questions/:id", handlers.DeleteQuestionHandler(questionService))
 }
