@@ -1,6 +1,8 @@
 package model
 
 import (
+	"errors"
+	"strings"
 	"time"
 )
 
@@ -15,13 +17,13 @@ const (
 // Question represents the questions table
 type Question struct {
 	ID                  uint              `gorm:"primaryKey"`
-	Title               string            `gorm:"size:255"`
-	Type                QuestionsTypeEnum `gorm:"type:questions_type_enum"`
+	Title               string            `gorm:"size:255;not null"`
+	Type                QuestionsTypeEnum `gorm:"type:questions_type_enum;not null"`
 	QuestionnaireID     uint
 	Order               int
-	FilePath            string `gorm:"size:255"`
-	DependsOnQuestionID *uint
-	DependsOnOptionID   *uint
+	FilePath            *string `gorm:"size:255;default:null"`
+	DependsOnQuestionID *uint   `gorm:"default:null"`
+	DependsOnOptionID   *uint   `gorm:"default:null"`
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	Questionnaire       Questionnaire `gorm:"foreignKey:QuestionnaireID"`
@@ -31,62 +33,126 @@ type Question struct {
 // CreateQuestionDTO represents the data needed to create a new question
 type CreateQuestionDTO struct {
 	Title               string            `json:"title" validate:"required"`
-	Type                QuestionsTypeEnum `json:"type" validate:"required"`
+	Type                QuestionsTypeEnum `json:"type" validate:"required,oneof=multioption descriptive"`
 	QuestionnaireID     uint              `json:"questionnaire_id" validate:"required"`
 	Order               int               `json:"order" validate:"required"`
-	FilePath            string            `json:"file_path" validate:"required"`
-	DependsOnQuestionID *uint
-	DependsOnOptionID   *uint
-	Options             []Option
+	FilePath            *string           `json:"file_path" validate:"omitempty"`
+	DependsOnQuestionID *uint             `json:"depends_on_question_id" validate:"omitempty"`
+	DependsOnOptionID   *uint             `json:"depends_on_option_id" validate:"omitempty"`
+	Options             []Option          `json:"options,omitempty"` // Nested validation if needed
 }
 
 // UpdateQuestionDTO represents the data needed to update an existing question
 type UpdateQuestionDTO struct {
-	Title           string            `json:"title,omitempty"`
-	Type            QuestionsTypeEnum `json:"type,omitempty"`
-	QuestionnaireID uint              `json:"questionnaire_id,omitempty"`
-	Order           int               `json:"order,omitempty"`
-	FilePath        string            `json:"file_path,omitempty"`
+	Title               *string            `json:"title,omitempty"`
+	Type                *QuestionsTypeEnum `json:"type,omitempty"`
+	QuestionnaireID     *uint              `json:"questionnaire_id,omitempty"`
+	Order               *int               `json:"order,omitempty"`
+	FilePath            *string            `json:"file_path,omitempty"`
+	DependsOnQuestionID *uint              `json:"depends_on_question_id,omitempty"`
+	DependsOnOptionID   *uint              `json:"depends_on_option_id,omitempty"`
+	Options             *[]Option          `json:"options,omitempty"`
 }
 
 // QuestionResponse represents the question data returned in API responses
 type QuestionResponse struct {
-	ID                  uint
-	Title               string
-	Type                QuestionsTypeEnum
-	QuestionnaireID     uint
-	Order               int
-	FilePath            string
-	DependsOnQuestionID *uint
-	DependsOnOptionID   *uint
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
-	Questionnaire       Questionnaire
-	Options             []Option
+	ID                  uint              `json:"id"`
+	Title               string            `json:"title"`
+	Type                QuestionsTypeEnum `json:"type"`
+	QuestionnaireID     uint              `json:"questionnaire_id"`
+	Order               int               `json:"order"`
+	FilePath            *string           `json:"file_path"`
+	DependsOnQuestionID *uint             `json:"depends_on_question_id"`
+	DependsOnOptionID   *uint             `json:"depends_on_option_id"`
+	CreatedAt           time.Time         `json:"created_at"`
+	UpdatedAt           time.Time         `json:"updated_at"`
+	Options             []Option          `json:"options"`
 }
 
 // ToQuestionResponse maps a Question model to a QuestionResponseDTO
 func ToQuestionResponse(question *Question) *QuestionResponse {
 	return &QuestionResponse{
-		ID:              question.ID,
-		Title:           question.Title,
-		Type:            question.Type,
-		QuestionnaireID: question.QuestionnaireID,
+		ID:                  question.ID,
+		Title:               question.Title,
+		Type:                question.Type,
+		QuestionnaireID:     question.QuestionnaireID,
+		Order:               question.Order,
+		FilePath:            question.FilePath,
+		DependsOnQuestionID: question.DependsOnQuestionID,
+		DependsOnOptionID:   question.DependsOnOptionID,
+		CreatedAt:           question.CreatedAt,
+		UpdatedAt:           question.UpdatedAt,
+		Options:             question.Options,
 	}
 }
 
 // ToQuestionModel maps a CreateQuestionDTO to a Question model
 func ToQuestionModel(questionDTO *CreateQuestionDTO) *Question {
 	return &Question{
-		Title:           questionDTO.Title,
-		Type:            questionDTO.Type,
-		QuestionnaireID: questionDTO.QuestionnaireID,
-		Order:           questionDTO.Order,
-		FilePath:        questionDTO.FilePath,
+		Title:               questionDTO.Title,
+		Type:                questionDTO.Type,
+		QuestionnaireID:     questionDTO.QuestionnaireID,
+		Order:               questionDTO.Order,
+		FilePath:            questionDTO.FilePath,
+		DependsOnQuestionID: questionDTO.DependsOnQuestionID,
+		DependsOnOptionID:   questionDTO.DependsOnOptionID,
+		Options:             questionDTO.Options,
 	}
 }
 
-// UpdateQuestionModel updates the fields of a Qestion model from an UpdateQuestionDTO
-// func UpdateQuestionModel(question *Question, questionDTO *UpdadteQuestionDTO) {
+// UpdateQuestionModel updates the fields of a Question model from an UpdateQuestionDTO
+func UpdateQuestionModel(question *Question, questionDTO *UpdateQuestionDTO) {
+	if questionDTO.Title != nil {
+		question.Title = *questionDTO.Title
+	}
+	if questionDTO.Type != nil {
+		question.Type = *questionDTO.Type
+	}
+	if questionDTO.QuestionnaireID != nil {
+		question.QuestionnaireID = *questionDTO.QuestionnaireID
+	}
+	if questionDTO.Order != nil {
+		question.Order = *questionDTO.Order
+	}
+	if questionDTO.FilePath != nil {
+		question.FilePath = questionDTO.FilePath
+	}
+	if questionDTO.DependsOnQuestionID != nil {
+		question.DependsOnQuestionID = questionDTO.DependsOnQuestionID
+	}
+	if questionDTO.DependsOnOptionID != nil {
+		question.DependsOnOptionID = questionDTO.DependsOnOptionID
+	}
+	if questionDTO.Options != nil {
+		question.Options = *questionDTO.Options
+	}
+}
 
-// }
+// Validate validates a Question object
+func (question *Question) Validate() error {
+	// Validate Title
+	if strings.TrimSpace(question.Title) == "" {
+		return errors.New("title is required")
+	}
+
+	// Validate Type
+	if question.Type != QuestionsTypeMultioption && question.Type != QuestionsTypeDescriptive {
+		return errors.New("invalid question type")
+	}
+
+	// Validate QuestionnaireID
+	if question.QuestionnaireID == 0 {
+		return errors.New("questionnaire_id is required")
+	}
+
+	// Validate Order
+	if question.Order <= 0 {
+		return errors.New("order must be greater than zero")
+	}
+
+	// Conditional Validation for Options
+	if question.Type == QuestionsTypeMultioption && len(question.Options) == 0 {
+		return errors.New("options cannot be empty for multioption questions")
+	}
+	return nil
+}
