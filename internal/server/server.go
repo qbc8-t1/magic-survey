@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/QBC8-Team1/magic-survey/config"
@@ -20,7 +19,6 @@ func NewServer(cfg *config.Config) (*common.Server, error) {
 
 	db, err := db.InitDB(cfg, appLogger)
 	if err != nil {
-		fmt.Println(cfg)
 		appLogger.Panic("can't init the db connection")
 	}
 
