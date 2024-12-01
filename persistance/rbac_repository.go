@@ -33,6 +33,12 @@ func (rr *RbacRepo) IsUserExist(userID uint) error {
 	return err
 }
 
+func (rr RbacRepo) GetUserWithRoles(userID uint) (model.User, error) {
+	user := new(model.User)
+	err := rr.db.Preload("Roles").First(user, "id = ?", userID).Error
+	return *user, err
+}
+
 func (rr *RbacRepo) IsQuestionnaireExist(questionnaireID uint) error {
 	var questionnaire model.Questionnaire
 	err := rr.db.First(&questionnaire, "id = ?", questionnaireID).Error
@@ -62,10 +68,9 @@ func (rr *RbacRepo) FindPermission(permissionName string) (uint, error) {
 }
 
 func (rr *RbacRepo) GetUserRoles(userID uint) ([]model.Role, error) {
-	var roles []model.Role
-	rr.db.Find(&roles)
-
-	return roles, nil
+	var user = new(model.User)
+	err := rr.db.Preload("Roles").First(user, "id = ?", userID).Error
+	return user.Roles, err
 }
 
 func (rr *RbacRepo) HasPermission(questionnaireID uint, permissionID uint) error {
@@ -138,7 +143,7 @@ func (rr *RbacRepo) MakeQuestionnaire(questionnaire model.Questionnaire) (model.
 	return questionnaire, err
 }
 
-func (rr *RbacRepo) GetUser(userID uint) (model.User, error) {
+func (rr *RbacRepo) GetUserWithQuestionnaires(userID uint) (model.User, error) {
 	var user model.User
 	err := rr.db.Preload("Questionnaires").First(&user, "id = ?", userID).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -214,4 +219,21 @@ func (rr *RbacRepo) GetUserRolesWithPermissions(userID uint) ([]RoleWithPermissi
 	}
 
 	return rolesWithPermissions, nil
+}
+
+func (rr *RbacRepo) DeleteRolePermissions(roleID uint, questionnaireID uint, permissionID uint) error {
+	return rr.db.Delete(&model.RolePermission{}, "role_id = ? and questionnaire_id = ? and permission_id = ?", roleID, questionnaireID, permissionID).Error
+}
+
+func (rr *RbacRepo) FindRolePermission(roleID uint, questionnaireID uint, permissionID uint) (bool, error) {
+	rolePermission := new(model.RolePermission)
+	err := rr.db.First(rolePermission, "role_id = ? and questionnaire_id = ? and permission_id = ? and (expire_at IS NULL OR expire_at > NOW())", roleID, questionnaireID, permissionID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
 }

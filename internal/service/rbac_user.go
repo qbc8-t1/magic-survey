@@ -41,7 +41,7 @@ func MakeRandomNumber(max int) int {
 }
 
 func (o *RbacService) GetUser(userID uint) (model.User, error) {
-	return o.repo.GetUser(userID)
+	return o.repo.GetUserWithQuestionnaires(userID)
 }
 
 func (o *RbacService) GetUserRolesWithPermissions(userID uint) ([]repository.RoleWithPermissions, error) {

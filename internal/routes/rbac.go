@@ -14,12 +14,12 @@ func RegisterRbacRoutes(router fiber.Router, s *common.Server) {
 
 	// logged in user id here
 
+	router.Get("/can-do", handlers.CanDo(*rbacService))
 	router.Get("/permissions", handlers.GetAllPermissions(*rbacService))
 	router.Post("/:userid/give-permissions", handlers.GivePermissions(*rbacService))
 	router.Post("/make-fake-user", handlers.MakeFakeUser(*rbacService))
 	router.Post("/:userid/make-fake-questionnaire", handlers.MakeFakeQuestionnaire(*rbacService))
 	router.Get("/:userid", handlers.GetUser(*rbacService))
 	router.Get("/:userid/roles-with-permissions", handlers.GetUserRolesWithPermissions(*rbacService))
-	// router.Post("/:userid/revoke-permission", handlers.RevokePermission(rbacService))
-	// router.Post("/:userid/has-permission", handlers.HasPermission(rbacService))
+	router.Post("/:userid/revoke-permission", handlers.RevokePermission(*rbacService))
 }

@@ -5,10 +5,22 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type GivePermissionsBody struct {
+type GivePermissionsData struct {
 	UserID          uint                     `json:"user_id"`
 	QuestionnaireID uint                     `json:"questionnaire_id"`
 	Permissions     []service.PermissionType `json:"permissions"`
+}
+
+type RevokePermissionData struct {
+	UserID          uint   `json:"user_id"`
+	QuestionnaireID uint   `json:"questionnaire_id"`
+	PermissionName  string `json:"permission_name"`
+}
+
+type HasPermissionData struct {
+	UserID          uint   `json:"user_id"`
+	QuestionnaireID uint   `json:"questionnaire_id"`
+	PermissionName  string `json:"permission_name"`
 }
 
 func GetAllPermissions(rbacService service.RbacService) fiber.Handler {
@@ -25,8 +37,8 @@ func GivePermissions(rbacService service.RbacService) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		data := GivePermissionsBody{}
-		err = c.BodyParser(&data)
+		data := new(GivePermissionsData)
+		err = c.BodyParser(data)
 		if err != nil {
 			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
 		}
@@ -97,19 +109,50 @@ func GetUserRolesWithPermissions(rbacService service.RbacService) fiber.Handler 
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		c.JSON(roles)
+		if len(roles) == 0 {
+			return c.SendString("user doesn't have any roles")
+		}
+
+		return c.JSON(roles)
+	}
+}
+
+func RevokePermission(rbacService service.RbacService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		revokerUserID, err := c.ParamsInt("userid")
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		data := new(RevokePermissionData)
+		err = c.BodyParser(data)
+		if err != nil {
+			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+		}
+
+		err = rbacService.RevokePermission(uint(revokerUserID), data.UserID, data.QuestionnaireID, data.PermissionName)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		c.Status(fiber.StatusOK).SendString("permissions revoked from user")
 		return nil
 	}
 }
 
-// func RevokePermission(rbacService service.RbacService) fiber.Handler {
-// 	return func(c *fiber.Ctx) error {
-// 		return nil
-// 	}
-// }
+func CanDo(rbacService service.RbacService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		data := new(HasPermissionData)
+		err := c.BodyParser(data)
+		if err != nil {
+			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+		}
 
-// func HasPermission(rbacService service.RbacService) fiber.Handler {
-// 	return func(c *fiber.Ctx) error {
-// 		return nil
-// 	}
-// }
+		has, err := rbacService.CanDo(data.UserID, data.QuestionnaireID, data.PermissionName)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		return c.JSON(has)
+	}
+}

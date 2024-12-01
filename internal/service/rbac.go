@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	repository "github.com/QBC8-Team1/magic-survey/persistance"
 	"gorm.io/gorm"
 )
 
-var ErrorSelectedUsersSliceIsEmpty = errors.New("selected users slice is empty")
+var ErrorSelectedUsersIdsFieldIsRequired = errors.New("selected users ids field is required")
 
 type RbacService struct {
 	repo *repository.RbacRepo
@@ -25,9 +26,9 @@ func NewRbacService(repo *repository.RbacRepo) *RbacService {
 
 type PermissionType struct {
 	ID               uint
-	Name             string       `json:"name"`
-	ExpireDate       sql.NullTime `json:"expire_date"`
-	SelectedUsersIds []uint       `json:"selected_users_ids"`
+	Name             string `json:"name"`
+	ExpireDate       string `json:"expire_date"`
+	SelectedUsersIds []uint `json:"selected_users_ids"`
 }
 
 func (o *RbacService) GetAllPermissions() []string {
@@ -48,8 +49,13 @@ func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, que
 		return err
 	}
 
-	if err := o.CanGiveOrTakePermission(giverUserID, questionnaireID); err != nil {
+	can, err := o.CanDo(giverUserID, questionnaireID, model.PERMISSION_QUESTIONNAIRE_GIVE_OR_TAKE_PERMISSION)
+	if err != nil {
 		return err
+	}
+
+	if !can {
+		return model.ErrorUserCanNotDoThis
 	}
 
 	if err := o.repo.IsUserExist(receiverUserId); err != nil {
@@ -64,24 +70,25 @@ func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, que
 		}
 
 		if permission.Name == model.PERMISSION_QUESTIONNAIRE_SEE_SELECTED_USERS_ANSWERS && len(permission.SelectedUsersIds) == 0 {
-			return ErrorSelectedUsersSliceIsEmpty
+			return ErrorSelectedUsersIdsFieldIsRequired
 		}
 
 		roleName = makeAbbreviation(permission.Name) + "_"
 		permissions[index].ID = id
 	}
 
-	roleName = fmt.Sprintf("%s%d_%d_%d", roleName, questionnaireID, receiverUserId, giverUserID)
+	roleName = fmt.Sprintf("%s%d_%d_%d_%d", roleName, questionnaireID, receiverUserId, giverUserID, MakeRandomNumber(10000000))
 
-	err := o.repo.Transaction(func(tx *gorm.DB) error {
+	err = o.repo.Transaction(func(tx *gorm.DB) error {
 		roleId, err := o.repo.MakeNewRole(tx, roleName)
 		if err != nil {
 			return err // rollback will be triggered
 		}
 
 		for _, permission := range permissions {
-			o.TakePermission(receiverUserId, questionnaireID, permission.Name)
-			rolePermissionID, err := o.repo.MakeRolePermission(tx, roleId, questionnaireID, permission.ID, permission.ExpireDate)
+			o.RevokePermission(giverUserID, receiverUserId, questionnaireID, permission.Name)
+
+			rolePermissionID, err := o.repo.MakeRolePermission(tx, roleId, questionnaireID, permission.ID, ParseAsSqlNullTime(permission.ExpireDate))
 			if err != nil {
 				return err // rollback will be triggered
 			}
@@ -105,6 +112,25 @@ func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, que
 	return err
 }
 
+func ParseAsSqlNullTime(stringDate string) sql.NullTime {
+	if stringDate != "" {
+
+		location, err := time.LoadLocation("Asia/Tehran")
+		if err != nil {
+			return sql.NullTime{Valid: false}
+		}
+
+		t, err := time.ParseInLocation("2006-01-02 15:04:05", stringDate, location)
+		if err != nil {
+			return sql.NullTime{Valid: false}
+		}
+
+		return sql.NullTime{Time: t, Valid: true}
+	} else {
+		return sql.NullTime{Valid: false}
+	}
+}
+
 func makeAbbreviation(name string) string {
 	result := ""
 	parts := strings.Split(name, "_")
@@ -114,37 +140,86 @@ func makeAbbreviation(name string) string {
 	return result
 }
 
-func (o *RbacService) CanGiveOrTakePermission(userID uint, questionnaireID uint) error {
+func (o *RbacService) CanDo(userID uint, questionnaireID uint, permissionName string) (bool, error) {
+	// Todo - check if user has super admin role
+
 	err := o.repo.IsOwnerOfQuestionnaire(userID, questionnaireID)
 	if err == nil {
-		return nil
+		return true, nil
 	}
 
-	return o.HasPermission(userID, questionnaireID, model.PERMISSION_QUESTIONNAIRE_GIVE_OR_TAKE_PERMISSION)
+	return o.HasPermission(userID, questionnaireID, permissionName)
 }
 
-func (o *RbacService) TakePermission(userID uint, questionnaireID uint, permissionName string) error {
-	// check if user is exist
-	// check if questionnaire is exist
-	// check if all permission is exist
-	// loop on all roles of user
-	// loop on all permissions of roles
-	// if permission was for questionnaireID
-	// delete permission
+func (o *RbacService) RevokePermission(revokerUserID uint, targetUserID uint, questionnaireID uint, permissionName string) error {
+	if err := o.repo.IsUserExist(revokerUserID); err != nil {
+		return err
+	}
+
+	if err := o.repo.IsQuestionnaireExist(questionnaireID); err != nil {
+		return err
+	}
+
+	can, err := o.CanDo(revokerUserID, questionnaireID, model.PERMISSION_QUESTIONNAIRE_GIVE_OR_TAKE_PERMISSION)
+	if err != nil {
+		return err
+	}
+
+	if !can {
+		return model.ErrorUserCanNotDoThis
+	}
+
+	targetUser, err := o.repo.GetUserWithRoles(targetUserID)
+	if err != nil {
+		return err
+	}
+
+	permissionID, err := o.repo.FindPermission(permissionName)
+	if err != nil {
+		return err
+	}
+
+	for _, role := range targetUser.Roles {
+		err = o.repo.DeleteRolePermissions(role.ID, questionnaireID, permissionID)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissionName string) error {
-	// 	// check if user is exist
-	// 	// check if questionnaire is exist
-	// 	// check if all permission is exist
-	// 	// loop on all roles of user
-	// 	// loop on all permissions of roles
-	// 	// if permission was for questionnaireID and expiretime wasn't reached
-	// 	// return true
+func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissionName string) (bool, error) {
+	user, err := o.repo.GetUserWithRoles(userID)
+	if err != nil {
+		return false, err
+	}
 
-	// return false
-	return model.ErrorNotHavePermission
+	if err := o.repo.IsQuestionnaireExist(questionnaireID); err != nil {
+		return false, err
+	}
+
+	permissionID, err := o.repo.FindPermission(permissionName)
+	if err != nil {
+		return false, err
+	}
+
+	foundRolePermission := false
+	for _, role := range user.Roles {
+		found, err := o.repo.FindRolePermission(role.ID, questionnaireID, permissionID)
+		if err != nil {
+			return false, err
+		}
+		if found {
+			foundRolePermission = true
+			break
+		}
+	}
+
+	if foundRolePermission {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (o *RbacService) GetUsersWithVisibleAnswers(questionnaireID uint, userID uint) []uint {
