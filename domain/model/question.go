@@ -4,8 +4,6 @@ import (
 	"errors"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // QuestionsTypeEnum represents the questions_type_enum type in Postgres
@@ -18,7 +16,7 @@ const (
 
 // Question represents the questions table
 type Question struct {
-	ID                  uuid.UUID         `gorm:"primaryKey"`
+	ID                  uint              `gorm:"primaryKey"`
 	Title               string            `gorm:"size:255;not null"`
 	Type                QuestionsTypeEnum `gorm:"type:questions_type_enum;not null"`
 	QuestionnaireID     uint
@@ -58,7 +56,7 @@ type UpdateQuestionDTO struct {
 
 // QuestionResponse represents the question data returned in API responses
 type QuestionResponse struct {
-	ID                  uuid.UUID         `json:"id"`
+	ID                  uint              `json:"id"`
 	Title               string            `json:"title"`
 	Type                QuestionsTypeEnum `json:"type"`
 	QuestionnaireID     uint              `json:"questionnaire_id"`
