@@ -11,7 +11,6 @@ type QuestionRepository struct {
 	db *gorm.DB
 }
 
-// TODO: do times in service
 // NewQuestionRepository creates a new instance of QuestionRepository
 func NewQuestionRpository(db *gorm.DB) domain_repository.IQuestionRepository {
 	return &QuestionRepository{db: db}

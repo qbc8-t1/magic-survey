@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
@@ -36,6 +37,7 @@ func NewQuestionService(repo domain_repository.IQuestionRepository) *QuestionSer
 
 func (s *QuestionService) CreateQuestion(questionDTO *model.CreateQuestionDTO) error {
 	question := model.ToQuestionModel(questionDTO)
+	question.CreatedAt = time.Now()
 	err := s.repo.CreateQuestion(question)
 	if err != nil {
 		return ErrQuestionOnCreate
@@ -69,7 +71,7 @@ func (s *QuestionService) UpdateQuestion(id uint, questionDTO *model.UpdateQuest
 		return ErrQuestionNotFound
 	}
 
-	// Map changes to the existing question
+	existingQuestion.UpdatedAt = time.Now()
 	model.UpdateQuestionModel(existingQuestion, questionDTO)
 
 	// Persist the changes
