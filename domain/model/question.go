@@ -86,6 +86,27 @@ func ToQuestionResponse(question *Question) *QuestionResponse {
 	}
 }
 
+func ToQuestionResponses(questions *[]Question) *[]QuestionResponse {
+	questionResponses := make([]QuestionResponse, 0)
+	for _, question := range *questions {
+		questionResponses = append(questionResponses, QuestionResponse{
+			ID:                  question.ID,
+			Title:               question.Title,
+			Type:                question.Type,
+			QuestionnaireID:     question.QuestionnaireID,
+			Order:               question.Order,
+			FilePath:            question.FilePath,
+			DependsOnQuestionID: question.DependsOnQuestionID,
+			DependsOnOptionID:   question.DependsOnOptionID,
+			CreatedAt:           question.CreatedAt,
+			UpdatedAt:           question.UpdatedAt,
+			Options:             question.Options,
+		})
+	}
+
+	return &questionResponses
+}
+
 // ToQuestionModel maps a CreateQuestionDTO to a Question model
 func ToQuestionModel(questionDTO *CreateQuestionDTO) *Question {
 	return &Question{
@@ -129,7 +150,7 @@ func UpdateQuestionModel(question *Question, questionDTO *UpdateQuestionDTO) {
 }
 
 // Validate validates a Question object
-func (question *Question) Validate() error {
+func (question *CreateQuestionDTO) Validate() error {
 	// Validate Title
 	if strings.TrimSpace(question.Title) == "" {
 		return errors.New("title is required")
@@ -154,5 +175,38 @@ func (question *Question) Validate() error {
 	if question.Type == QuestionsTypeMultioption && len(question.Options) == 0 {
 		return errors.New("options cannot be empty for multioption questions")
 	}
+	return nil
+}
+
+func (question *UpdateQuestionDTO) Validate() error {
+	// Validate Title if provided
+	if question.Title != nil && strings.TrimSpace(*question.Title) == "" {
+		return errors.New("title cannot be empty")
+	}
+
+	// Validate Type if provided
+	if question.Type != nil {
+		if *question.Type != QuestionsTypeMultioption && *question.Type != QuestionsTypeDescriptive {
+			return errors.New("invalid question type")
+		}
+	}
+
+	// Validate QuestionnaireID if provided
+	if question.QuestionnaireID != nil && *question.QuestionnaireID == 0 {
+		return errors.New("questionnaire_id must be greater than zero")
+	}
+
+	// Validate Order if provided
+	if question.Order != nil && *question.Order <= 0 {
+		return errors.New("order must be greater than zero")
+	}
+
+	// Conditional Validation for Options if provided and Type is multioption
+	if question.Type != nil && *question.Type == QuestionsTypeMultioption {
+		if question.Options != nil && len(*question.Options) == 0 {
+			return errors.New("options cannot be empty for multioption questions")
+		}
+	}
+
 	return nil
 }

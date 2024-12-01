@@ -11,7 +11,7 @@ type QuestionRepository struct {
 	db *gorm.DB
 }
 
-// TODO: do times and uuid in service
+// TODO: do times in service
 // NewQuestionRepository creates a new instance of QuestionRepository
 func NewQuestionRpository(db *gorm.DB) domain_repository.IQuestionRepository {
 	return &QuestionRepository{db: db}
@@ -19,7 +19,6 @@ func NewQuestionRpository(db *gorm.DB) domain_repository.IQuestionRepository {
 
 // CreateQuestion adds a new question to the database
 func (r *QuestionRepository) CreateQuestion(question *model.Question) error {
-	// question.CreatedAt = time.Now()
 	return r.db.Create(&question).Error
 }
 
@@ -30,15 +29,14 @@ func (r *QuestionRepository) GetQuestionByID(id uint) (*model.Question, error) {
 	return &question, result.Error
 }
 
-func (r *QuestionRepository) GetQuestionsByID(ids []uint) (*[]model.Question, error) {
+func (r *QuestionRepository) GetAllQuestions() (*[]model.Question, error) {
 	var questions []model.Question
-	result := r.db.Find(&questions, ids)
+	result := r.db.Find(&questions)
 	return &questions, result.Error
 }
 
 // UpdateQuestion gets a question and updates it in database
 func (r *QuestionRepository) UpdateQuestion(question *model.Question) error {
-	// question.UpdatedAt = time.Now()
 	return r.db.Save(&question).Error
 }
 
