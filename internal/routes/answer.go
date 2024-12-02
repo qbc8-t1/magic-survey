@@ -9,10 +9,13 @@ import (
 )
 
 // RegisterAnswerRoutes registers routes related to answer management
-func RegisterAnswerRoutes(app *fiber.App, s *common.Server) {
+func RegisterAnswerRoutes(api fiber.Router, s *common.Server) {
 	answerRepo := repository.NewAnswerRepository(s.DB)
 	answerService := service.NewAnswerService(answerRepo)
 
-	app.Get("/hello", handlers.HelloHandlerAnswer(answerService))
-
+	api.Get("/hello", handlers.HelloAnswerHandler(answerService))
+	api.Get("/:id", handlers.GetAnswerHandler(answerService))
+	api.Post("", handlers.CreateAnswerHandler(answerService))
+	api.Put("/:id", handlers.UpdateAnswerHandler(answerService))
+	api.Delete("/:id", handlers.DeleteAnswerHandler(answerService))
 }

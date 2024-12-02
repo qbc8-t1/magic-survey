@@ -6,6 +6,18 @@ import (
 	"time"
 )
 
+// Custom error messages
+var (
+	ErrInvalidTitle                   = errors.New("Title is required and cannot be empty")
+	ErrInvalidType                    = errors.New("Type is required and must be 'multioption' or 'descriptive'")
+	ErrInvalidQuestionnaireID         = errors.New("QuestionnaireID is required and must be greater than 0")
+	ErrInvalidOrder                   = errors.New("Order is required and must be a positive integer")
+	ErrInvalidFilePath                = errors.New("FilePath cannot be empty if provided")
+	ErrInvalidDependsOnQuestionID     = errors.New("DependsOnQuestionID must be greater than 0 if provided")
+	ErrInvalidDependsOnOptionID       = errors.New("DependsOnOptionID must be greater than 0 if provided")
+	ErrDependsOnOptionWithoutQuestion = errors.New("DependsOnQuestionID must be provided when DependsOnOptionID is provided")
+)
+
 // QuestionsTypeEnum represents the questions_type_enum type in Postgres
 type QuestionsTypeEnum string
 
@@ -19,30 +31,32 @@ type Question struct {
 	ID                  uint              `gorm:"primaryKey"`
 	Title               string            `gorm:"size:255;not null"`
 	Type                QuestionsTypeEnum `gorm:"type:questions_type_enum;not null"`
-	QuestionnaireID     uint
-	Order               int
-	FilePath            *string `gorm:"size:255;default:null"`
-	DependsOnQuestionID *uint   `gorm:"default:null"`
-	DependsOnOptionID   *uint   `gorm:"default:null"`
+	QuestionnaireID     uint              `gorm:"not null"`
+	Order               int               `gorm:"not null"`
+	FilePath            *string           `gorm:"size:255;default:null"`
+	DependsOnQuestionID *uint             `gorm:"default:null"`
+	DependsOnOptionID   *uint             `gorm:"default:null"`
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	Questionnaire       Questionnaire `gorm:"foreignKey:QuestionnaireID"`
-	Options             []Option      `gorm:"foreignKey:QuestionID"`
+	Options             *[]Option     `gorm:"foreignKey:QuestionID"`
 }
 
 // CreateQuestionDTO represents the data needed to create a new question
+// TODO: check for existence of Questionnaire
 type CreateQuestionDTO struct {
 	Title               string            `json:"title" validate:"required"`
 	Type                QuestionsTypeEnum `json:"type" validate:"required,oneof=multioption descriptive"`
 	QuestionnaireID     uint              `json:"questionnaire_id" validate:"required"`
 	Order               int               `json:"order" validate:"required"`
-	FilePath            *string           `json:"file_path" validate:"omitempty"`
-	DependsOnQuestionID *uint             `json:"depends_on_question_id" validate:"omitempty"`
-	DependsOnOptionID   *uint             `json:"depends_on_option_id" validate:"omitempty"`
-	Options             []Option          `json:"options,omitempty"`
+	FilePath            *string           `json:"file_path,omitempty" validate:"omitempty"`
+	DependsOnQuestionID *uint             `json:"depends_on_question_id,omitempty" validate:"omitempty"`
+	DependsOnOptionID   *uint             `json:"depends_on_option_id,omitempty" validate:"omitempty"`
+	Options             *[]Option         `json:"options,omitempty" validate:"omitempty"`
 }
 
 // UpdateQuestionDTO represents the data needed to update an existing question
+// TODO: check for existence of Questionnaire
 type UpdateQuestionDTO struct {
 	Title               *string            `json:"title,omitempty"`
 	Type                *QuestionsTypeEnum `json:"type,omitempty"`
@@ -51,7 +65,8 @@ type UpdateQuestionDTO struct {
 	FilePath            *string            `json:"file_path,omitempty"`
 	DependsOnQuestionID *uint              `json:"depends_on_question_id,omitempty"`
 	DependsOnOptionID   *uint              `json:"depends_on_option_id,omitempty"`
-	Options             *[]Option          `json:"options,omitempty"`
+	// TODO: check if you need to pass option_ids or options?
+	Options *[]Option `json:"options,omitempty"`
 }
 
 // QuestionResponse represents the question data returned in API responses
@@ -66,7 +81,8 @@ type QuestionResponse struct {
 	DependsOnOptionID   *uint             `json:"depends_on_option_id"`
 	CreatedAt           time.Time         `json:"created_at"`
 	UpdatedAt           time.Time         `json:"updated_at"`
-	Options             []Option          `json:"options"`
+	// TODO: add questionnaire?
+	Options *[]Option `json:"options"`
 }
 
 // ToQuestionResponse maps a Question model to a QuestionResponseDTO
@@ -145,68 +161,81 @@ func UpdateQuestionModel(question *Question, questionDTO *UpdateQuestionDTO) {
 		question.DependsOnOptionID = questionDTO.DependsOnOptionID
 	}
 	if questionDTO.Options != nil {
-		question.Options = *questionDTO.Options
+		question.Options = questionDTO.Options
 	}
 }
 
 // Validate validates a Question object
-func (question *CreateQuestionDTO) Validate() error {
-	// Validate Title
-	if strings.TrimSpace(question.Title) == "" {
-		return errors.New("title is required")
+func (dto *CreateQuestionDTO) Validate() error {
+	// Validate required fields
+	if strings.TrimSpace(dto.Title) == "" {
+		return ErrInvalidTitle
 	}
-
 	// Validate Type
-	if question.Type != QuestionsTypeMultioption && question.Type != QuestionsTypeDescriptive {
-		return errors.New("invalid question type")
+	if dto.Type != QuestionsTypeMultioption && dto.Type != QuestionsTypeDescriptive {
+		return ErrInvalidType
 	}
-
-	// Validate QuestionnaireID
-	if question.QuestionnaireID == 0 {
-		return errors.New("questionnaire_id is required")
+	if dto.QuestionnaireID == 0 {
+		return ErrInvalidQuestionnaireID
 	}
-
-	// Validate Order
-	if question.Order <= 0 {
-		return errors.New("order must be greater than zero")
+	if dto.Order <= 0 {
+		return ErrInvalidOrder
 	}
-
-	// Conditional Validation for Options
-	if question.Type == QuestionsTypeMultioption && len(question.Options) == 0 {
-		return errors.New("options cannot be empty for multioption questions")
+	// Validate FilePath (optional but cannot be empty if provided)
+	if dto.FilePath != nil && strings.TrimSpace(*dto.FilePath) == "" {
+		return ErrInvalidFilePath
 	}
+	// Validate DependsOnQuestionID (optional but must be > 0 if provided)
+	if dto.DependsOnQuestionID != nil && *dto.DependsOnQuestionID == 0 {
+		return ErrInvalidDependsOnQuestionID
+	}
+	// Validate DependsOnOptionID (optional but must be > 0 if provided)
+	if dto.DependsOnOptionID != nil && *dto.DependsOnOptionID == 0 {
+		return ErrInvalidDependsOnOptionID
+	}
+	// If DependsOnOptionID is provided, DependsOnQuestionID must also be provided
+	if dto.DependsOnOptionID != nil && dto.DependsOnQuestionID == nil {
+		return ErrDependsOnOptionWithoutQuestion
+	}
+	// Removed options validation
 	return nil
 }
 
-func (question *UpdateQuestionDTO) Validate() error {
-	// Validate Title if provided
-	if question.Title != nil && strings.TrimSpace(*question.Title) == "" {
-		return errors.New("title cannot be empty")
+func (dto *UpdateQuestionDTO) Validate() error {
+	// Validate Title (if provided)
+	if dto.Title != nil && strings.TrimSpace(*dto.Title) == "" {
+		return ErrInvalidTitle
 	}
-
-	// Validate Type if provided
-	if question.Type != nil {
-		if *question.Type != QuestionsTypeMultioption && *question.Type != QuestionsTypeDescriptive {
-			return errors.New("invalid question type")
+	// Validate Type (if provided)
+	if dto.Type != nil {
+		if *dto.Type != QuestionsTypeMultioption && *dto.Type != QuestionsTypeDescriptive {
+			return ErrInvalidType
 		}
 	}
-
-	// Validate QuestionnaireID if provided
-	if question.QuestionnaireID != nil && *question.QuestionnaireID == 0 {
-		return errors.New("questionnaire_id must be greater than zero")
+	// Validate QuestionnaireID (if provided)
+	if dto.QuestionnaireID != nil && *dto.QuestionnaireID == 0 {
+		return ErrInvalidQuestionnaireID
 	}
-
-	// Validate Order if provided
-	if question.Order != nil && *question.Order <= 0 {
-		return errors.New("order must be greater than zero")
+	// Validate Order (if provided)
+	if dto.Order != nil && *dto.Order <= 0 {
+		return ErrInvalidOrder
 	}
-
-	// Conditional Validation for Options if provided and Type is multioption
-	if question.Type != nil && *question.Type == QuestionsTypeMultioption {
-		if question.Options != nil && len(*question.Options) == 0 {
-			return errors.New("options cannot be empty for multioption questions")
-		}
+	// Validate FilePath (if provided)
+	if dto.FilePath != nil && strings.TrimSpace(*dto.FilePath) == "" {
+		return ErrInvalidFilePath
 	}
-
+	// Validate DependsOnQuestionID (if provided)
+	if dto.DependsOnQuestionID != nil && *dto.DependsOnQuestionID == 0 {
+		return ErrInvalidDependsOnQuestionID
+	}
+	// Validate DependsOnOptionID (if provided)
+	if dto.DependsOnOptionID != nil && *dto.DependsOnOptionID == 0 {
+		return ErrInvalidDependsOnOptionID
+	}
+	// If DependsOnOptionID is provided, DependsOnQuestionID must also be provided
+	if dto.DependsOnOptionID != nil && dto.DependsOnQuestionID == nil {
+		return ErrDependsOnOptionWithoutQuestion
+	}
+	// Removed options validation
 	return nil
 }

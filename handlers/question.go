@@ -34,7 +34,7 @@ func CreateQuestionHandler(service service.IQuestionService) fiber.Handler {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
-		return response.Success(c, fiber.StatusCreated, "User created", nil)
+		return response.Success(c, fiber.StatusCreated, "Question created", nil)
 	}
 }
 

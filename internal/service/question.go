@@ -6,15 +6,27 @@ import (
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
+	"gorm.io/gorm"
 )
 
 var (
-	ErrQuestionIdNotFound  = errors.New("question id not found")
-	ErrQuestionsIdNotFound = errors.New("questions' ids not found")
-	ErrQuestionOnCreate    = errors.New("cannot create the question")
-	ErrQuestionNotFound    = errors.New("question not found")
-	ErrQuestionOnUpdate    = errors.New("cannot update the question")
-	ErrQuestionOnDelete    = errors.New("cannot delete the question")
+	// General errors
+	ErrQuestionNotFound      = errors.New("question not found")
+	ErrQuestionnaireNotFound = errors.New("questionnaire not found")
+	ErrInvalidQuestionID     = errors.New("invalid question ID")
+
+	// Creation errors
+	ErrQuestionCreateFailed = errors.New("failed to create question")
+
+	// Update errors
+	ErrQuestionUpdateFailed = errors.New("failed to update question")
+
+	// Delete errors
+	ErrQuestionDeleteFailed = errors.New("failed to delete question")
+
+	// Retrieval errors
+	ErrQuestionRetrieveFailed      = errors.New("failed to retrieve question")
+	ErrQuestionnaireRetrieveFailed = errors.New("failed to retrieve questionnaire")
 )
 
 type IQuestionService interface {
@@ -27,73 +39,101 @@ type IQuestionService interface {
 
 type QuestionService struct {
 	// dependency injection
-	repo domain_repository.IQuestionRepository
+	questionRepo      domain_repository.IQuestionRepository
+	questionnaireRepo domain_repository.IQuestionnaireRepo
 }
 
 // NewQuestionService creates a new QuestionService object
-func NewQuestionService(repo domain_repository.IQuestionRepository) *QuestionService {
-	return &QuestionService{repo: repo}
+func NewQuestionService(questionRepo domain_repository.IQuestionRepository) *QuestionService {
+	return &QuestionService{questionRepo: questionRepo}
 }
 
 func (s *QuestionService) CreateQuestion(questionDTO *model.CreateQuestionDTO) error {
+	// Check if the Questionnaire exists
+	questionnaireID := questionDTO.QuestionnaireID
+	_, err := s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrQuestionnaireNotFound
+		}
+		return ErrQuestionnaireRetrieveFailed
+	}
+
+	// Convert DTO to model
 	question := model.ToQuestionModel(questionDTO)
 	question.CreatedAt = time.Now()
-	err := s.repo.CreateQuestion(question)
+
+	// Create the question
+	err = s.questionRepo.CreateQuestion(question)
 	if err != nil {
-		return ErrQuestionOnCreate
+		return ErrQuestionCreateFailed
 	}
 
 	return nil
 }
 
-func (s *QuestionService) GetQuestionByID(id uint) (*model.QuestionResponse, error) {
-	question, err := s.repo.GetQuestionByID(id)
-	if err != nil {
-		return nil, ErrQuestionIdNotFound
-	}
-
-	return model.ToQuestionResponse(question), nil
-}
-
-func (s *QuestionService) GetAllQuestions() (*[]model.QuestionResponse, error) {
-	questions, err := s.repo.GetAllQuestions()
-	if err != nil {
-		return nil, ErrQuestionsIdNotFound
-	}
-
-	return model.ToQuestionResponses(questions), nil
-}
-
 func (s *QuestionService) UpdateQuestion(id uint, questionDTO *model.UpdateQuestionDTO) error {
 	// Check if the question exists
-	existingQuestion, err := s.repo.GetQuestionByID(id)
+	existingQuestion, err := s.questionRepo.GetQuestionByID(id)
 	if err != nil {
-		return ErrQuestionNotFound
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrQuestionNotFound
+		}
+		return ErrQuestionRetrieveFailed
+	}
+
+	// If QuestionnaireID is being updated, check if the new Questionnaire exists
+	if questionDTO.QuestionnaireID != nil {
+		_, err := s.questionnaireRepo.GetQuestionnaireByID(*questionDTO.QuestionnaireID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ErrQuestionnaireNotFound
+			}
+			return ErrQuestionnaireRetrieveFailed
+		}
 	}
 
 	existingQuestion.UpdatedAt = time.Now()
 	model.UpdateQuestionModel(existingQuestion, questionDTO)
 
 	// Persist the changes
-	err = s.repo.UpdateQuestion(existingQuestion)
+	err = s.questionRepo.UpdateQuestion(existingQuestion)
 	if err != nil {
-		return ErrQuestionOnUpdate
+		return ErrQuestionUpdateFailed
 	}
 
 	return nil
 }
 
+func (s *QuestionService) GetQuestionByID(id uint) (*model.QuestionResponse, error) {
+	question, err := s.questionRepo.GetQuestionByID(id)
+	if err != nil {
+		return nil, ErrQuestionNotFound
+	}
+
+	return model.ToQuestionResponse(question), nil
+}
+
+func (s *QuestionService) GetAllQuestions() (*[]model.QuestionResponse, error) {
+	questions, err := s.questionRepo.GetAllQuestions()
+	if err != nil {
+		return nil, ErrQuestionNotFound
+	}
+
+	return model.ToQuestionResponses(questions), nil
+}
+
 func (s *QuestionService) DeleteQuestion(id uint) error {
 	// Check if the question exists
-	_, err := s.repo.GetQuestionByID(id)
+	_, err := s.questionRepo.GetQuestionByID(id)
 	if err != nil {
 		return ErrQuestionNotFound
 	}
 
 	// Delete the question
-	err = s.repo.DeleteQuestion(id)
+	err = s.questionRepo.DeleteQuestion(id)
 	if err != nil {
-		return ErrQuestionOnDelete
+		return ErrQuestionDeleteFailed
 	}
 
 	return nil
