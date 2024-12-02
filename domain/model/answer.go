@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+type AnswerID uint
+
 // Custom error messages
 var (
 	ErrInvalidUserID       = errors.New("UserID is required and must be greater than 0")
@@ -48,7 +50,7 @@ type UpdateAnswerDTO struct {
 
 // AnswerResponse represents the answer data returned in API responses
 type AnswerResponse struct {
-	ID           uint       `json:"id"`
+	ID           AnswerID   `json:"id"`
 	UserID       uint       `json:"user_id"`
 	SubmissionID uint       `json:"submission_id"`
 	QuestionID   uint       `json:"question_id"`
@@ -64,7 +66,7 @@ type AnswerResponse struct {
 // ToAnswerResponse maps an Answer model to an AnswerResponseDTO
 func ToAnswerResponse(answer *Answer) *AnswerResponse {
 	return &AnswerResponse{
-		ID:           answer.ID,
+		ID:           AnswerID(answer.ID),
 		UserID:       answer.UserID,
 		SubmissionID: answer.SubmissionID,
 		QuestionID:   answer.QuestionID,
@@ -82,7 +84,7 @@ func ToAnswerResponses(answers *[]Answer) *[]AnswerResponse {
 	answerResponses := make([]AnswerResponse, 0)
 	for _, answer := range *answers {
 		answerResponses = append(answerResponses, AnswerResponse{
-			ID:           answer.ID,
+			ID:           AnswerID(answer.ID),
 			UserID:       answer.UserID,
 			SubmissionID: answer.SubmissionID,
 			QuestionID:   answer.QuestionID,

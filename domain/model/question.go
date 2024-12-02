@@ -20,6 +20,7 @@ var (
 
 // QuestionsTypeEnum represents the questions_type_enum type in Postgres
 type QuestionsTypeEnum string
+type QuestionID uint
 
 const (
 	QuestionsTypeMultioption QuestionsTypeEnum = "multioption"
@@ -69,7 +70,7 @@ type UpdateQuestionDTO struct {
 
 // QuestionResponse represents the question data returned in API responses
 type QuestionResponse struct {
-	ID                  uint              `json:"id"`
+	ID                  QuestionID        `json:"id"`
 	Title               string            `json:"title"`
 	Type                QuestionsTypeEnum `json:"type"`
 	QuestionnaireID     uint              `json:"questionnaire_id"`
@@ -86,7 +87,7 @@ type QuestionResponse struct {
 // ToQuestionResponse maps a Question model to a QuestionResponseDTO
 func ToQuestionResponse(question *Question) *QuestionResponse {
 	return &QuestionResponse{
-		ID:                  question.ID,
+		ID:                  QuestionID(question.ID),
 		Title:               question.Title,
 		Type:                question.Type,
 		QuestionnaireID:     question.QuestionnaireID,
@@ -104,7 +105,7 @@ func ToQuestionResponses(questions *[]Question) *[]QuestionResponse {
 	questionResponses := make([]QuestionResponse, 0)
 	for _, question := range *questions {
 		questionResponses = append(questionResponses, QuestionResponse{
-			ID:                  question.ID,
+			ID:                  QuestionID(question.ID),
 			Title:               question.Title,
 			Type:                question.Type,
 			QuestionnaireID:     question.QuestionnaireID,

@@ -39,9 +39,9 @@ var (
 
 type IAnswerService interface {
 	CreateAnswer(AnswerDTO *model.CreateAnswerDTO) error
-	GetAnswerByID(id uint) (*model.AnswerResponse, error)
-	UpdateAnswer(id uint, AnswerDTO *model.UpdateAnswerDTO) error
-	DeleteAnswer(id uint) error
+	GetAnswerByID(id model.AnswerID) (*model.AnswerResponse, error)
+	UpdateAnswer(id model.AnswerID, AnswerDTO *model.UpdateAnswerDTO) error
+	DeleteAnswer(id model.AnswerID) error
 }
 
 type AnswerService struct {
@@ -74,7 +74,7 @@ func (s *AnswerService) CreateAnswer(answerDTO *model.CreateAnswerDTO) error {
 		return ErrInvalidUserID
 	}
 	// Check if User exists
-	_, err := s.userRepo.GetUserByID(answerDTO.UserID)
+	_, err := s.userRepo.GetUserByID(model.UserId(answerDTO.UserID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrUserNotFound
@@ -100,7 +100,7 @@ func (s *AnswerService) CreateAnswer(answerDTO *model.CreateAnswerDTO) error {
 		return ErrInvalidQuestionID
 	}
 	// Check if Question exists
-	_, err = s.questionRepo.GetQuestionByID(answerDTO.QuestionID)
+	_, err = s.questionRepo.GetQuestionByID(model.QuestionID(answerDTO.QuestionID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrQuestionNotFound
@@ -136,7 +136,7 @@ func (s *AnswerService) CreateAnswer(answerDTO *model.CreateAnswerDTO) error {
 	return nil
 }
 
-func (s *AnswerService) GetAnswerByID(id uint) (*model.AnswerResponse, error) {
+func (s *AnswerService) GetAnswerByID(id model.AnswerID) (*model.AnswerResponse, error) {
 	Answer, err := s.answerRepo.GetAnswerByID(id)
 	if err != nil {
 		return nil, ErrAnswerNotFound
@@ -145,7 +145,7 @@ func (s *AnswerService) GetAnswerByID(id uint) (*model.AnswerResponse, error) {
 	return model.ToAnswerResponse(Answer), nil
 }
 
-func (s *AnswerService) UpdateAnswer(id uint, answerDTO *model.UpdateAnswerDTO) error {
+func (s *AnswerService) UpdateAnswer(id model.AnswerID, answerDTO *model.UpdateAnswerDTO) error {
 	// Validate Answer ID
 	if id == 0 {
 		return ErrInvalidAnswerID
@@ -187,7 +187,7 @@ func (s *AnswerService) UpdateAnswer(id uint, answerDTO *model.UpdateAnswerDTO) 
 	return nil
 }
 
-func (s *AnswerService) DeleteAnswer(id uint) error {
+func (s *AnswerService) DeleteAnswer(id model.AnswerID) error {
 	// Check if the Answer exists
 	_, err := s.answerRepo.GetAnswerByID(id)
 	if err != nil {

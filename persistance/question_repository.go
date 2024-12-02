@@ -22,13 +22,13 @@ func (r *QuestionRepository) CreateQuestion(question *model.Question) error {
 }
 
 // GetQuestionByID gets a question from database based on its ID
-func (r *QuestionRepository) GetQuestionByID(id uint) (*model.Question, error) {
+func (r *QuestionRepository) GetQuestionByID(id model.QuestionID) (*model.Question, error) {
 	var question model.Question
 	result := r.db.First(&question, id)
 	return &question, result.Error
 }
 
-func (r *QuestionRepository) GetQuestionsByQuestionnaireID(questionnaireID uint) (*[]model.Question, error) {
+func (r *QuestionRepository) GetQuestionsByQuestionnaireID(questionnaireID model.QuestionnaireID) (*[]model.Question, error) {
 	var questions []model.Question
 	// Filter questions by QuestionnaireID
 	result := r.db.Where("questionnaire_id = ?", questionnaireID).Find(&questions)
@@ -41,6 +41,6 @@ func (r *QuestionRepository) UpdateQuestion(question *model.Question) error {
 }
 
 // DeleteQuestion deletes a question from database
-func (r *QuestionRepository) DeleteQuestion(id uint) error {
+func (r *QuestionRepository) DeleteQuestion(id model.QuestionID) error {
 	return r.db.Delete(&model.Question{}, id).Error
 }

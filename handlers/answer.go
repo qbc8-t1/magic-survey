@@ -46,7 +46,7 @@ func GetAnswerHandler(service service.IAnswerService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", err)
 		}
 
-		res, err := service.GetAnswerByID(uint(id))
+		res, err := service.GetAnswerByID(model.AnswerID(id))
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
@@ -73,7 +73,7 @@ func UpdateAnswerHandler(service service.IAnswerService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
-		err = service.UpdateAnswer(uint(id), &answerDTO)
+		err = service.UpdateAnswer(model.AnswerID(id), &answerDTO)
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
@@ -90,7 +90,7 @@ func DeleteAnswerHandler(service service.IAnswerService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", err)
 		}
 
-		err = service.DeleteAnswer(uint(id))
+		err = service.DeleteAnswer(model.AnswerID(id))
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}

@@ -31,10 +31,10 @@ var (
 
 type IQuestionService interface {
 	CreateQuestion(questionDTO *model.CreateQuestionDTO) error
-	GetQuestionByID(id uint) (*model.QuestionResponse, error)
-	GetQuestionsByQuestionnaireID(quesionnaireID uint) (*[]model.QuestionResponse, error)
-	UpdateQuestion(id uint, questionDTO *model.UpdateQuestionDTO) error
-	DeleteQuestion(id uint) error
+	GetQuestionByID(id model.QuestionID) (*model.QuestionResponse, error)
+	GetQuestionsByQuestionnaireID(quesionnaireID model.QuestionnaireID) (*[]model.QuestionResponse, error)
+	UpdateQuestion(id model.QuestionID, questionDTO *model.UpdateQuestionDTO) error
+	DeleteQuestion(id model.QuestionID) error
 }
 
 type QuestionService struct {
@@ -76,7 +76,7 @@ func (s *QuestionService) CreateQuestion(questionDTO *model.CreateQuestionDTO) e
 	return nil
 }
 
-func (s *QuestionService) UpdateQuestion(id uint, questionDTO *model.UpdateQuestionDTO) error {
+func (s *QuestionService) UpdateQuestion(id model.QuestionID, questionDTO *model.UpdateQuestionDTO) error {
 	// Check if the question exists
 	existingQuestion, err := s.questionRepo.GetQuestionByID(id)
 	if err != nil {
@@ -109,7 +109,7 @@ func (s *QuestionService) UpdateQuestion(id uint, questionDTO *model.UpdateQuest
 	return nil
 }
 
-func (s *QuestionService) GetQuestionByID(id uint) (*model.QuestionResponse, error) {
+func (s *QuestionService) GetQuestionByID(id model.QuestionID) (*model.QuestionResponse, error) {
 	question, err := s.questionRepo.GetQuestionByID(id)
 	if err != nil {
 		return nil, ErrQuestionNotFound
@@ -118,7 +118,7 @@ func (s *QuestionService) GetQuestionByID(id uint) (*model.QuestionResponse, err
 	return model.ToQuestionResponse(question), nil
 }
 
-func (s *QuestionService) GetQuestionsByQuestionnaireID(questionnaireID uint) (*[]model.QuestionResponse, error) {
+func (s *QuestionService) GetQuestionsByQuestionnaireID(questionnaireID model.QuestionnaireID) (*[]model.QuestionResponse, error) {
 	questions, err := s.questionRepo.GetQuestionsByQuestionnaireID(questionnaireID)
 	if err != nil {
 		return nil, ErrQuestionNotFound
@@ -127,7 +127,7 @@ func (s *QuestionService) GetQuestionsByQuestionnaireID(questionnaireID uint) (*
 	return model.ToQuestionResponses(questions), nil
 }
 
-func (s *QuestionService) DeleteQuestion(id uint) error {
+func (s *QuestionService) DeleteQuestion(id model.QuestionID) error {
 	// Check if the question exists
 	_, err := s.questionRepo.GetQuestionByID(id)
 	if err != nil {

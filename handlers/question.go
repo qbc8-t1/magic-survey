@@ -46,7 +46,7 @@ func GetQuestionHandler(service service.IQuestionService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", err)
 		}
 
-		res, err := service.GetQuestionByID(uint(id))
+		res, err := service.GetQuestionByID(model.QuestionID(id))
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
@@ -63,7 +63,7 @@ func GetQuestionsByQuestionnaireIDHandler(service service.IQuestionService) fibe
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", err)
 		}
 
-		questions, err := service.GetQuestionsByQuestionnaireID(uint(questionnaireId))
+		questions, err := service.GetQuestionsByQuestionnaireID(model.QuestionnaireID(questionnaireId))
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "failed to fetch questions", err)
 		}
@@ -90,7 +90,7 @@ func UpdateQuestionHandler(service service.IQuestionService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
-		err = service.UpdateQuestion(uint(id), &questionDTO)
+		err = service.UpdateQuestion(model.QuestionID(id), &questionDTO)
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
@@ -107,7 +107,7 @@ func DeleteQuestionHandler(service service.IQuestionService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", err)
 		}
 
-		err = service.DeleteQuestion(uint(id))
+		err = service.DeleteQuestion(model.QuestionID(id))
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}

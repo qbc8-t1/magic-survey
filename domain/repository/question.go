@@ -7,8 +7,8 @@ import (
 // IQuestionRepository inteface defines repository methods
 type IQuestionRepository interface {
 	CreateQuestion(question *model.Question) error
-	GetQuestionByID(id uint) (*model.Question, error)
-	GetQuestionsByQuestionnaireID(questionnaireID uint) (*[]model.Question, error)
+	GetQuestionByID(id model.QuestionID) (*model.Question, error)
+	GetQuestionsByQuestionnaireID(questionnaireID model.QuestionnaireID) (*[]model.Question, error)
 	UpdateQuestion(question *model.Question) error
-	DeleteQuestion(id uint) error
+	DeleteQuestion(id model.QuestionID) error
 }
