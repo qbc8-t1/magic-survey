@@ -156,6 +156,7 @@ func (u *User) Validate() error {
 	if !utils.IsValidEmail(u.Email) {
 		return errors.New("invalid email format")
 	}
+	// TODO!!
 	if len(u.NationalCode) != 10 || !utils.IsAllDigits(u.NationalCode) {
 		return errors.New("national code must be a 10-digit number")
 	}
