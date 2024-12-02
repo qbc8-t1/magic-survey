@@ -52,7 +52,6 @@ type CreateQuestionDTO struct {
 	FilePath            *string           `json:"file_path,omitempty" validate:"omitempty"`
 	DependsOnQuestionID *uint             `json:"depends_on_question_id,omitempty" validate:"omitempty"`
 	DependsOnOptionID   *uint             `json:"depends_on_option_id,omitempty" validate:"omitempty"`
-	Options             *[]Option         `json:"options,omitempty" validate:"omitempty"`
 }
 
 // UpdateQuestionDTO represents the data needed to update an existing question
@@ -64,8 +63,6 @@ type UpdateQuestionDTO struct {
 	FilePath            *string            `json:"file_path,omitempty"`
 	DependsOnQuestionID *uint              `json:"depends_on_question_id,omitempty"`
 	DependsOnOptionID   *uint              `json:"depends_on_option_id,omitempty"`
-	// TODO: check if you need to pass option_ids or options?
-	Options *[]Option `json:"options,omitempty"`
 }
 
 // QuestionResponse represents the question data returned in API responses
@@ -80,8 +77,7 @@ type QuestionResponse struct {
 	DependsOnOptionID   *uint             `json:"depends_on_option_id"`
 	CreatedAt           time.Time         `json:"created_at"`
 	UpdatedAt           time.Time         `json:"updated_at"`
-	// TODO: add questionnaire?
-	Options *[]Option `json:"options"`
+	Options             *[]Option         `json:"options"`
 }
 
 // ToQuestionResponse maps a Question model to a QuestionResponseDTO
@@ -132,7 +128,6 @@ func ToQuestionModel(questionDTO *CreateQuestionDTO) *Question {
 		FilePath:            questionDTO.FilePath,
 		DependsOnQuestionID: questionDTO.DependsOnQuestionID,
 		DependsOnOptionID:   questionDTO.DependsOnOptionID,
-		Options:             questionDTO.Options,
 	}
 }
 
@@ -158,9 +153,6 @@ func UpdateQuestionModel(question *Question, questionDTO *UpdateQuestionDTO) {
 	}
 	if questionDTO.DependsOnOptionID != nil {
 		question.DependsOnOptionID = questionDTO.DependsOnOptionID
-	}
-	if questionDTO.Options != nil {
-		question.Options = questionDTO.Options
 	}
 }
 
