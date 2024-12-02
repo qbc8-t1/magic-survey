@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/QBC8-Team1/magic-survey/internal/service"
+	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -44,22 +45,21 @@ func GivePermissions(rbacService service.RbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		giverUserId, err := c.ParamsInt("userid")
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "user id param invalid", err)
 		}
 
 		data := new(GivePermissionsData)
 		err = c.BodyParser(data)
 		if err != nil {
-			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
 		}
 
 		err = rbacService.GivePermissions(uint(giverUserId), data.UserID, data.QuestionnaireID, data.Permissions)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to process", err)
 		}
 
-		c.Status(fiber.StatusOK).SendString("permissions gived to user")
-		return nil
+		return response.Success(c, fiber.StatusCreated, "permissions gived to user", nil)
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
+	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"gorm.io/gorm"
 )
 
@@ -12,7 +13,7 @@ type RbacRepo struct {
 	db *gorm.DB
 }
 
-func NewRbacRepository(db *gorm.DB) *RbacRepo {
+func NewRbacRepository(db *gorm.DB) domain_repository.IRbacRepository {
 	return &RbacRepo{
 		db: db,
 	}
@@ -33,7 +34,7 @@ func (rr *RbacRepo) IsUserExist(userID uint) error {
 	return err
 }
 
-func (rr RbacRepo) GetUserWithRoles(userID uint) (model.User, error) {
+func (rr *RbacRepo) GetUserWithRoles(userID uint) (model.User, error) {
 	user := new(model.User)
 	err := rr.db.Preload("Roles").First(user, "id = ?", userID).Error
 	return *user, err
@@ -155,21 +156,8 @@ func (rr *RbacRepo) GetUserWithQuestionnaires(userID uint) (model.User, error) {
 	return user, err
 }
 
-type RoleWithPermissions struct {
-	ID          uint                    `json:"id"`
-	Name        string                  `json:"name"`
-	Permissions []PermissionWithDetails `json:"permissions"`
-}
-
-type PermissionWithDetails struct {
-	PermissionID    uint         `json:"permission_id"`
-	Name            string       `json:"name"`
-	QuestionnaireID uint         `json:"questionnaire_id"`
-	ExpireAt        sql.NullTime `json:"expire_at"`
-}
-
-func (rr *RbacRepo) GetUserRolesWithPermissions(userID uint) ([]RoleWithPermissions, error) {
-	var rolesWithPermissions []RoleWithPermissions
+func (rr *RbacRepo) GetUserRolesWithPermissions(userID uint) ([]domain_repository.RoleWithPermissions, error) {
+	var rolesWithPermissions []domain_repository.RoleWithPermissions
 
 	// Query user roles with permissions and additional details
 	rows, err := rr.db.Table("roles").
@@ -191,11 +179,11 @@ func (rr *RbacRepo) GetUserRolesWithPermissions(userID uint) ([]RoleWithPermissi
 	}
 	defer rows.Close()
 
-	roleMap := make(map[uint]*RoleWithPermissions)
+	roleMap := make(map[uint]*domain_repository.RoleWithPermissions)
 
 	for rows.Next() {
 		var roleID uint
-		var permission PermissionWithDetails
+		var permission domain_repository.PermissionWithDetails
 		var roleName string
 
 		err := rows.Scan(&roleID, &roleName, &permission.PermissionID, &permission.Name, &permission.QuestionnaireID, &permission.ExpireAt)
@@ -205,10 +193,10 @@ func (rr *RbacRepo) GetUserRolesWithPermissions(userID uint) ([]RoleWithPermissi
 
 		// Check if the role already exists in the map
 		if _, exists := roleMap[roleID]; !exists {
-			roleMap[roleID] = &RoleWithPermissions{
+			roleMap[roleID] = &domain_repository.RoleWithPermissions{
 				ID:          roleID,
 				Name:        roleName,
-				Permissions: []PermissionWithDetails{},
+				Permissions: []domain_repository.PermissionWithDetails{},
 			}
 		}
 
