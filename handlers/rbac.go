@@ -23,6 +23,16 @@ type HasPermissionData struct {
 	PermissionName  string `json:"permission_name"`
 }
 
+type MakeSuperadminData struct {
+	UserID      uint     `json:"user_id"`
+	Permissions []string `json:"permissions"`
+}
+
+type GetUsersWithVisibleAnswersData struct {
+	UserID          uint `json:"user_id"`
+	QuestionnaireID uint `json:"questionnaire_id"`
+}
+
 func GetAllPermissions(rbacService service.RbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		c.JSON(rbacService.GetAllPermissions())
@@ -154,5 +164,44 @@ func CanDo(rbacService service.RbacService) fiber.Handler {
 		}
 
 		return c.JSON(has)
+	}
+}
+
+func MakeSuperadmin(rbacService service.RbacService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		giverUserID, err := c.ParamsInt("userid")
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		data := new(MakeSuperadminData)
+		err = c.BodyParser(&data)
+		if err != nil {
+			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+		}
+
+		err = rbacService.MakeSuperadmin(uint(giverUserID), data.UserID, data.Permissions)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		return c.Status(fiber.StatusCreated).SendString("superadmin created")
+	}
+}
+
+func GetUsersWithVisibleAnswers(rbacService service.RbacService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		data := new(GetUsersWithVisibleAnswersData)
+		err := c.BodyParser(&data)
+		if err != nil {
+			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+		}
+
+		usersIDs, err := rbacService.GetUsersWithVisibleAnswers(data.QuestionnaireID, data.UserID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		return c.JSON(usersIDs)
 	}
 }

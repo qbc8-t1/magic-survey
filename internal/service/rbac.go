@@ -12,7 +12,10 @@ import (
 	"gorm.io/gorm"
 )
 
-var ErrorSelectedUsersIdsFieldIsRequired = errors.New("selected users ids field is required")
+var (
+	ErrorSelectedUsersIdsFieldIsRequired = errors.New("field selected_users_ids is required")
+	ErrorPermissionNamesFieldIsRequired  = errors.New("field permission_names is required")
+)
 
 type RbacService struct {
 	repo *repository.RbacRepo
@@ -32,7 +35,7 @@ type PermissionType struct {
 }
 
 func (o *RbacService) GetAllPermissions() []string {
-	permissions := o.repo.GetAllPermissions()
+	permissions := o.repo.GetPermissions()
 	permissionNames := make([]string, 0, len(permissions))
 	for _, permission := range permissions {
 		permissionNames = append(permissionNames, permission.Name)
@@ -141,8 +144,6 @@ func makeAbbreviation(name string) string {
 }
 
 func (o *RbacService) CanDo(userID uint, questionnaireID uint, permissionName string) (bool, error) {
-	// Todo - check if user has super admin role
-
 	err := o.repo.IsOwnerOfQuestionnaire(userID, questionnaireID)
 	if err == nil {
 		return true, nil
@@ -203,9 +204,23 @@ func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissio
 		return false, err
 	}
 
+	superadmin, err := o.repo.IsSuperadmin(userID)
+	if err != nil {
+		return false, err
+	}
+	if superadmin.ID != 0 {
+		hasSuperadminPermission, err := o.repo.FindSuperadminPermission(superadmin.ID, permissionID)
+		if err != nil {
+			return false, err
+		}
+		if hasSuperadminPermission {
+			return true, nil
+		}
+	}
+
 	foundRolePermission := false
 	for _, role := range user.Roles {
-		found, err := o.repo.FindRolePermission(role.ID, questionnaireID, permissionID)
+		found, err := o.repo.HasRolePermission(role.ID, questionnaireID, permissionID)
 		if err != nil {
 			return false, err
 		}
@@ -222,6 +237,37 @@ func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissio
 	return false, nil
 }
 
-func (o *RbacService) GetUsersWithVisibleAnswers(questionnaireID uint, userID uint) []uint {
-	return nil
+func (o *RbacService) GetUsersWithVisibleAnswers(questionnaireID uint, userID uint) ([]uint, error) {
+	roles, err := o.repo.GetUserRoles(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	permissionID, err := o.repo.FindPermission(model.PERMISSION_QUESTIONNAIRE_SEE_SELECTED_USERS_ANSWERS)
+	if err != nil {
+		return nil, err
+	}
+
+	rolePermission := new(model.RolePermission)
+	for _, role := range roles {
+		rolePermission, err = o.repo.FindRolePermission(role.ID, questionnaireID, permissionID)
+		if err != nil {
+			return nil, err
+		}
+
+		if rolePermission.ID != 0 {
+			break
+		}
+	}
+
+	if rolePermission.ID == 0 {
+		return nil, model.ErrorNotHavePermission
+	}
+
+	usersIDs, err := o.repo.FindUsersWithVisibleAnswers(rolePermission.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return usersIDs, nil
 }

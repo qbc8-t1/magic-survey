@@ -22,10 +22,11 @@ func migrate(gormDB *gorm.DB) error {
 		&model.Role{},
 		&model.RolePermission{},
 		&model.RoleUser{},
-		&model.SuperAdmin{},
+		&model.Superadmin{},
 		&model.UsersWithVisibleAnswers{},
 		&model.Submission{},
 		&model.Answer{},
+		&model.SuperadminPermission{},
 	)
 }
 
@@ -84,24 +85,38 @@ func insertTypesTable(db *gorm.DB) error {
 }
 
 func deleteAllTablesAndTypes(db *gorm.DB) error {
+
 	statement := `DO $$ 
 		DECLARE 
 			r RECORD;
 		BEGIN
-			-- Drop all views
+			-- Drop all tables and views
 			FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-				EXECUTE 'DROP TABLE IF EXISTS public.' || r.tablename || ' CASCADE';
-			END LOOP;
-
-			-- Drop all types
-			FOR r IN (SELECT typname FROM pg_type WHERE typnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = 'public')) LOOP
-				EXECUTE 'DROP TYPE IF EXISTS public.' || r.typname || ' CASCADE';
+				EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
 			END LOOP;
 		END $$;`
 
 	err := db.Exec(statement).Error
+
 	if err != nil {
 		return fmt.Errorf("failed to create enum type: %v", err)
+	}
+
+	types := []string{
+		"gender_enum",
+		"questionnaires_status_enum",
+		"questionnaires_sequence_enum",
+		"questionnaires_visibility_enum",
+		"questions_type_enum",
+		"submissions_status_enum",
+	}
+
+	// Iterate and delete each type
+	for _, t := range types {
+		statement := fmt.Sprintf(`DROP TYPE IF EXISTS public.%s CASCADE`, t)
+		if err := db.Exec(statement).Error; err != nil {
+			return fmt.Errorf("failed to delete type %s: %v", t, err)
+		}
 	}
 
 	return nil

@@ -18,7 +18,7 @@ func NewRbacRepository(db *gorm.DB) *RbacRepo {
 	}
 }
 
-func (rr *RbacRepo) GetAllPermissions() []model.Permission {
+func (rr *RbacRepo) GetPermissions() []model.Permission {
 	var permissions []model.Permission
 	rr.db.Find(&permissions)
 	return permissions
@@ -60,8 +60,11 @@ func (rr *RbacRepo) IsOwnerOfQuestionnaire(userID uint, questionnaireID uint) er
 func (rr *RbacRepo) FindPermission(permissionName string) (uint, error) {
 	var permission model.Permission
 	err := rr.db.First(&permission, "name = ?", permissionName).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return 0, model.ErrorNotFoundPermission
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, model.ErrorNotFoundPermission
+		}
+		return 0, err
 	}
 
 	return permission.ID, nil
@@ -225,7 +228,7 @@ func (rr *RbacRepo) DeleteRolePermissions(roleID uint, questionnaireID uint, per
 	return rr.db.Delete(&model.RolePermission{}, "role_id = ? and questionnaire_id = ? and permission_id = ?", roleID, questionnaireID, permissionID).Error
 }
 
-func (rr *RbacRepo) FindRolePermission(roleID uint, questionnaireID uint, permissionID uint) (bool, error) {
+func (rr *RbacRepo) HasRolePermission(roleID uint, questionnaireID uint, permissionID uint) (bool, error) {
 	rolePermission := new(model.RolePermission)
 	err := rr.db.First(rolePermission, "role_id = ? and questionnaire_id = ? and permission_id = ? and (expire_at IS NULL OR expire_at > NOW())", roleID, questionnaireID, permissionID).Error
 	if err != nil {
@@ -236,4 +239,75 @@ func (rr *RbacRepo) FindRolePermission(roleID uint, questionnaireID uint, permis
 	}
 
 	return true, nil
+}
+
+func (rr *RbacRepo) IsSuperadmin(userID uint) (model.Superadmin, error) {
+	superadmin := new(model.Superadmin)
+	err := rr.db.First(superadmin, "user_id = ?", userID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return model.Superadmin{}, nil
+		}
+
+		return model.Superadmin{}, err
+	}
+
+	return *superadmin, nil
+}
+
+func (rr *RbacRepo) FindSuperadminPermission(superadminID uint, permissionID uint) (bool, error) {
+	err := rr.db.First(&model.SuperadminPermission{}, "superadmin_id = ? and permission_id = ?", superadminID, permissionID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (rr *RbacRepo) GiveSuperadminRole(tx *gorm.DB, userID uint, giverUserID uint) (uint, error) {
+	superadmin := model.Superadmin{
+		UserID:    userID,
+		GrantedBy: &giverUserID,
+	}
+	err := tx.Create(&superadmin).Error
+	if err != nil {
+		return 0, err
+	}
+	return superadmin.ID, nil
+}
+
+func (rr *RbacRepo) MakeSuperadminPermission(tx *gorm.DB, superadminID uint, permissionID uint) error {
+	var exists bool
+	err := tx.Model(&model.SuperadminPermission{}).
+		Select("count(*) > 0").
+		Where("superadmin_id = ? AND permission_id = ?", superadminID, permissionID).
+		Find(&exists).Error
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return tx.Create(&model.SuperadminPermission{
+			SuperadminID: superadminID,
+			PermissionID: permissionID,
+		}).Error
+	}
+
+	return nil
+}
+
+func (rr *RbacRepo) FindRolePermission(roleID, questionnaireID, permissionID uint) (*model.RolePermission, error) {
+	rolePermission := new(model.RolePermission)
+	err := rr.db.First(&rolePermission, "role_id = ? and questionnaire_id = ? and permission_id = ? and (expire_at IS NULL OR expire_at > NOW())", roleID, questionnaireID, permissionID).Error
+	return rolePermission, err
+}
+
+func (rr *RbacRepo) FindUsersWithVisibleAnswers(rolePermissionID uint) ([]uint, error) {
+	var userIDs []uint
+	err := rr.db.Model(&model.UsersWithVisibleAnswers{}).Where("role_permission_id = ?", rolePermissionID).Pluck("user_id", &userIDs).Error
+	return userIDs, err
 }

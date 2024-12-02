@@ -32,7 +32,7 @@ type User struct {
 	UpdatedAt      time.Time       `gorm:"not null"`
 	Questionnaires []Questionnaire `gorm:"foreignKey:OwnerID"`
 	Notifications  []Notification  `gorm:"foreignKey:UserID"`
-	SuperAdmin     *SuperAdmin     `gorm:"foreignKey:UserID"`
+	Superadmin     *Superadmin     `gorm:"foreignKey:UserID"`
 	Roles          []Role          `gorm:"many2many:role_users;"`
 }
 

@@ -49,12 +49,12 @@ CREATE TABLE IF NOT EXISTS "notifications" (
       REFERENCES "users"("id")
 );
 
-CREATE TABLE IF NOT EXISTS "super_admins" (
+CREATE TABLE IF NOT EXISTS "superadmins" (
   "id" serial primary key,
   "user_id" bigint,
   "granted_by" bigint null,
   "created_at" timestamp DEFAULT now(),
-  CONSTRAINT "FK_super_admins.user_id"
+  CONSTRAINT "FK_superadmins.user_id"
     FOREIGN KEY ("user_id")
       REFERENCES "users"("id")
 );
@@ -165,7 +165,8 @@ CREATE TABLE IF NOT EXISTS "role_permission" (
 CREATE TABLE IF NOT EXISTS "permissions" (
   "id" serial primary key,
   "name" varchar unique,
-  "description" varchar(500)
+  "description" varchar(500),
+  "for_superadmin" BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS "users_with_visible_answers" (
@@ -178,6 +179,18 @@ CREATE TABLE IF NOT EXISTS "users_with_visible_answers" (
   CONSTRAINT "FK_users_with_visible_answers.user_id"
     FOREIGN KEY ("user_id")
       REFERENCES "users"("id")
+);
+
+CREATE TABLE IF NOT EXISTS "superadmin_permission" (
+  "id" serial primary key,
+  "superadmin_id" bigint,
+  "permission_id" bigint,
+  CONSTRAINT "FK_superadmin_permission.superadmin_id"
+    FOREIGN KEY ("superadmin_id")
+      REFERENCES "superadmins"("id"),
+  CONSTRAINT "FK_superadmin_permission.permission_id"
+    FOREIGN KEY ("permission_id")
+      REFERENCES "permissions"("id")
 );
 
 
