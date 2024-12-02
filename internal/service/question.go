@@ -32,7 +32,7 @@ var (
 type IQuestionService interface {
 	CreateQuestion(questionDTO *model.CreateQuestionDTO) error
 	GetQuestionByID(id uint) (*model.QuestionResponse, error)
-	GetAllQuestions() (*[]model.QuestionResponse, error)
+	GetQuestionsByQuestionnaireID(quesionnaireID uint) (*[]model.QuestionResponse, error)
 	UpdateQuestion(id uint, questionDTO *model.UpdateQuestionDTO) error
 	DeleteQuestion(id uint) error
 }
@@ -44,8 +44,12 @@ type QuestionService struct {
 }
 
 // NewQuestionService creates a new QuestionService object
-func NewQuestionService(questionRepo domain_repository.IQuestionRepository) *QuestionService {
-	return &QuestionService{questionRepo: questionRepo}
+func NewQuestionService(questionRepo domain_repository.IQuestionRepository,
+	questionnaireRepo domain_repository.IQuestionnaireRepo) *QuestionService {
+	return &QuestionService{
+		questionRepo:      questionRepo,
+		questionnaireRepo: questionnaireRepo,
+	}
 }
 
 func (s *QuestionService) CreateQuestion(questionDTO *model.CreateQuestionDTO) error {
@@ -114,8 +118,8 @@ func (s *QuestionService) GetQuestionByID(id uint) (*model.QuestionResponse, err
 	return model.ToQuestionResponse(question), nil
 }
 
-func (s *QuestionService) GetAllQuestions() (*[]model.QuestionResponse, error) {
-	questions, err := s.questionRepo.GetAllQuestions()
+func (s *QuestionService) GetQuestionsByQuestionnaireID(questionnaireID uint) (*[]model.QuestionResponse, error) {
+	questions, err := s.questionRepo.GetQuestionsByQuestionnaireID(questionnaireID)
 	if err != nil {
 		return nil, ErrQuestionNotFound
 	}

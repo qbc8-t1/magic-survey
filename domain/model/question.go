@@ -43,7 +43,6 @@ type Question struct {
 }
 
 // CreateQuestionDTO represents the data needed to create a new question
-// TODO: check for existence of Questionnaire
 type CreateQuestionDTO struct {
 	Title               string            `json:"title" validate:"required"`
 	Type                QuestionsTypeEnum `json:"type" validate:"required,oneof=multioption descriptive"`
@@ -56,7 +55,6 @@ type CreateQuestionDTO struct {
 }
 
 // UpdateQuestionDTO represents the data needed to update an existing question
-// TODO: check for existence of Questionnaire
 type UpdateQuestionDTO struct {
 	Title               *string            `json:"title,omitempty"`
 	Type                *QuestionsTypeEnum `json:"type,omitempty"`

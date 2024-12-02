@@ -55,9 +55,15 @@ func GetQuestionHandler(service service.IQuestionService) fiber.Handler {
 	}
 }
 
-func GetQuestionsHandler(service service.IQuestionService) fiber.Handler {
+func GetQuestionsByQuestionnaireIDHandler(service service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		questions, err := service.GetAllQuestions()
+		questionnaireIdStr := c.Params("questionnaire_id")
+		questionnaireId, err := strconv.Atoi(questionnaireIdStr)
+		if err != nil || questionnaireId <= 0 {
+			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", err)
+		}
+
+		questions, err := service.GetQuestionsByQuestionnaireID(uint(questionnaireId))
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "failed to fetch questions", err)
 		}

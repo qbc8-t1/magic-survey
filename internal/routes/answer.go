@@ -11,7 +11,12 @@ import (
 // RegisterAnswerRoutes registers routes related to answer management
 func RegisterAnswerRoutes(api fiber.Router, s *common.Server) {
 	answerRepo := repository.NewAnswerRepository(s.DB)
-	answerService := service.NewAnswerService(answerRepo)
+	userRepo := repository.NewUserRepository(s.DB)
+	submissionRepo := repository.NewSubmissionRepository(s.DB)
+	questionRepo := repository.NewQuestionRpository(s.DB)
+	optionRepo := repository.NewOptionRepository(s.DB)
+
+	answerService := service.NewAnswerService(answerRepo, userRepo, submissionRepo, questionRepo, optionRepo)
 
 	api.Get("/hello", handlers.HelloAnswerHandler(answerService))
 	api.Get("/:id", handlers.GetAnswerHandler(answerService))

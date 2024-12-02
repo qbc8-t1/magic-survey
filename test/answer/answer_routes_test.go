@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHelloQuestionAPI(t *testing.T) {
-	resp, err := http.Get("http://localhost:8080/api/v1/questions/hello")
+func TestHelloAnswerAPI(t *testing.T) {
+	resp, err := http.Get("http://localhost:8080/api/v1/answers/hello")
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	defer resp.Body.Close()
@@ -22,24 +22,20 @@ func TestHelloQuestionAPI(t *testing.T) {
 	var body map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	assert.NoError(t, err)
-	assert.Equal(t, "Hello from Question Service!", body["message"])
+	assert.Equal(t, "Hello from Answer Service!", body["message"])
 }
 
-func TestCreateQuestionAPI(t *testing.T) {
-	question := map[string]interface{}{
-		"title":            "Sample Question",
-		"type":             "multioption",
-		"questionnaire_id": 1,
-		"order":            1,
-		"options": []map[string]string{
-			{"text": "Option 1"},
-			{"text": "Option 2"},
-		},
+func TestCreateAnswerAPI(t *testing.T) {
+	answer := map[string]interface{}{
+		"submission_id": 1,
+		"question_id":   1,
+		"option_id":     2,
+		"text":          "Sample answer text",
 	}
-	body, err := json.Marshal(question)
+	body, err := json.Marshal(answer)
 	assert.NoError(t, err)
 
-	resp, err := http.Post("http://localhost:8080/api/v1/questions", "application/json", bytes.NewReader(body))
+	resp, err := http.Post("http://localhost:8080/api/v1/answers", "application/json", bytes.NewReader(body))
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	defer resp.Body.Close()
@@ -51,12 +47,12 @@ func TestCreateQuestionAPI(t *testing.T) {
 	var response map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	assert.NoError(t, err)
-	assert.Equal(t, question["title"], response["title"])
-	assert.Equal(t, question["type"], response["type"])
+	assert.Equal(t, answer["submission_id"], response["submission_id"])
+	assert.Equal(t, answer["question_id"], response["question_id"])
 }
 
-func TestGetQuestionAPI(t *testing.T) {
-	resp, err := http.Get("http://localhost:8080/api/v1/questions/1")
+func TestGetAnswerAPI(t *testing.T) {
+	resp, err := http.Get("http://localhost:8080/api/v1/answers/1")
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	defer resp.Body.Close()
@@ -65,20 +61,20 @@ func TestGetQuestionAPI(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "expected HTTP 200 OK")
 
 	// Validate response body
-	var question map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&question)
+	var answer map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&answer)
 	assert.NoError(t, err)
-	assert.Equal(t, float64(1), question["id"]) // JSON unmarshals numbers as float64
+	assert.Equal(t, float64(1), answer["id"]) // JSON unmarshals numbers as float64
 }
 
-func TestUpdateQuestionAPI(t *testing.T) {
+func TestUpdateAnswerAPI(t *testing.T) {
 	updateData := map[string]interface{}{
-		"title": "Updated Question Title",
+		"text": "Updated answer text",
 	}
 	body, err := json.Marshal(updateData)
 	assert.NoError(t, err)
 
-	req, err := http.NewRequest(http.MethodPut, "http://localhost:8080/api/v1/questions/1", bytes.NewReader(body))
+	req, err := http.NewRequest(http.MethodPut, "http://localhost:8080/api/v1/answers/1", bytes.NewReader(body))
 	assert.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -95,11 +91,11 @@ func TestUpdateQuestionAPI(t *testing.T) {
 	var response map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	assert.NoError(t, err)
-	assert.Equal(t, updateData["title"], response["title"])
+	assert.Equal(t, updateData["text"], response["text"])
 }
 
-func TestDeleteQuestionAPI(t *testing.T) {
-	req, err := http.NewRequest(http.MethodDelete, "http://localhost:8080/api/v1/questions/1", nil)
+func TestDeleteAnswerAPI(t *testing.T) {
+	req, err := http.NewRequest(http.MethodDelete, "http://localhost:8080/api/v1/answers/1", nil)
 	assert.NoError(t, err)
 
 	client := &http.Client{}

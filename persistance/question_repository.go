@@ -28,9 +28,10 @@ func (r *QuestionRepository) GetQuestionByID(id uint) (*model.Question, error) {
 	return &question, result.Error
 }
 
-func (r *QuestionRepository) GetAllQuestions() (*[]model.Question, error) {
+func (r *QuestionRepository) GetQuestionsByQuestionnaireID(questionnaireID uint) (*[]model.Question, error) {
 	var questions []model.Question
-	result := r.db.Find(&questions)
+	// Filter questions by QuestionnaireID
+	result := r.db.Where("questionnaire_id = ?", questionnaireID).Find(&questions)
 	return &questions, result.Error
 }
 

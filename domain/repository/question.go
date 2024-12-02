@@ -8,7 +8,7 @@ import (
 type IQuestionRepository interface {
 	CreateQuestion(question *model.Question) error
 	GetQuestionByID(id uint) (*model.Question, error)
-	GetAllQuestions() (*[]model.Question, error)
+	GetQuestionsByQuestionnaireID(questionnaireID uint) (*[]model.Question, error)
 	UpdateQuestion(question *model.Question) error
 	DeleteQuestion(id uint) error
 }

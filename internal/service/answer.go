@@ -45,7 +45,7 @@ type IAnswerService interface {
 }
 
 type AnswerService struct {
-	repo           domain_repository.IAnswerRepository
+	answerRepo     domain_repository.IAnswerRepository
 	userRepo       domain_repository.IUserRepository
 	submissionRepo domain_repository.ISubmissionRepository
 	questionRepo   domain_repository.IQuestionRepository
@@ -53,14 +53,14 @@ type AnswerService struct {
 }
 
 func NewAnswerService(
-	repo domain_repository.IAnswerRepository,
+	answerRepo domain_repository.IAnswerRepository,
 	userRepo domain_repository.IUserRepository,
 	submissionRepo domain_repository.ISubmissionRepository,
 	questionRepo domain_repository.IQuestionRepository,
 	optionRepo domain_repository.IOptionRepository,
 ) *AnswerService {
 	return &AnswerService{
-		repo:           repo,
+		answerRepo:     answerRepo,
 		userRepo:       userRepo,
 		submissionRepo: submissionRepo,
 		questionRepo:   questionRepo,
@@ -128,7 +128,7 @@ func (s *AnswerService) CreateAnswer(answerDTO *model.CreateAnswerDTO) error {
 	answer.CreatedAt = time.Now()
 
 	// Create the answer
-	err = s.repo.CreateAnswer(answer)
+	err = s.answerRepo.CreateAnswer(answer)
 	if err != nil {
 		return ErrAnswerCreateFailed
 	}
@@ -137,7 +137,7 @@ func (s *AnswerService) CreateAnswer(answerDTO *model.CreateAnswerDTO) error {
 }
 
 func (s *AnswerService) GetAnswerByID(id uint) (*model.AnswerResponse, error) {
-	Answer, err := s.repo.GetAnswerByID(id)
+	Answer, err := s.answerRepo.GetAnswerByID(id)
 	if err != nil {
 		return nil, ErrAnswerNotFound
 	}
@@ -152,7 +152,7 @@ func (s *AnswerService) UpdateAnswer(id uint, answerDTO *model.UpdateAnswerDTO) 
 	}
 
 	// Check if the Answer exists
-	existingAnswer, err := s.repo.GetAnswerByID(id)
+	existingAnswer, err := s.answerRepo.GetAnswerByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrAnswerNotFound
@@ -179,7 +179,7 @@ func (s *AnswerService) UpdateAnswer(id uint, answerDTO *model.UpdateAnswerDTO) 
 	model.UpdateAnswerModel(existingAnswer, answerDTO)
 
 	// Persist the changes
-	err = s.repo.UpdateAnswer(existingAnswer)
+	err = s.answerRepo.UpdateAnswer(existingAnswer)
 	if err != nil {
 		return ErrAnswerUpdateFailed
 	}
@@ -189,13 +189,13 @@ func (s *AnswerService) UpdateAnswer(id uint, answerDTO *model.UpdateAnswerDTO) 
 
 func (s *AnswerService) DeleteAnswer(id uint) error {
 	// Check if the Answer exists
-	_, err := s.repo.GetAnswerByID(id)
+	_, err := s.answerRepo.GetAnswerByID(id)
 	if err != nil {
 		return ErrAnswerNotFound
 	}
 
 	// Delete the Answer
-	err = s.repo.DeleteAnswer(id)
+	err = s.answerRepo.DeleteAnswer(id)
 	if err != nil {
 		return ErrAnswerDeleteFailed
 	}

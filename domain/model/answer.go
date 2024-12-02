@@ -32,7 +32,6 @@ type Answer struct {
 }
 
 // CreateANswerDTO represents the data needed to create a new answer
-// TODO: check existence of user, submission, question and option in service
 type CreateAnswerDTO struct {
 	UserID       uint    `json:"user_id"`
 	SubmissionID uint    `json:"submission_id"`
@@ -42,7 +41,6 @@ type CreateAnswerDTO struct {
 }
 
 // UpdateAnswerDTO represents the data needed to update an existing answer
-// TODO: check existence of option in service
 type UpdateAnswerDTO struct {
 	OptionID   *uint   `json:"option_id,omitempty"`
 	AnswerText *string `json:"answer_text,omitempty"`
