@@ -25,8 +25,7 @@ var (
 	ErrQuestionDeleteFailed = errors.New("failed to delete question")
 
 	// Retrieval errors
-	ErrQuestionRetrieveFailed      = errors.New("failed to retrieve question")
-	ErrQuestionnaireRetrieveFailed = errors.New("failed to retrieve questionnaire")
+	ErrQuestionRetrieveFailed = errors.New("failed to retrieve question")
 )
 
 type IQuestionService interface {

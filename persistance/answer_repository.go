@@ -11,7 +11,7 @@ type AnswerRepository struct {
 	db *gorm.DB
 }
 
-// NewANswerRepository creates a new instance of AnswerRepository
+// NewAnswerRepository creates a new instance of AnswerRepository
 func NewAnswerRepository(db *gorm.DB) domain_repository.IAnswerRepository {
 	return &AnswerRepository{db: db}
 }

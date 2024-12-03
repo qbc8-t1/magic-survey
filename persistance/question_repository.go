@@ -12,7 +12,7 @@ type QuestionRepository struct {
 }
 
 // NewQuestionRepository creates a new instance of QuestionRepository
-func NewQuestionRpository(db *gorm.DB) domain_repository.IQuestionRepository {
+func NewQuestionRepository(db *gorm.DB) domain_repository.IQuestionRepository {
 	return &QuestionRepository{db: db}
 }
 

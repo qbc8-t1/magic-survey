@@ -13,7 +13,7 @@ func RegisterAnswerRoutes(api fiber.Router, s *common.Server) {
 	answerRepo := repository.NewAnswerRepository(s.DB)
 	userRepo := repository.NewUserRepository(s.DB)
 	submissionRepo := repository.NewSubmissionRepository(s.DB)
-	questionRepo := repository.NewQuestionRpository(s.DB)
+	questionRepo := repository.NewQuestionRepository(s.DB)
 	optionRepo := repository.NewOptionRepository(s.DB)
 
 	answerService := service.NewAnswerService(answerRepo, userRepo, submissionRepo, questionRepo, optionRepo)

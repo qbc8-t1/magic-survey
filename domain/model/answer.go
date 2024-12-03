@@ -17,12 +17,12 @@ var (
 
 // Answer represents the answers table
 type Answer struct {
-	ID           AnswerID `gorm:"primaryKey"`
-	UserID       uint     `gorm:"not null;unique"`
-	SubmissionID uint     `gorm:"not null;unique"`
-	QuestionID   uint     `gorm:"not null;unique"`
-	OptionID     *uint    `gorm:"default:null"`
-	AnswerText   *string  `gorm:"default:null"`
+	ID           AnswerID   `gorm:"primaryKey"`
+	UserID       UserId     `gorm:"not null;unique"`
+	SubmissionID uint       `gorm:"not null;unique"`
+	QuestionID   QuestionID `gorm:"not null;unique"`
+	OptionID     *OptionID  `gorm:"default:null"`
+	AnswerText   *string    `gorm:"default:null"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Submission   Submission `gorm:"foreignKey:SubmissionID"`
@@ -32,26 +32,26 @@ type Answer struct {
 
 // CreateANswerDTO represents the data needed to create a new answer
 type CreateAnswerDTO struct {
-	UserID       uint    `json:"user_id"`
-	SubmissionID uint    `json:"submission_id"`
-	QuestionID   uint    `json:"question_id"`
-	OptionID     *uint   `json:"option_id,omitempty"`
-	AnswerText   *string `json:"answer_text,omitempty"`
+	UserID       UserId     `json:"user_id"`
+	SubmissionID uint       `json:"submission_id"`
+	QuestionID   QuestionID `json:"question_id"`
+	OptionID     *OptionID  `json:"option_id,omitempty"`
+	AnswerText   *string    `json:"answer_text,omitempty"`
 }
 
 // UpdateAnswerDTO represents the data needed to update an existing answer
 type UpdateAnswerDTO struct {
-	OptionID   *uint   `json:"option_id,omitempty"`
-	AnswerText *string `json:"answer_text,omitempty"`
+	OptionID   *OptionID `json:"option_id,omitempty"`
+	AnswerText *string   `json:"answer_text,omitempty"`
 }
 
 // AnswerResponse represents the answer data returned in API responses
 type AnswerResponse struct {
 	ID           AnswerID   `json:"id"`
-	UserID       uint       `json:"user_id"`
+	UserID       UserId     `json:"user_id"`
 	SubmissionID uint       `json:"submission_id"`
-	QuestionID   uint       `json:"question_id"`
-	OptionID     *uint      `json:"option_id"`
+	QuestionID   QuestionID `json:"question_id"`
+	OptionID     *OptionID  `json:"option_id"`
 	AnswerText   *string    `json:"answer_text"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`

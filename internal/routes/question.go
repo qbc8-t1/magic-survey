@@ -10,7 +10,7 @@ import (
 
 // QuestionRoutes registers routes related to question management
 func RegisterQuestionRoutes(api fiber.Router, s *common.Server) {
-	questionRepo := repository.NewQuestionRpository(s.DB)
+	questionRepo := repository.NewQuestionRepository(s.DB)
 	questionnaireRepo := repository.NewQuestionnaireRepository(s.DB)
 
 	questionService := service.NewQuestionService(questionRepo, questionnaireRepo)

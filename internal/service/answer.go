@@ -12,13 +12,10 @@ import (
 var (
 	// General errors
 	ErrAnswerNotFound      = errors.New("answer not found")
-	ErrUserNotFound        = errors.New("user not found")
 	ErrSubmissionNotFound  = errors.New("submission not found")
-	ErrOptionNotFound      = errors.New("option not found")
 	ErrInvalidAnswerID     = errors.New("invalid answer ID")
 	ErrInvalidUserID       = errors.New("invalid user ID")
 	ErrInvalidSubmissionID = errors.New("invalid submission ID")
-	ErrInvalidOptionID     = errors.New("invalid option ID")
 
 	// Creation errors
 	ErrAnswerCreateFailed = errors.New("failed to create answer")
@@ -30,10 +27,7 @@ var (
 	ErrAnswerDeleteFailed = errors.New("failed to delete answer")
 
 	// Retrieval errors
-	ErrAnswerRetrieveFailed     = errors.New("failed to retrieve answer")
-	ErrUserRetrieveFailed       = errors.New("failed to retrieve user")
-	ErrSubmissionRetrieveFailed = errors.New("failed to retrieve submission")
-	ErrOptionRetrieveFailed     = errors.New("failed to retrieve option")
+	ErrAnswerRetrieveFailed = errors.New("failed to retrieve answer")
 )
 
 type IAnswerService interface {

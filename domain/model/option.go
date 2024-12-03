@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"strings"
+	"time"
 )
 
 var (
@@ -21,7 +22,9 @@ type Option struct {
 	Order      int        `gorm:"not null"`
 	Caption    string     `gorm:"size:255;not null"`
 	IsCorrect  *bool      `gorm:"default:false"`
-	Question   Question   `gorm:"foreignKey:QuestionID"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	Question   Question `gorm:"foreignKey:QuestionID"`
 }
 
 // CreateOptionDTO represents the data needed to create a new option
