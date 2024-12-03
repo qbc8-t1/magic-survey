@@ -3,12 +3,12 @@ server:
   port: 8080
   mode: "development"
   appVersion: "0.0.1"
-  secret:
+  secret: "1234568"
   authExpMinute: 30
   authRefreshMinute: 180
-  mailPass:
+  mailPass: "nvha zimc lusz mlxj"
 postgres:
-  host: db
+  host: "localhost"
   port: 5432
   user: "postgres"
   password: "postgres"
@@ -17,4 +17,4 @@ postgres:
 logger:
   level: "info"
   encoding: "json"
-  path: "sample-log.log"
+  path: "./log.log"

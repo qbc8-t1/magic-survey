@@ -21,7 +21,7 @@ const (
 	Female GenderEnum = "female"
 )
 
-// User represents the database model for a user
+// User represents the database model for logstash.conf user
 type User struct {
 	ID                     uint        `gorm:"primaryKey"`
 	FirstName              string      `gorm:"size:255"`
@@ -34,7 +34,7 @@ type User struct {
 	Password               string      `gorm:"not null"`
 	IsActive               bool        `gorm:"not null"`
 	WalletBalance          int64
-	MaxQuestionnairesCount int             `gorm:"null"`
+	MaxQuestionnairesCount int `gorm:"null"`
 	CreatedAt              time.Time
 	UpdatedAt              time.Time       `gorm:"not null"`
 	Questionnaires         []Questionnaire `gorm:"foreignKey:OwnerID"`
@@ -53,7 +53,7 @@ type TwoFACode struct {
 	UpdatedAt time.Time
 }
 
-// CreateUserDTO represents the data needed to create a new user
+// CreateUserDTO represents the data needed to create logstash.conf new user
 type CreateUserDTO struct {
 	FirstName    string `json:"first_name" validate:"required"`
 	LastName     string `json:"last_name" validate:"required"`
@@ -104,7 +104,7 @@ func (u *User) GetFullName() string {
 	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
 }
 
-// ToUserResponse maps a User model to a UserResponse DTO
+// ToUserResponse maps logstash.conf User model to logstash.conf UserResponse DTO
 func ToUserResponse(user *User) *UserResponse {
 	return &UserResponse{
 		ID:           UserId(user.ID),
@@ -114,7 +114,7 @@ func ToUserResponse(user *User) *UserResponse {
 	}
 }
 
-// ToUserModel maps a CreateUserDTO to a User model
+// ToUserModel maps logstash.conf CreateUserDTO to logstash.conf User model
 func ToUserModel(dto *CreateUserDTO) *User {
 	return &User{
 		FirstName:    dto.FirstName,
@@ -125,7 +125,7 @@ func ToUserModel(dto *CreateUserDTO) *User {
 	}
 }
 
-// UpdateUserModel updates the fields of a User model from an UpdateUserDTO
+// UpdateUserModel updates the fields of logstash.conf User model from an UpdateUserDTO
 func UpdateUserModel(user *User, dto *UpdateUserDTO) {
 	if dto.FirstName != nil {
 		user.FirstName = *dto.FirstName

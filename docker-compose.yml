@@ -1,26 +1,15 @@
 services:
-  elk:
-    image: sebp/elk
-    container_name: elk
-    ports:
-      - "5601:5601"  # Kibana
-      - "9200:9200"  # Elasticsearch
-      - "5044:5044"  # Logstash
-    environment:
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"  # Adjust JVM heap size for Elasticsearch
-    volumes:
-      - elk-data:/var/lib/elasticsearch  # Persistent storage for Elasticsearch data
-      - ./logstash.conf:/etc/logstash/conf.d/logstash.conf:ro
   app:
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: "host=go_db user=postgres password=postgres dbname=survey_db sslmode=disable"
+      DATABASE_URL: "host=db user=postgres password=postgres dbname=survey_db sslmode=disable"
     ports:
       - "8080:8080"
     depends_on:
       - db
+      - loki
 
   db:
     image: postgres:15
@@ -34,6 +23,42 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  loki:
+    image: grafana/loki
+    volumes:
+      - /home/meiti/Projects/magic-survey/deploy/loki:/etc/loki
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - loki
+  promtail:
+    image: grafana/promtail
+    volumes:
+      - /var/log:/var/log
+      - /home/meiti/Projects/magic-survey/deploy/promtail:/etc/promtail
+    # ports:
+    #   - "1514:1514" # this is only needed if you are going to send syslogs
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - loki
+  grafana:
+    image: grafana/grafana
+    user: "1000"
+    volumes:
+      - /home/meiti/Projects/magic-survey/deploy/grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - loki
+
 volumes:
   db_data:
-  elk-data:
+  grafana-data:
+  loki-data:
+
+networks:
+  loki:
