@@ -10,12 +10,9 @@ type AnswerID uint
 
 // Custom error messages
 var (
-	ErrInvalidUserID       = errors.New("userID is required and must be greater than 0")
-	ErrInvalidSubmissionID = errors.New("submissionID is required and must be greater than 0")
-	ErrInvalidOptionID     = errors.New("optionID must be greater than 0 if provided")
-	ErrInvalidQuestionID   = errors.New("questionID is required and must be greater than 0")
-	ErrInvalidAnswerText   = errors.New("answerText cannot be empty if provided")
-	ErrConflictingFields   = errors.New("either optionID or answerText must be provided, but not both")
+	ErrInvalidAnswerText          = errors.New("answerText cannot be empty if provided")
+	ErrConflictingFields          = errors.New("either optionID or answerText must be provided, but not both")
+	ErrAtLeatOneFieldNeededAnswer = errors.New("at least one field must be provided for updating answer")
 )
 
 // Answer represents the answers table
@@ -154,6 +151,9 @@ func (dto *CreateAnswerDTO) Validate() error {
 
 // ValidateUpdateAnswerDTO validates the fields in UpdateAnswerDTO
 func (dto *UpdateAnswerDTO) Validate() error {
+	if dto.OptionID == nil && dto.AnswerText == nil {
+		return ErrAtLeatOneFieldNeededAnswer
+	}
 	// Validate that either OptionID or AnswerText is provided, but not both
 	if (dto.OptionID != nil && *dto.OptionID != 0) && (dto.AnswerText != nil && strings.TrimSpace(*dto.AnswerText) != "") {
 		return ErrConflictingFields

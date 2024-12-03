@@ -6,16 +6,16 @@ import (
 	"time"
 )
 
-// Custom error messages
 var (
+	ErrInvalidQuestionID              = errors.New("questionID is required and must be greater than 0")
 	ErrInvalidTitle                   = errors.New("title is required and cannot be empty")
 	ErrInvalidType                    = errors.New("type is required and must be 'multioption' or 'descriptive'")
-	ErrInvalidQuestionnaireID         = errors.New("questionnaireID is required and must be greater than 0")
-	ErrInvalidOrder                   = errors.New("order is required and must be a positive integer")
+	ErrInvalidOrder                   = errors.New("order is required and must be greater than 0")
 	ErrInvalidFilePath                = errors.New("filePath cannot be empty if provided")
 	ErrInvalidDependsOnQuestionID     = errors.New("dependsOnQuestionID must be greater than 0 if provided")
 	ErrInvalidDependsOnOptionID       = errors.New("dependsOnOptionID must be greater than 0 if provided")
 	ErrDependsOnOptionWithoutQuestion = errors.New("dependsOnQuestionID must be provided when DependsOnOptionID is provided")
+	ErrAtLeatOneFieldNeededQuestion   = errors.New("at least one field must be provided for updating question")
 )
 
 // QuestionsTypeEnum represents the questions_type_enum type in Postgres
@@ -193,6 +193,9 @@ func (dto *CreateQuestionDTO) Validate() error {
 }
 
 func (dto *UpdateQuestionDTO) Validate() error {
+	if dto.Title == nil && dto.Type == nil && dto.QuestionnaireID == nil && dto.Order == nil && dto.FilePath == nil && dto.DependsOnQuestionID == nil && dto.DependsOnOptionID == nil {
+		return ErrAtLeatOneFieldNeededQuestion
+	}
 	// Validate Title (if provided)
 	if dto.Title != nil && strings.TrimSpace(*dto.Title) == "" {
 		return ErrInvalidTitle
