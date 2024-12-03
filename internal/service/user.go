@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	ErrUserOnCreate       = errors.New("Cant Create the user")
-	ErrUserOnUpdate       = errors.New("Cant Update the user")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrUserOnCreate       = errors.New("cant Create the user")
+	ErrUserOnUpdate       = errors.New("cant Update the user")
 	ErrEmailExists        = errors.New("mail already exits")
 	ErrNationalCodeExists = errors.New("national code already exits")
 	ErrWrongEmailPass     = errors.New("wrong mail or password")
@@ -26,6 +27,8 @@ var (
 	ErrCantSaveCode       = errors.New("cant save code")
 	ErrCantDeleteCode     = errors.New("cant delete code")
 	ErrCantGetCode        = errors.New("cant get code")
+
+	ErrUserRetrieveFailed = errors.New("failed to retrieve user")
 )
 
 type UserService struct {

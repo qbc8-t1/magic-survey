@@ -1,0 +1,39 @@
+{"LEVEL":"info","TIME":1733002146.5532842,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002146.555832,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002146.5558665,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733002251.5347664,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002251.5388155,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002251.5388508,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733002275.7719307,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002275.7746227,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002275.7746549,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733002277.5721824,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002277.5749066,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002277.5749352,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733002278.6523774,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002278.655225,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002278.6552641,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733002302.835202,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002302.837705,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002302.8377357,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733002304.052265,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002304.0547395,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002304.0547686,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733002305.4414036,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002305.4441075,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002305.4441404,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733002308.4321964,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002308.4351015,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002308.4351363,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733002527.8166497,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733002527.82096,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733002527.821006,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733003172.7451308,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733003172.7476418,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=test_postgres database=test_golang`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"test_postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733003172.7476773,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733004347.9346955,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733004347.9374647,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=postgres database=test`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733004347.9375103,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}
+{"LEVEL":"info","TIME":1733004350.87958,"CALLER":"server/server.go:16","MESSAGE":"AppVersion: , LogLevel: , Mode: , SSL: "}
+{"LEVEL":"error","TIME":1733004350.8825564,"CALLER":"logger/gormLogger.go:31","MESSAGE":"failed to initialize database, got error failed to connect to `user=postgres database=test`: 0.0.0.0:5432 (0.0.0.0): failed SASL auth: FATAL: password authentication failed for user \"postgres\" (SQLSTATE 28P01)"}
+{"LEVEL":"panic","TIME":1733004350.8825922,"CALLER":"server/server.go:22","MESSAGE":"Counldnt init the db"}

@@ -1,11 +1,14 @@
-package api
+package test
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"testing"
+	"time"
 
-	"github.com/QBC8-Team1/magic-survey/pkg/db"
+	"github.com/QBC8-Team1/magic-survey/config"
+	"github.com/QBC8-Team1/magic-survey/internal/server"
 	"gorm.io/gorm"
 )
 
@@ -14,19 +17,27 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	var err error
-	testDB, err = db.CreateTestDatabase()
+	conf, err := config.LoadConfig("../test_config.yml")
 	if err != nil {
-		log.Fatalf("Failed to create test database: %v", err)
+		log.Panic(fmt.Errorf("load config error: %w", err))
 	}
+
+	s, err := server.NewServer(conf)
+	if err != nil {
+		log.Panic(fmt.Errorf("could not start server: %w", err))
+	}
+
+	testDB = s.DB
+
+	go func() {
+		if err := s.Run(); err != nil {
+			log.Fatalf("server failed to start: %v", err)
+		}
+	}()
+
+	time.Sleep(100 * time.Millisecond)
 
 	code := m.Run()
-
-	_ = db.CloseTestDatabase(testDB)
-	err = os.Remove("./test_db.db") // Replace with the actual path to test.db
-	if err != nil {
-		log.Fatalf("Failed to delete test database file: %v", err)
-	}
 
 	os.Exit(code)
 }

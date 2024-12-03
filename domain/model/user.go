@@ -9,6 +9,10 @@ import (
 	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 )
 
+var (
+	ErrInvalidUserID = errors.New("userID is required and must be greater than 0")
+)
+
 type GenderEnum string
 type UserId uint
 

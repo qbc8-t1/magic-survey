@@ -11,11 +11,16 @@ import (
 func registerRoutes(app *fiber.App, s *common.Server) {
 	app.Get("/health", middleware.WithAuthMiddleware(s.DB, s.Cfg.Server.Secret), handlers.HealthCheck)
 
-	api := app.Group("/api")
-	auth := api.Group("/v1/auth")
-
+	api := app.Group("/api/v1")
+	auth := api.Group("/auth")
+	questions := api.Group("/questions")
+	answers := api.Group("/answers")
+	options := api.Group("/options")
+  rbac := api.Group("/rbac")
+  
 	routes.RegisterUserRoutes(auth, s)
-
-	rbac := api.Group("/rbac")
+	routes.RegisterQuestionRoutes(questions, s)
+	routes.RegisterAnswerRoutes(answers, s)
+	routes.RegisterOptionRoutes(options, s)
 	routes.RegisterRbacRoutes(rbac, s)
 }

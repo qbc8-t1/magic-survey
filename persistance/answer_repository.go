@@ -11,7 +11,7 @@ type AnswerRepository struct {
 	db *gorm.DB
 }
 
-// NewANswerRepository creates a new instance of AnswerRepository
+// NewAnswerRepository creates a new instance of AnswerRepository
 func NewAnswerRepository(db *gorm.DB) domain_repository.IAnswerRepository {
 	return &AnswerRepository{db: db}
 }
@@ -22,7 +22,7 @@ func (r *AnswerRepository) CreateAnswer(answer *model.Answer) error {
 }
 
 // GetAnswerByID gets an answer from database based on its ID
-func (r *AnswerRepository) GetAnswerByID(id uint) (*model.Answer, error) {
+func (r *AnswerRepository) GetAnswerByID(id model.AnswerID) (*model.Answer, error) {
 	var answer model.Answer
 	result := r.db.First(&answer, id)
 	return &answer, result.Error
@@ -34,6 +34,6 @@ func (r *AnswerRepository) UpdateAnswer(answer *model.Answer) error {
 }
 
 // DeleteAnswer deletes an answer from database
-func (r *AnswerRepository) DeleteAnswer(id uint) error {
+func (r *AnswerRepository) DeleteAnswer(id model.AnswerID) error {
 	return r.db.Delete(&model.Answer{}, id).Error
 }
