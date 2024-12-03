@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"github.com/QBC8-Team1/magic-survey/pkg/jwt"
@@ -10,7 +12,6 @@ import (
 	t "github.com/QBC8-Team1/magic-survey/pkg/time"
 	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 	jwt2 "github.com/golang-jwt/jwt/v5"
-	"time"
 )
 
 var (
@@ -61,13 +62,6 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 	user.IsActive = false
-
-	switch user.Gender {
-	case "male":
-		user.Gender = model.Male
-	case "female":
-		user.Gender = model.Female
-	}
 
 	hashedPassword, err := utils.HashPassword(user.Password)
 	user.Password = hashedPassword

@@ -15,4 +15,7 @@ func registerRoutes(app *fiber.App, s *common.Server) {
 	auth := api.Group("/v1/auth")
 
 	routes.RegisterUserRoutes(auth, s)
+
+	rbac := api.Group("/rbac")
+	routes.RegisterRbacRoutes(rbac, s)
 }
