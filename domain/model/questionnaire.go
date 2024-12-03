@@ -2,9 +2,8 @@ package model
 
 import (
 	"errors"
+	"strings"
 	"time"
-
-	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 )
 
 // QuestionnairesStatusEnum represents the questionnaires_status_enum type in Postgres
@@ -57,103 +56,124 @@ type Questionnaire struct {
 // CreateQuestionnaireDTO represents the data needed to create a new questionnaire
 type CreateQuestionnaireDTO struct {
 	// OwnerID              uint      `json:"owner_id" validate:"required"`
-	CanSubmitFrom              time.Time `json:"can_submit_from,omitempty"`
-	CanSubmitUntil             time.Time `json:"can_submit_until,omitempty"`
-	MaxMinutesToResponse       int       `json:"max_minutes_to_response,omitempty"`
-	MaxMinutesToChangeAnswer   int       `json:"max_minutes_to_change_answer"`
-	MaxMinutesToGivebackAnswer int       `json:"max_minutes_to_give_back_answer,omitempty"`
+	CanSubmitFrom              string `json:"can_submit_from,omitempty"`
+	CanSubmitUntil             string `json:"can_submit_until,omitempty"`
+	MaxMinutesToResponse       int    `json:"max_minutes_to_response,omitempty"`
+	MaxMinutesToChangeAnswer   int    `json:"max_minutes_to_change_answer"`
+	MaxMinutesToGivebackAnswer int    `json:"max_minutes_to_giveback_answer,omitempty"`
 
-	RandomOrSequential         QuestionnairesSequenceEnum   `json:"random_or_seq"`
+	RandomOrSequential         QuestionnairesSequenceEnum   `json:"random_or_sequential"`
 	CanBackToPreviousQuestion  bool                         `json:"can_back_to_previous_question"`
 	Title                      string                       `json:"title"`
-	MaxAllowedSubmissionsCount int                          `json:"max_allowed_submission_count"`
+	MaxAllowedSubmissionsCount int                          `json:"max_allowed_submissions_count"`
 	AnswersVisibleFor          QuestionnairesVisibilityEnum `json:"answers_visible_for"`
 }
 
-// UpdateUserDTO represents the data needed to update an existing user
-type UpdateQuestionnaireDTO struct {
-	FirstName    *string     `json:"first_name,omitempty"`
-	LastName     *string     `json:"last_name,omitempty"`
-	Email        *string     `json:"email,omitempty" validate:"email"`
-	NationalCode *string     `json:"national_code,omitempty"`
-	Password     *string     `json:"password,omitempty"`
-	Gender       *GenderEnum `json:"gender,omitempty" validate:"omitempty,oneof=male female"`
+type QuestionnaireResponse struct {
+	ID                         uint `gorm:"primaryKey"`
+	OwnerID                    uint
+	Status                     QuestionnairesStatusEnum `gorm:"type:questionnaires_status_enum;default:'open'"`
+	CanSubmitFrom              time.Time
+	CanSubmitUntil             time.Time
+	MaxMinutesToResponse       int
+	MaxMinutesToChangeAnswer   int
+	MaxMinutesToGivebackAnswer int
+	RandomOrSequential         QuestionnairesSequenceEnum `gorm:"type:questionnaires_sequence_enum"`
+	CanBackToPreviousQuestion  bool
+	Title                      string `gorm:"size:255"`
+	MaxAllowedSubmissionsCount int
+	AnswersVisibleFor          QuestionnairesVisibilityEnum `gorm:"type:questionnaires_visibility_enum"`
+	CreatedAt                  time.Time
 }
 
-func ToQuestionnaireModel(dto *CreateQuestionnaireDTO) *Questionnaire {
-	return &Questionnaire{
-		// ID
-		// OwnerID
-		// Status
-		CanSubmitFrom:              dto.CanSubmitFrom,
-		CanSubmitUntil:             dto.CanSubmitUntil,
-		MaxMinutesToResponse:       dto.MaxMinutesToResponse,
-		MaxMinutesToChangeAnswer:   dto.MaxMinutesToChangeAnswer,
-		MaxMinutesToGivebackAnswer: dto.MaxMinutesToGivebackAnswer,
-		RandomOrSequential:         dto.RandomOrSequential,
-		CanBackToPreviousQuestion:  dto.CanBackToPreviousQuestion,
-		Title:                      dto.Title,
-		MaxAllowedSubmissionsCount: dto.MaxAllowedSubmissionsCount,
-		AnswersVisibleFor:          dto.AnswersVisibleFor,
-		// CreatedAt                  time.Time
-		// Owner                      User         `gorm:"foreignKey:OwnerID"`
-		// Questions                  []Question   `gorm:"foreignKey:QuestionnaireID"`
-		// Submissions                []Submission `gorm:"foreignKey:QuestionnaireID"`
-
+func ToQuestionnaireResponse(q *Questionnaire) *QuestionnaireResponse {
+	return &QuestionnaireResponse{
+		ID:                         q.ID,
+		OwnerID:                    q.OwnerID,
+		Status:                     q.Status,
+		CanSubmitFrom:              q.CanSubmitFrom,
+		CanSubmitUntil:             q.CanSubmitUntil,
+		MaxMinutesToResponse:       q.MaxMinutesToResponse,
+		MaxMinutesToChangeAnswer:   q.MaxMinutesToChangeAnswer,
+		MaxMinutesToGivebackAnswer: q.MaxMinutesToGivebackAnswer,
+		RandomOrSequential:         q.RandomOrSequential,
+		CanBackToPreviousQuestion:  q.CanBackToPreviousQuestion,
+		Title:                      q.Title,
+		MaxAllowedSubmissionsCount: q.MaxAllowedSubmissionsCount,
+		AnswersVisibleFor:          q.AnswersVisibleFor,
+		CreatedAt:                  q.CreatedAt,
 	}
 }
 
-// Validate checks the User struct for common validation rules.
-func (q *Questionnaire) Validate() error {
-	// if strings.TrimSpace(u.FirstName) == "" {
-	// 	return errors.New("first name is required")
-	// }
-	// if strings.TrimSpace(u.LastName) == "" {
-	// 	return errors.New("last name is required")
-	// }
-	// if !utils.IsValidEmail(u.Email) {
-	// 	return errors.New("invalid email format")
-	// }
-	// if len(u.NationalCode) != 10 || !utils.IsAllDigits(u.NationalCode) {
-	// 	return errors.New("national code must be a 10-digit number")
-	// }
-	// if len(u.Password) < 6 {
-	// 	return errors.New("password must be at least 6 characters long")
-	// }
+func (dto CreateQuestionnaireDTO) ValidateAndMakeObject() (Questionnaire, error) {
+	questionnaire := new(Questionnaire)
 
-	// CanSubmitFrom:              dto.CanSubmitFrom,
-	// CanSubmitUntil:             dto.CanSubmitUntil,
-	// MaxMinutesToResponse:       dto.MaxMinutesToResponse,
-	// MaxMinutesToChangeAnswer:   dto.MaxMinutesToChangeAnswer,
-	// MaxMinutesToGivebackAnswer: dto.MaxMinutesToGivebackAnswer,
-	// RandomOrSequential:         dto.RandomOrSequential,
-	// CanBackToPreviousQuestion:  dto.CanBackToPreviousQuestion,
-	// Title:                      dto.Title,
-	// MaxAllowedSubmissionsCount: dto.MaxAllowedSubmissionsCount,
-	// AnswersVisibleFor:          dto.AnswersVisibleFor,
+	// can_submit_from
+	canSubmitFrom, err := time.Parse(time.DateTime, dto.CanSubmitFrom)
+	if err != nil {
+		return *questionnaire, errors.New("can_submit_from date is invalid. layout is this: 2006-01-02 15:04:05")
+	}
+	questionnaire.CanSubmitFrom = canSubmitFrom
 
-	// ID                         uint `gorm:"primaryKey"`
-	// OwnerID                    uint
-	// Status                     QuestionnairesStatusEnum `gorm:"type:questionnaires_status_enum;default:'open'"`
-	// CanSubmitFrom              time.Time
-	// CanSubmitUntil             time.Time
-	// MaxMinutesToResponse       int
-	// MaxMinutesToChangeAnswer   int
-	// MaxMinutesToGivebackAnswer int
-	// RandomOrSequential         QuestionnairesSequenceEnum `gorm:"type:questionnaires_sequence_enum"`
-	// CanBackToPreviousQuestion  bool
-	// Title                      string `gorm:"size:255"`
-	// MaxAllowedSubmissionsCount int
-	// AnswersVisibleFor          QuestionnairesVisibilityEnum `gorm:"type:questionnaires_visibility_enum"`
-	// CreatedAt                  time.Time
-	// Owner                      User         `gorm:"foreignKey:OwnerID"`
-	// Questions                  []Question   `gorm:"foreignKey:QuestionnaireID"`
-	// Submissions                []Submission `gorm:"foreignKey:QuestionnaireID"`
+	// can_submit_until
+	canSubmitUntil, err := time.Parse(time.DateTime, dto.CanSubmitUntil)
+	if err != nil {
+		return *questionnaire, errors.New("can_submit_until date. layout is this: 2006-01-02 15:04:05")
+	}
+	questionnaire.CanSubmitUntil = canSubmitUntil
 
-	// utils.CanSubmitFrom
-	if utils.IsValidDate(q.CanSubmitFrom) == "" {
-		return errors.New("first name is required")
+	// max_minutes_to_response
+	if dto.MaxMinutesToResponse < 1 {
+		return *questionnaire, errors.New("max_minutes_to_response is invalid")
+	}
+	questionnaire.MaxMinutesToResponse = dto.MaxMinutesToResponse
+
+	// max_minutes_to_change_answer
+	if dto.MaxMinutesToChangeAnswer < 1 {
+		return *questionnaire, errors.New("max_minutes_to_change_answer is invalid")
+	}
+	questionnaire.MaxMinutesToChangeAnswer = dto.MaxMinutesToChangeAnswer
+
+	// max_minutes_to_giveback_answer
+	if dto.MaxMinutesToGivebackAnswer < 1 {
+		return *questionnaire, errors.New("max_minutes_to_giveback_answer is invalid")
+	}
+	questionnaire.MaxMinutesToGivebackAnswer = dto.MaxMinutesToGivebackAnswer
+
+	// random_or_sequential
+	switch {
+	case dto.RandomOrSequential == "rand" || dto.RandomOrSequential == "random":
+		questionnaire.RandomOrSequential = "random"
+	case dto.RandomOrSequential == "seq" || dto.RandomOrSequential == "sequential":
+		questionnaire.RandomOrSequential = "sequential"
+	default:
+		return *questionnaire, errors.New("value of random_or_sequential field must be rand or seq")
 	}
 
-	return nil
+	// can_back_to_previous_question
+	questionnaire.CanBackToPreviousQuestion = dto.CanBackToPreviousQuestion
+
+	// title
+	if len(strings.TrimSpace(dto.Title)) < 2 {
+		return *questionnaire, errors.New("title is too short")
+	}
+	questionnaire.Title = dto.Title
+
+	// max_allowed_submissions_count
+	if dto.MaxAllowedSubmissionsCount < 1 {
+		return *questionnaire, errors.New("max_allowed_submissions_count must be bigger than 0")
+	}
+	questionnaire.MaxAllowedSubmissionsCount = dto.MaxAllowedSubmissionsCount
+
+	// answers_visible_for
+	switch dto.AnswersVisibleFor {
+	case "everybody":
+	case "admin_and_owner":
+	case "nobody":
+	default:
+		return *questionnaire, errors.New("value of answers_visible_for field must be one of these: everybody, admin_and_owner, nobody")
+	}
+	questionnaire.AnswersVisibleFor = dto.AnswersVisibleFor
+
+	return *questionnaire, nil
 }

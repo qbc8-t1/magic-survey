@@ -25,7 +25,7 @@ type User struct {
 	Birthdate      string     `gorm:"size:255"`
 	City           string     `gorm:"size:255"`
 	NationalCode   string     `gorm:"size:10;unique"`
-	Gender         GenderEnum `gorm:"type:gender_enum;not null"`
+	Gender         *GenderEnum `gorm:"type:gender_enum"`
 	Email          string     `gorm:"unique;size:255"`
 	Password       string     `gorm:"not null"`
 	IsActive       bool       `gorm:"not null"`
@@ -54,7 +54,6 @@ type CreateUserDTO struct {
 	Email        string     `json:"email" validate:"required,email"`
 	NationalCode string     `json:"national_code" validate:"required"`
 	Password     string     `json:"password" validate:"required"`
-	Gender       GenderEnum `json:"gender" validate:"required,oneof=male female"`
 }
 
 // UpdateUserDTO represents the data needed to update an existing user
@@ -64,7 +63,6 @@ type UpdateUserDTO struct {
 	Email        *string     `json:"email,omitempty" validate:"email"`
 	NationalCode *string     `json:"national_code,omitempty"`
 	Password     *string     `json:"password,omitempty"`
-	Gender       *GenderEnum `json:"gender,omitempty" validate:"omitempty,oneof=male female"`
 }
 
 // LoginRequest represents user login data
@@ -92,7 +90,6 @@ type UserResponse struct {
 	Name         string `json:"name"`
 	Email        string `json:"email"`
 	NationalCode string `json:"national_code"`
-	Gender       string `json:"gender"`
 }
 
 // GetFullName returns the full name of a user
@@ -107,7 +104,6 @@ func ToUserResponse(user *User) *UserResponse {
 		Name:         user.GetFullName(),
 		Email:        user.Email,
 		NationalCode: user.NationalCode,
-		Gender:       string(user.Gender),
 	}
 }
 
@@ -119,7 +115,6 @@ func ToUserModel(dto *CreateUserDTO) *User {
 		Email:        dto.Email,
 		NationalCode: dto.NationalCode,
 		Password:     dto.Password,
-		Gender:       dto.Gender,
 	}
 }
 
@@ -139,9 +134,6 @@ func UpdateUserModel(user *User, dto *UpdateUserDTO) {
 	}
 	if dto.Password != nil {
 		user.Password = *dto.Password
-	}
-	if dto.Gender != nil {
-		user.Gender = *dto.Gender
 	}
 }
 

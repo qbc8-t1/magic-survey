@@ -2,7 +2,6 @@ package utils
 
 import (
 	"regexp"
-	"time"
 )
 
 // IsValidEmail checks if an mail address is in a valid format.
@@ -21,9 +20,4 @@ func IsAllDigits(s string) bool {
 		}
 	}
 	return true
-}
-
-func IsValidDate(dateStr string) bool {
-	_, err := time.Parse("2006-01-02 15:04:05", dateStr)
-	return err == nil
 }

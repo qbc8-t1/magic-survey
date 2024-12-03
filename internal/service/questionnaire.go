@@ -17,7 +17,7 @@ import (
 
 type IQuestionnaireService interface {
 	// repo domain_repository.IQuestionnaireRepository
-	CreateQuestionnaire(questionnaire *model.Questionnaire) error
+	CreateQuestionnaire(questionnaire *model.Questionnaire) (model.Questionnaire, error)
 	GetQuestionnaireByID(id uint) (*model.Questionnaire, error)
 	UpdateQuestionare(questionnaire *model.Questionnaire) error
 	DeleteQuestionnaire(id uint) error
@@ -31,8 +31,8 @@ func NewQuestionnaireService(repo domain_repository.IQuestionnaireRepository) IQ
 	return &QuestionnaireService{repo: repo}
 }
 
-func (s *QuestionnaireService) CreateQuestionnaire(questionnaire *model.Questionnaire) error {
-	return nil
+func (s *QuestionnaireService) CreateQuestionnaire(questionnaire *model.Questionnaire) (model.Questionnaire, error) {
+	return s.repo.CreateQuestionnaire(questionnaire)
 }
 
 func (s *QuestionnaireService) GetQuestionnaireByID(id uint) (*model.Questionnaire, error) {

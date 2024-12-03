@@ -14,8 +14,13 @@ func NewQuestionnaireRepository(db *gorm.DB) domain_repository.IQuestionnaireRep
 	return &QuestionnaireRepository{db: db}
 }
 
-func (r *QuestionnaireRepository) CreateQuestionnaire(questionnaire *model.Questionnaire) error {
-	return nil
+func (r *QuestionnaireRepository) CreateQuestionnaire(questionnaire *model.Questionnaire) (model.Questionnaire, error) {
+	err := r.db.Create(questionnaire).Error
+	if err != nil {
+		return model.Questionnaire{}, err
+	}
+
+	return *questionnaire, err
 }
 
 func (r *QuestionnaireRepository) GetQuestionnaireByID(id uint) (*model.Questionnaire, error) {

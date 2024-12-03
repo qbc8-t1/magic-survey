@@ -11,24 +11,28 @@ import (
 // YOUSEF
 func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var dto model.CreateQuestionnaireDTO
-		if err := c.BodyParser(&dto); err != nil {
+		// TODO - get logged in user
+		// TODO - check if user can make a new questionnaire - check if it has reached the limitation or not
+
+		var requestData model.CreateQuestionnaireDTO
+		if err := c.BodyParser(&requestData); err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
 		}
 
-		questionnaire := model.ToQuestionnaireModel(&dto)
-
-		err := questionnaire.Validate()
+		questionnaireRawObject, err := requestData.ValidateAndMakeObject()
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
-		// tokens, err := userService.CreateUser(user)
-		// if err != nil {
-		// 	return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
-		// }
 
-		// return response.Success(c, fiber.StatusCreated, "User Created", tokens)
-		return nil
+		// TODO - put user id in the questionnaireRawObject
+		questionnaireRawObject.OwnerID = 2
+
+		questionnaire, err := qService.CreateQuestionnaire(&questionnaireRawObject)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong with creating new questionnaire", err)
+		}
+
+		return response.Success(c, fiber.StatusCreated, "Questionnaire Created Successfully", model.ToQuestionnaireResponse(&questionnaire))
 	}
 }
 
