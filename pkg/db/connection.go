@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-
 	"github.com/QBC8-Team1/magic-survey/config"
 	applog "github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"gorm.io/driver/postgres"

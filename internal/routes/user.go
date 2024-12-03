@@ -8,10 +8,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// registerUserRoutes registers routes related to user management
+// RegisterUserRoutes registers routes related to user management
 func RegisterUserRoutes(auth fiber.Router, s *common.Server) {
 	userRepo := repository.NewUserRepository(s.DB)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, s.Cfg.Secret, s.Cfg.AuthExpMinute, s.Cfg.AuthRefreshMinute, s.Cfg.Server.MailPass)
 
 	auth.Post("signup", handlers.UserCreate(*userService))
+	auth.Post("verify", handlers.Verify2FACode(*userService))
+	auth.Post("login", handlers.Login(*userService))
 }

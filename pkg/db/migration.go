@@ -26,6 +26,7 @@ func migrate(gormDB *gorm.DB) error {
 		&model.UsersWithVisibleAnswers{},
 		&model.Submission{},
 		&model.Answer{},
+		&model.TwoFACode{},
 	)
 }
 
