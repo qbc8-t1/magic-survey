@@ -2,9 +2,8 @@ package model
 
 // RoleUser represents the role_user table
 type RoleUser struct {
-	ID     uint `gorm:"primaryKey"`
-	RoleID uint
-	UserID uint
+	RoleID uint `gorm:"primaryKey"`
+	UserID uint `gorm:"primaryKey"`
 	Role   Role `gorm:"foreignKey:RoleID"`
 	User   User `gorm:"foreignKey:UserID"`
 }

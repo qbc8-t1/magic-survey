@@ -1,11 +1,12 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"gorm.io/gorm"
-	"time"
 )
 
 type userRepository struct {

@@ -1,6 +1,6 @@
 package model
 
-import "time"
+import "database/sql"
 
 // RolePermission represents the role_permission table
 type RolePermission struct {
@@ -8,7 +8,7 @@ type RolePermission struct {
 	QuestionnaireID uint
 	RoleID          uint
 	PermissionID    uint
-	ExpireAt        *time.Time
+	ExpireAt        sql.NullTime
 	Role            Role       `gorm:"foreignKey:RoleID"`
 	Permission      Permission `gorm:"foreignKey:PermissionID"`
 }
