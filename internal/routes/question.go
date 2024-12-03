@@ -15,7 +15,6 @@ func RegisterQuestionRoutes(api fiber.Router, s *common.Server) {
 
 	questionService := service.NewQuestionService(questionRepo, questionnaireRepo)
 
-	api.Get("/hello", handlers.HelloQuestionHandler(questionService))
 	api.Post("", handlers.CreateQuestionHandler(questionService))
 	api.Get("/:id", handlers.GetQuestionHandler(questionService))
 	api.Get("/:questionnaire_id", handlers.GetQuestionsByQuestionnaireIDHandler(questionService))

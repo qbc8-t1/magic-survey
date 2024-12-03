@@ -10,22 +10,22 @@ type AnswerID uint
 
 // Custom error messages
 var (
-	ErrInvalidUserID       = errors.New("UserID is required and must be greater than 0")
-	ErrInvalidSubmissionID = errors.New("SubmissionID is required and must be greater than 0")
-	ErrInvalidOptionID     = errors.New("OptionID must be greater than 0 if provided")
-	ErrInvalidQuestionID   = errors.New("QuestionID is required and must be greater than 0")
-	ErrInvalidAnswerText   = errors.New("AnswerText cannot be empty if provided")
-	ErrConflictingFields   = errors.New("Either OptionID or AnswerText must be provided, but not both")
+	ErrInvalidUserID       = errors.New("userID is required and must be greater than 0")
+	ErrInvalidSubmissionID = errors.New("submissionID is required and must be greater than 0")
+	ErrInvalidOptionID     = errors.New("optionID must be greater than 0 if provided")
+	ErrInvalidQuestionID   = errors.New("questionID is required and must be greater than 0")
+	ErrInvalidAnswerText   = errors.New("answerText cannot be empty if provided")
+	ErrConflictingFields   = errors.New("either optionID or answerText must be provided, but not both")
 )
 
 // Answer represents the answers table
 type Answer struct {
-	ID           uint    `gorm:"primaryKey"`
-	UserID       uint    `gorm:"not null"`
-	SubmissionID uint    `gorm:"not null"`
-	QuestionID   uint    `gorm:"not null"`
-	OptionID     *uint   `gorm:"default:null"`
-	AnswerText   *string `gorm:"default:null"`
+	ID           AnswerID `gorm:"primaryKey"`
+	UserID       uint     `gorm:"not null;unique"`
+	SubmissionID uint     `gorm:"not null;unique"`
+	QuestionID   uint     `gorm:"not null;unique"`
+	OptionID     *uint    `gorm:"default:null"`
+	AnswerText   *string  `gorm:"default:null"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Submission   Submission `gorm:"foreignKey:SubmissionID"`

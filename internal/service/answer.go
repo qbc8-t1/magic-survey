@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Custom errors
 var (
 	// General errors
 	ErrAnswerNotFound      = errors.New("answer not found")

@@ -9,32 +9,25 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func HelloQuestionHandler(service service.IQuestionService) fiber.Handler {
-	// closure
-	return func(c *fiber.Ctx) error {
-		return response.Success(c, fiber.StatusOK, "Hello From Question Handler!", nil)
-	}
-}
-
 func CreateQuestionHandler(service service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var questionDTO model.CreateQuestionDTO
 		if err := c.BodyParser(&questionDTO); err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
+			return response.Error(c, fiber.StatusBadRequest, "invalid body", nil)
 		}
 
 		err := questionDTO.Validate()
 
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
 		}
 
 		err = service.CreateQuestion(&questionDTO)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
+			return response.Error(c, fiber.StatusInternalServerError, "error in creating the question", nil)
 		}
 
-		return response.Success(c, fiber.StatusCreated, "Question created", nil)
+		return response.Success(c, fiber.StatusCreated, "question created", nil)
 	}
 }
 
@@ -43,15 +36,15 @@ func GetQuestionHandler(service service.IQuestionService) fiber.Handler {
 		idStr := c.Params("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil || id <= 0 {
-			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", err)
+			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
 		res, err := service.GetQuestionByID(model.QuestionID(id))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
+			return response.Error(c, fiber.StatusInternalServerError, "error in retrieving the question", nil)
 		}
 
-		return response.Success(c, fiber.StatusOK, "Question Found", res)
+		return response.Success(c, fiber.StatusOK, "question Found", res)
 	}
 }
 
@@ -60,15 +53,15 @@ func GetQuestionsByQuestionnaireIDHandler(service service.IQuestionService) fibe
 		questionnaireIdStr := c.Params("questionnaire_id")
 		questionnaireId, err := strconv.Atoi(questionnaireIdStr)
 		if err != nil || questionnaireId <= 0 {
-			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", err)
+			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
 		questions, err := service.GetQuestionsByQuestionnaireID(model.QuestionnaireID(questionnaireId))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to fetch questions", err)
+			return response.Error(c, fiber.StatusInternalServerError, "failed to fetch questions", nil)
 		}
 
-		return response.Success(c, fiber.StatusOK, "Questions retrieved successfully", questions)
+		return response.Success(c, fiber.StatusOK, "questions retrieved successfully", questions)
 	}
 }
 
@@ -77,25 +70,25 @@ func UpdateQuestionHandler(service service.IQuestionService) fiber.Handler {
 		idStr := c.Params("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil || id <= 0 {
-			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a positive integer", err)
+			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a positive integer", nil)
 		}
 
 		var questionDTO model.UpdateQuestionDTO
 		if err := c.BodyParser(&questionDTO); err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
+			return response.Error(c, fiber.StatusBadRequest, "invalid body", nil)
 		}
 
 		err = questionDTO.Validate()
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
 		}
 
 		err = service.UpdateQuestion(model.QuestionID(id), &questionDTO)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
+			return response.Error(c, fiber.StatusInternalServerError, "error in updating the question", nil)
 		}
 
-		return response.Success(c, fiber.StatusOK, "Question updated successfully", nil)
+		return response.Success(c, fiber.StatusOK, "question updated successfully", nil)
 	}
 }
 
@@ -104,14 +97,14 @@ func DeleteQuestionHandler(service service.IQuestionService) fiber.Handler {
 		idStr := c.Params("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil || id <= 0 {
-			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", err)
+			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
 		err = service.DeleteQuestion(model.QuestionID(id))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
+			return response.Error(c, fiber.StatusInternalServerError, "error in deleting the question", nil)
 		}
 
-		return response.Success(c, fiber.StatusOK, "Question Deleted", nil)
+		return response.Success(c, fiber.StatusOK, "question deleted", nil)
 	}
 }

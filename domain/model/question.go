@@ -8,14 +8,14 @@ import (
 
 // Custom error messages
 var (
-	ErrInvalidTitle                   = errors.New("Title is required and cannot be empty")
-	ErrInvalidType                    = errors.New("Type is required and must be 'multioption' or 'descriptive'")
-	ErrInvalidQuestionnaireID         = errors.New("QuestionnaireID is required and must be greater than 0")
-	ErrInvalidOrder                   = errors.New("Order is required and must be a positive integer")
-	ErrInvalidFilePath                = errors.New("FilePath cannot be empty if provided")
-	ErrInvalidDependsOnQuestionID     = errors.New("DependsOnQuestionID must be greater than 0 if provided")
-	ErrInvalidDependsOnOptionID       = errors.New("DependsOnOptionID must be greater than 0 if provided")
-	ErrDependsOnOptionWithoutQuestion = errors.New("DependsOnQuestionID must be provided when DependsOnOptionID is provided")
+	ErrInvalidTitle                   = errors.New("title is required and cannot be empty")
+	ErrInvalidType                    = errors.New("type is required and must be 'multioption' or 'descriptive'")
+	ErrInvalidQuestionnaireID         = errors.New("questionnaireID is required and must be greater than 0")
+	ErrInvalidOrder                   = errors.New("order is required and must be a positive integer")
+	ErrInvalidFilePath                = errors.New("filePath cannot be empty if provided")
+	ErrInvalidDependsOnQuestionID     = errors.New("dependsOnQuestionID must be greater than 0 if provided")
+	ErrInvalidDependsOnOptionID       = errors.New("dependsOnOptionID must be greater than 0 if provided")
+	ErrDependsOnOptionWithoutQuestion = errors.New("dependsOnQuestionID must be provided when DependsOnOptionID is provided")
 )
 
 // QuestionsTypeEnum represents the questions_type_enum type in Postgres
@@ -29,7 +29,7 @@ const (
 
 // Question represents the questions table
 type Question struct {
-	ID                  uint              `gorm:"primaryKey"`
+	ID                  QuestionID        `gorm:"primaryKey"`
 	Title               string            `gorm:"size:255;not null"`
 	Type                QuestionsTypeEnum `gorm:"type:questions_type_enum;not null"`
 	QuestionnaireID     uint              `gorm:"not null"`
