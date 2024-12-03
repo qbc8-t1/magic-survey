@@ -5,11 +5,12 @@ services:
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: "host=db user=postgres password=postgres dbname=survey_db sslmode=disable"
+      MEILISEARCH_HOST: "http://meilisearch:7700"
     ports:
       - "8080:8080"
     depends_on:
       - db
-      - loki
+      - meilisearch
 
   db:
     image: postgres:15
@@ -23,42 +24,19 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
-  loki:
-    image: grafana/loki
-    volumes:
-      - /home/meiti/Projects/magic-survey/deploy/loki:/etc/loki
+  meilisearch:
+    image: getmeili/meilisearch:v1.2.0 # Replace with the latest version if necessary
+    container_name: meilisearch
     ports:
-      - "3100:3100"
-    restart: unless-stopped
-    command: -config.file=/etc/loki/loki-config.yml
-    networks:
-      - loki
-  promtail:
-    image: grafana/promtail
+      - "7700:7700"
+    environment:
+      MEILI_MASTER_KEY: "wf_4gRrCDLEh58UYAALQgoUuVQoH2b2HQpsNTi75oK4"
     volumes:
-      - /var/log:/var/log
-      - /home/meiti/Projects/magic-survey/deploy/promtail:/etc/promtail
-    # ports:
-    #   - "1514:1514" # this is only needed if you are going to send syslogs
-    restart: unless-stopped
-    command: -config.file=/etc/promtail/promtail-config.yml
-    networks:
-      - loki
-  grafana:
-    image: grafana/grafana
-    user: "1000"
-    volumes:
-      - /home/meiti/Projects/magic-survey/deploy/grafana:/var/lib/grafana
-    ports:
-      - "3000:3000"
-    restart: unless-stopped
-    networks:
-      - loki
+      - meilisearch-data:/meili_data
 
 volumes:
   db_data:
-  grafana-data:
-  loki-data:
+  meilisearch-data:
 
 networks:
   loki:
