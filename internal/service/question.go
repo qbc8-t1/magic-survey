@@ -39,12 +39,12 @@ type IQuestionService interface {
 type QuestionService struct {
 	// dependency injection
 	questionRepo      domain_repository.IQuestionRepository
-	questionnaireRepo domain_repository.IQuestionnaireRepo
+	questionnaireRepo domain_repository.IQuestionnaireRepository
 }
 
 // NewQuestionService creates a new QuestionService object
 func NewQuestionService(questionRepo domain_repository.IQuestionRepository,
-	questionnaireRepo domain_repository.IQuestionnaireRepo) *QuestionService {
+	questionnaireRepo domain_repository.IQuestionnaireRepository) *QuestionService {
 	return &QuestionService{
 		questionRepo:      questionRepo,
 		questionnaireRepo: questionnaireRepo,

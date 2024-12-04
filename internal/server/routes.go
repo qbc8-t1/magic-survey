@@ -17,10 +17,12 @@ func registerRoutes(app *fiber.App, s *common.Server) {
 	answers := api.Group("/answers")
 	options := api.Group("/options")
 	rbac := api.Group("/rbac")
+	core := api.Group("/core")
 
 	routes.RegisterUserRoutes(auth, s)
 	routes.RegisterQuestionRoutes(questions, s)
 	routes.RegisterAnswerRoutes(answers, s)
 	routes.RegisterOptionRoutes(options, s)
 	routes.RegisterRbacRoutes(rbac, s)
+	routes.RegisterCoreRoutes(core, s)
 }

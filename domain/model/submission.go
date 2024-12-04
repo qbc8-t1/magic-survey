@@ -23,10 +23,10 @@ const (
 // Submission represents the submissions table
 type Submission struct {
 	ID                     SubmissionID `gorm:"primaryKey"`
-	QuestionnaireID        uint
-	UserID                 uint
+	QuestionnaireID        QuestionnaireID
+	UserID                 UserId
 	Status                 SubmissionsStatusEnum `gorm:"type:submissions_status_enum;default:'answering'"`
-	LastAnsweredQuestionID *uint
+	LastAnsweredQuestionID *QuestionID
 	SubmittedAt            *time.Time
 	SpentMinutes           *int
 	Questionnaire          Questionnaire `gorm:"foreignKey:QuestionnaireID"`

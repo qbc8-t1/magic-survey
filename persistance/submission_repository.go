@@ -22,3 +22,17 @@ func (r *SubmissionRepository) GetSubmissionByID(id model.SubmissionID) (*model.
 	result := r.db.First(&submission, id)
 	return &submission, result.Error
 }
+
+func (r *SubmissionRepository) CreateSubmission(submission *model.Submission) error {
+	return r.db.Create(submission).Error
+}
+
+func (r *SubmissionRepository) UpdateSubmission(submission *model.Submission) error {
+	return r.db.Save(submission).Error
+}
+
+func (r *SubmissionRepository) GetActiveSubmissionByUserID(userID model.UserId) (*model.Submission, error) {
+	var submission model.Submission
+	result := r.db.Preload("Questionnaire").Where("user_id = ? AND status = ?", userID, model.SubmissionsStatusAnswering).First(&submission)
+	return &submission, result.Error
+}
