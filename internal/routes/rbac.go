@@ -13,7 +13,6 @@ func RegisterRbacRoutes(router fiber.Router, s *common.Server) {
 	rbacService := service.NewRbacService(rbacRepo)
 
 	// logged in user id here
-
 	router.Get("/users-with-visible-answers", handlers.GetUsersWithVisibleAnswers(*rbacService))
 	router.Post("/:userid/make-superadmin", handlers.MakeSuperadmin(*rbacService))
 	router.Get("/can-do", handlers.CanDo(*rbacService))
