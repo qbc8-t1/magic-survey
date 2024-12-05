@@ -5,6 +5,7 @@ import (
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
+	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -21,8 +22,20 @@ func UserCreate(userService service.UserService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 		tokens, err := userService.CreateUser(user)
+
+		knownErrors := []error{
+			service.ErrUserNotVerified,
+			service.ErrCantGetCode,
+			service.ErrNationalCodeExists,
+			service.ErrWrongEmailPass,
+			service.ErrCodeExpired,
+		}
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
+			if utils.ErrorIncludes(err, knownErrors) {
+				response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
+			}
+
+			return response.Error(c, fiber.StatusInternalServerError, "try again later", nil)
 		}
 
 		return response.Success(c, fiber.StatusCreated, "User Created", tokens)
