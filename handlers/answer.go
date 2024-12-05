@@ -1,13 +1,128 @@
 package handlers
 
 import (
+	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
+	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 
-func HelloHandlerAnswer(service service.IAnswerService) func(ctx *fiber.Ctx) error {
-	// closure
-	return func(ctx *fiber.Ctx) error {
+type GetAnswerData struct {
+	QuestionID uint `json:"question_id"`
+	UserID     uint `json:"user_id"`
+}
+
+func GetAnswer(answerService service.AnswerService, rbacService service.RbacService, questionnaireService service.QuestionnaireService, questionService service.QuestionService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// get user from local
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "user is not signed in", nil)
+		}
+
+		// cast to model user
+		loggedInUser, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get signed in user", nil)
+		}
+
+		// get questionnaire id
+		questionnaireID, err := c.ParamsInt("questionnaire_id")
+		if err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "bad questionnaire id", err.Error())
+		}
+
+		// get questionnaire object by id
+		questionnaire, err := questionnaireService.GetQuestionnaireByID(uint(questionnaireID))
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaireID", err.Error())
+		}
+
+		// parse body of request
+		data := new(GetAnswerData)
+		err = c.BodyParser(&data)
+		if err != nil {
+			return response.Error(c, fiber.StatusUnprocessableEntity, "faild to parse body", err.Error())
+		}
+
+		// check if question is for the questionnaire
+		is, err := questionService.IsQuestionForQuestionnaire(data.QuestionID, questionnaire.ID)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get question", err.Error())
+		}
+		if !is {
+			return response.Error(c, fiber.StatusBadRequest, "question is not for questionnaire", nil)
+		}
+
+		// user can see his/her answer
+		if data.UserID == loggedInUser.ID {
+			answer, err := answerService.GetUserAnswer(data.QuestionID, data.UserID)
+			if err != nil {
+				return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
+			}
+			return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerResponse(answer))
+		}
+
+		// switch on questionnaire visibility type
+		switch questionnaire.AnswersVisibleFor {
+
+		// if everybody can see it
+		case model.QuestionnaireVisibilityEverybody:
+			// check if logged in user is superadmin or the owner of the questionnaire
+			isSuperadmin, _ := rbacService.CanDoAsSuperadmin(loggedInUser.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
+			if questionnaire.OwnerID == loggedInUser.ID || isSuperadmin {
+				answer, err := answerService.GetUserAnswer(data.QuestionID, data.UserID)
+				if err != nil {
+					return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
+				}
+				return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerResponse(answer))
+			}
+
+			// check if user has permission
+			has, err := rbacService.HasPermission(loggedInUser.ID, questionnaire.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
+			if err != nil {
+				return response.Error(c, fiber.StatusInternalServerError, "failed to check permission", err.Error())
+			}
+			if !has {
+				return response.Error(c, fiber.StatusForbidden, "you don't have permission to see the answer", nil)
+			}
+
+			// get selected users which users can see their answers
+			usersIDs, err := rbacService.GetUsersIDsWithVisibleAnswers(questionnaire.ID, loggedInUser.ID)
+			if err != nil {
+				return response.Error(c, fiber.StatusInternalServerError, "failed to get users ids with visible answers", err.Error())
+			}
+			found := false
+			for _, userID := range usersIDs {
+				if data.UserID == userID {
+					found = true
+				}
+			}
+			if !found {
+				return response.Error(c, fiber.StatusForbidden, "you don't have permission to see this user answer for this questionnaire", nil)
+			}
+			answer, err := answerService.GetUserAnswer(data.QuestionID, data.UserID)
+			if err != nil {
+				return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
+			}
+			return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerResponse(answer))
+
+		case model.QuestionnaireVisibilityAdminAndOwner:
+			isSuperadmin, _ := rbacService.CanDoAsSuperadmin(loggedInUser.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
+
+			if questionnaire.OwnerID == loggedInUser.ID || isSuperadmin {
+				answer, err := answerService.GetUserAnswer(data.QuestionID, data.UserID)
+				if err != nil {
+					return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
+				}
+				return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerResponse(answer))
+			}
+
+			return response.Error(c, fiber.StatusForbidden, "you don't have permission to see the answer", nil)
+		case model.QuestionnaireVisibilityNobody:
+			return response.Success(c, fiber.StatusOK, "answer is not visible for anyone", nil)
+		}
 		return nil
 	}
 }

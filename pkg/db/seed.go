@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
+	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -38,13 +39,20 @@ func seedPermissions(db *gorm.DB, permissions []string, forSuperadmin bool) erro
 
 func makeSuperadminUser(db *gorm.DB) error {
 	// make a user
+	pass, err := utils.HashPassword("password")
+	if err != nil {
+		return err
+	}
+
 	user := model.User{
 		FirstName: "Super",
 		LastName:  "Admin",
 		Email:     "super@admin.com",
+		Password:  pass,
+		IsActive:  true,
 	}
 
-	err := db.Create(&user).Error
+	err = db.Create(&user).Error
 	if err != nil {
 		return err
 	}

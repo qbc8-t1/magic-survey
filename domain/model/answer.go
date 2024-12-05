@@ -18,3 +18,15 @@ type Answer struct {
 	Question     Question   `gorm:"foreignKey:QuestionID"`
 	Option       *Option    `gorm:"foreignKey:OptionID"`
 }
+
+type AnswerResponse struct {
+	OptionID   *uint
+	AnswerText *string
+}
+
+func ToAnswerResponse(a *Answer) AnswerResponse {
+	return AnswerResponse{
+		OptionID:   a.OptionID,
+		AnswerText: a.AnswerText,
+	}
+}

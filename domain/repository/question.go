@@ -9,4 +9,5 @@ type IQuestionRepository interface {
 	GetQuestionsByID(ids []uint) (*[]model.Question, error)
 	UpdateQuestion(question *model.Question) error
 	DeleteQuestion(id uint) error
+	FindQuestionByQuestionIDAndQuestionnaireID(questionID uint, questionnaireID uint) (model.Question, error)
 }

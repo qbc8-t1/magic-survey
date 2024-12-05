@@ -16,7 +16,7 @@ import (
 
 var (
 	ErrorSelectedUsersIdsFieldIsRequired = errors.New("field selected_users_ids is required")
-	ErrorPermissionsFieldIsRequired = errors.New("field permissions is required")
+	ErrorPermissionsFieldIsRequired      = errors.New("field permissions is required")
 )
 
 type RbacService struct {
@@ -239,41 +239,6 @@ func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissio
 	return false, nil
 }
 
-func (o *RbacService) GetUsersWithVisibleAnswers(questionnaireID uint, userID uint) ([]uint, error) {
-	roles, err := o.repo.GetUserRoles(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	permissionID, err := o.repo.FindPermission(model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
-	if err != nil {
-		return nil, err
-	}
-
-	rolePermission := new(model.RolePermission)
-	for _, role := range roles {
-		rolePermission, err = o.repo.FindRolePermission(role.ID, questionnaireID, permissionID)
-		if err != nil {
-			return nil, err
-		}
-
-		if rolePermission.ID != 0 {
-			break
-		}
-	}
-
-	if rolePermission.ID == 0 {
-		return nil, model.ErrorNotHavePermission
-	}
-
-	usersIDs, err := o.repo.FindUsersWithVisibleAnswers(rolePermission.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return usersIDs, nil
-}
-
 func (o *RbacService) MakeFakeUser() (model.User, error) {
 	index := MakeRandomNumber(400)
 	return o.repo.MakeUser(model.User{
@@ -341,4 +306,39 @@ func (o *RbacService) CanDoAsSuperadmin(userID uint, permissionName string) (boo
 	}
 
 	return true, nil
+}
+
+func (o *RbacService) GetUsersIDsWithVisibleAnswers(questionnaireID uint, userID uint) ([]uint, error) {
+	roles, err := o.repo.GetUserRoles(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	permissionID, err := o.repo.FindPermission(model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
+	if err != nil {
+		return nil, err
+	}
+
+	rolePermission := new(model.RolePermission)
+	for _, role := range roles {
+		rolePermission, err = o.repo.FindRolePermission(role.ID, questionnaireID, permissionID)
+		if err != nil {
+			return nil, err
+		}
+
+		if rolePermission.ID != 0 {
+			break
+		}
+	}
+
+	if rolePermission.ID == 0 {
+		return nil, model.ErrorNotHavePermission
+	}
+
+	usersIDs, err := o.repo.FindUsersWithVisibleAnswers(rolePermission.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return usersIDs, nil
 }

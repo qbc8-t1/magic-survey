@@ -32,20 +32,20 @@ func InitDB(cfg *config.Config, logger *applog.AppLogger) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	// err = deleteAllTablesAndTypes(db)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to delete tables and types: %w", err)
-	// }
+	err = deleteAllTablesAndTypes(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete tables and types: %w", err)
+	}
 
 	err = migrate(db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate: %w", err)
 	}
 
-	// err = seed(db)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to seed: %w", err)
-	// }
+	err = seed(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to seed: %w", err)
+	}
 
 	return db, nil
 }
