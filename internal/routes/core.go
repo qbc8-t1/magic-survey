@@ -13,8 +13,9 @@ func RegisterCoreRoutes(api fiber.Router, s *common.Server) {
 	questionnaireRepo := repository.NewQuestionnaireRepository(s.DB)
 	questionRepo := repository.NewQuestionRepository(s.DB)
 	optionRepo := repository.NewOptionRepository(s.DB)
+	answerRepo := repository.NewAnswerRepository(s.DB)
 
-	coreService := service.NewCoreService(submissionRepo, questionnaireRepo, questionRepo, optionRepo)
+	coreService := service.NewCoreService(submissionRepo, questionnaireRepo, questionRepo, optionRepo, answerRepo)
 
 	api.Post("/start/:questionnaire_id", handlers.StartHandler(coreService))
 	api.Post("/submit/:question_id", handlers.SubmitHandler(coreService))
