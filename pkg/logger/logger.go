@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"os"
 	"path/filepath"
@@ -59,7 +60,7 @@ func (l *AppLogger) getLoggerLevel(cfg *config.Config) zapcore.Level {
 	return level
 }
 
-// InitLogger will init logger with config
+// InitLogger will init logger with config and log rotation
 func (l *AppLogger) InitLogger(filePath string) {
 	fmt.Println(filePath)
 	logLevel := l.getLoggerLevel(l.cfg)
@@ -70,13 +71,13 @@ func (l *AppLogger) InitLogger(filePath string) {
 		log.Fatalf("cannot create log directory: %v", err)
 	}
 
-	// Open the log file
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatalf("cannot open the file: %v", err)
-	}
-
-	logWriter := zapcore.AddSync(file)
+	logWriter := zapcore.AddSync(&lumberjack.Logger{
+		Filename:   filePath, // Log file path
+		MaxSize:    10,       // Max size of a log file in MB before it gets rotated
+		MaxBackups: 5,        // Maximum number of backup log files
+		MaxAge:     30,       // Max age of log files in days
+		Compress:   true,     // Whether to compress the rotated log files
+	})
 
 	var encoderCfg zapcore.EncoderConfig
 	if l.cfg.Server.Mode == config.Development {
@@ -85,7 +86,6 @@ func (l *AppLogger) InitLogger(filePath string) {
 		encoderCfg = zap.NewProductionEncoderConfig()
 	}
 
-	// Configure the encoder
 	encoderCfg.LevelKey = "LEVEL"
 	encoderCfg.CallerKey = "CALLER"
 	encoderCfg.TimeKey = "TIME"
@@ -95,7 +95,6 @@ func (l *AppLogger) InitLogger(filePath string) {
 
 	encoder := zapcore.NewJSONEncoder(encoderCfg)
 
-	// Set up the logger core
 	core := zapcore.NewCore(encoder, logWriter, zap.NewAtomicLevelAt(logLevel))
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 
@@ -104,7 +103,6 @@ func (l *AppLogger) InitLogger(filePath string) {
 		l.sugarLogger.Error(err)
 	}
 }
-
 func (l *AppLogger) Debug(args ...interface{}) {
 	l.sugarLogger.Debug(args...)
 }
