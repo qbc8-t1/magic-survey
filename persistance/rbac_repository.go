@@ -229,7 +229,7 @@ func (rr *RbacRepo) HasRolePermission(roleID uint, questionnaireID uint, permiss
 	return true, nil
 }
 
-func (rr *RbacRepo) IsSuperadmin(userID uint) (model.Superadmin, error) {
+func (rr *RbacRepo) GetSuperadmin(userID uint) (model.Superadmin, error) {
 	superadmin := new(model.Superadmin)
 	err := rr.db.First(superadmin, "user_id = ?", userID).Error
 	if err != nil {
@@ -253,39 +253,6 @@ func (rr *RbacRepo) FindSuperadminPermission(superadminID uint, permissionID uin
 	}
 
 	return true, nil
-}
-
-func (rr *RbacRepo) GiveSuperadminRole(tx *gorm.DB, userID uint, giverUserID uint) (uint, error) {
-	superadmin := model.Superadmin{
-		UserID:    userID,
-		GrantedBy: &giverUserID,
-	}
-	err := tx.Create(&superadmin).Error
-	if err != nil {
-		return 0, err
-	}
-	return superadmin.ID, nil
-}
-
-func (rr *RbacRepo) MakeSuperadminPermission(tx *gorm.DB, superadminID uint, permissionID uint) error {
-	var exists bool
-	err := tx.Model(&model.SuperadminPermission{}).
-		Select("count(*) > 0").
-		Where("superadmin_id = ? AND permission_id = ?", superadminID, permissionID).
-		Find(&exists).Error
-
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		return tx.Create(&model.SuperadminPermission{
-			SuperadminID: superadminID,
-			PermissionID: permissionID,
-		}).Error
-	}
-
-	return nil
 }
 
 func (rr *RbacRepo) FindRolePermission(roleID, questionnaireID, permissionID uint) (*model.RolePermission, error) {

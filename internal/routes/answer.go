@@ -9,7 +9,7 @@ import (
 )
 
 // RegisterAnswerRoutes registers routes related to answer management
-func RegisterAnswerRoutes(app *fiber.App, s *common.Server) {
+func RegisterAnswerRoutes(app fiber.Router, s *common.Server) {
 	answerRepo := repository.NewAnswerRepository(s.DB)
 	answerService := service.NewAnswerService(answerRepo)
 
