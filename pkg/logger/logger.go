@@ -72,11 +72,11 @@ func (l *AppLogger) InitLogger(filePath string) {
 	}
 
 	logWriter := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   filePath, // Log file path
-		MaxSize:    10,       // Max size of a log file in MB before it gets rotated
-		MaxBackups: 5,        // Maximum number of backup log files
-		MaxAge:     30,       // Max age of log files in days
-		Compress:   true,     // Whether to compress the rotated log files
+		Filename:   filePath,
+		MaxSize:    10, // in MB
+		MaxBackups: 5,
+		MaxAge:     30, // in days
+		Compress:   true,
 	})
 
 	var encoderCfg zapcore.EncoderConfig

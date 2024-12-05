@@ -40,6 +40,6 @@ func NewServer(cfg *config.Config) (*common.Server, error) {
 		DB:     db,
 	}
 
-	registerRoutes(app, s)
+	registerRoutes(s)
 	return s, nil
 }
