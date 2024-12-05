@@ -1,16 +1,24 @@
 package server
 
 import (
-	"github.com/QBC8-Team1/magic-survey/handlers"
 	"github.com/QBC8-Team1/magic-survey/internal/common"
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
 	"github.com/QBC8-Team1/magic-survey/internal/routes"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
+	"time"
 )
 
 func registerRoutes(app *fiber.App, s *common.Server) {
-	app.Use(middleware.WithLogger(s))
-	app.Get("/health", middleware.WithAuthMiddleware(s.DB, s.Cfg.Server.Secret), handlers.HealthCheck)
+	limiterCfg := limiter.Config{
+		Max:               10,
+		Expiration:        30 * time.Second,
+		LimiterMiddleware: limiter.FixedWindow{},
+	}
+	app.Use(limiter.New(limiterCfg), compress.New(), middleware.WithLogger(s))
+	app.Get("/health", monitor.New())
 
 	api := app.Group("/api/v1")
 	middleware.RegisterRbacMiddlewares(api, s.DB)
