@@ -13,4 +13,5 @@ type ISuperadminRepository interface {
 	FindPermission(permissionName string) (uint, error)
 	Transaction(f func(tx *gorm.DB) error) error
 	IsUserExist(userID uint) error
+	LimitUserQuestionnaireCount(userID uint, max int) error
 }

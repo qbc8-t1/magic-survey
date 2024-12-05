@@ -13,6 +13,6 @@ func RegisterSuperadminRoutes(auth fiber.Router, s *common.Server) {
 	superadminRepo := repository.NewSuperadminRepository(s.DB)
 	superadminService := service.NewSuperadminService(superadminRepo)
 
-	// auth.Post("limit-user-questionnaires-count", handlers.LimitUserQuestionnaireCount(*superadminService))
 	auth.Post("/make-superadmin", handlers.MakeSuperadmin(*superadminService))
+	auth.Post("/limit-user-questionnaires-count", handlers.LimitUserQuestionnaireCount(*superadminService))
 }

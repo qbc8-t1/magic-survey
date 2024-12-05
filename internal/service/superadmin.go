@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"gorm.io/gorm"
 )
@@ -61,4 +63,17 @@ func (o *SuperadminService) MakeSuperadmin(giverUserID uint, userID uint, permis
 	})
 
 	return nil
+}
+
+func (o *SuperadminService) LimitUserQuestionnairesCount(userID uint, max int) error {
+	err := o.repo.IsUserExist(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("user not found")
+		}
+
+		return err
+	}
+
+	return o.repo.LimitUserQuestionnaireCount(userID, max)
 }

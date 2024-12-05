@@ -102,3 +102,8 @@ func (s *SuperadminRepository) IsUserExist(userID uint) error {
 	}
 	return err
 }
+
+func (s *SuperadminRepository) LimitUserQuestionnaireCount(userID uint, max int) error {
+	result := s.db.Model(&model.User{}).Where("id = ?", userID).Update("max_questionnaires_count", max)
+	return result.Error
+}

@@ -34,8 +34,8 @@ func RegisterRbacMiddlewares(router fiber.Router, db *gorm.DB) {
 	router.Post("/questionnaires/:questionnaire_id/give-permissions", QuestionnaireGate(*rbac, model.PERMISSION_GIVE_OR_TAKE_PERMISSION))
 	router.Post("/questionnaires/:questionnaire_id/revoke-permissions", QuestionnaireGate(*rbac, model.PERMISSION_GIVE_OR_TAKE_PERMISSION))
 
-	// router.Post("/superadmin/limit-user-questionnaires-count", SuperadminGate(*rbac, model.PERMISSION_LIMIT_USERS_QUESTIONNAIRES_COUNT))
 	router.Post("/superadmin/make-superadmin", SuperadminGate(*rbac, model.PERMISSION_MAKE_NEW_SUPERADMIN))
+	router.Post("/superadmin/limit-user-questionnaires-count", SuperadminGate(*rbac, model.PERMISSION_LIMIT_USERS_QUESTIONNAIRES_COUNT))
 
 	// router.Get("/questionnaires/:questinnaire_id/answers/:answer_id/user/:user_id")
 	// PERMISSION_QUESTIONNAIRE_SEE_SELECTED_USERS_ANSWERS = "questionnaire_see_selected_users_answers"

@@ -19,23 +19,24 @@ const (
 
 // User represents the database model for a user
 type User struct {
-	ID             uint        `gorm:"primaryKey"`
-	FirstName      string      `gorm:"size:255"`
-	LastName       string      `gorm:"size:255"`
-	Birthdate      string      `gorm:"size:255"`
-	City           string      `gorm:"size:255"`
-	NationalCode   string      `gorm:"size:10;unique"`
-	Gender         *GenderEnum `gorm:"type:gender_enum"`
-	Email          string      `gorm:"unique;size:255"`
-	Password       string      `gorm:"not null"`
-	IsActive       bool        `gorm:"not null"`
-	WalletBalance  int64
-	CreatedAt      time.Time
-	UpdatedAt      time.Time       `gorm:"not null"`
-	Questionnaires []Questionnaire `gorm:"foreignKey:OwnerID"`
-	Notifications  []Notification  `gorm:"foreignKey:UserID"`
-	Superadmin     *Superadmin     `gorm:"foreignKey:UserID"`
-	Roles          []Role          `gorm:"many2many:role_users;"`
+	ID                     uint        `gorm:"primaryKey"`
+	FirstName              string      `gorm:"size:255"`
+	LastName               string      `gorm:"size:255"`
+	Birthdate              string      `gorm:"size:255"`
+	City                   string      `gorm:"size:255"`
+	NationalCode           string      `gorm:"size:10;unique"`
+	Gender                 *GenderEnum `gorm:"type:gender_enum"`
+	Email                  string      `gorm:"unique;size:255"`
+	Password               string      `gorm:"not null"`
+	IsActive               bool        `gorm:"not null"`
+	WalletBalance          int64
+	CreatedAt              time.Time
+	UpdatedAt              time.Time       `gorm:"not null"`
+	MaxQuestionnairesCount int             `gorm:"null"`
+	Questionnaires         []Questionnaire `gorm:"foreignKey:OwnerID"`
+	Notifications          []Notification  `gorm:"foreignKey:UserID"`
+	Superadmin             *Superadmin     `gorm:"foreignKey:UserID"`
+	Roles                  []Role          `gorm:"many2many:role_users;"`
 }
 
 // TwoFACode stores 2FA codes for users
