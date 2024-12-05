@@ -9,6 +9,7 @@ import (
 )
 
 func registerRoutes(app *fiber.App, s *common.Server) {
+	app.Use(middleware.WithLogger(s))
 	app.Get("/health", middleware.WithAuthMiddleware(s.DB, s.Cfg.Server.Secret), handlers.HealthCheck)
 
 	api := app.Group("/api/v1")

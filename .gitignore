@@ -3,3 +3,5 @@
 .vscode
 build
 config.yml
+config.*.yml
+logs
