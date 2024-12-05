@@ -1,8 +1,10 @@
 package logger
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/QBC8-Team1/magic-survey/config"
 	"go.uber.org/zap"
@@ -59,10 +61,19 @@ func (l *AppLogger) getLoggerLevel(cfg *config.Config) zapcore.Level {
 
 // InitLogger will init logger with config
 func (l *AppLogger) InitLogger(filePath string) {
+	fmt.Println(filePath)
 	logLevel := l.getLoggerLevel(l.cfg)
+
+	// Ensure the directory exists
+	dir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		log.Fatalf("cannot create log directory: %v", err)
+	}
+
+	// Open the log file
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatal("cant open the file")
+		log.Fatalf("cannot open the file: %v", err)
 	}
 
 	logWriter := zapcore.AddSync(file)
@@ -74,16 +85,17 @@ func (l *AppLogger) InitLogger(filePath string) {
 		encoderCfg = zap.NewProductionEncoderConfig()
 	}
 
-	var encoder zapcore.Encoder
+	// Configure the encoder
 	encoderCfg.LevelKey = "LEVEL"
 	encoderCfg.CallerKey = "CALLER"
 	encoderCfg.TimeKey = "TIME"
 	encoderCfg.NameKey = "NAME"
 	encoderCfg.MessageKey = "MESSAGE"
-
-	encoder = zapcore.NewJSONEncoder(encoderCfg)
-
 	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	encoder := zapcore.NewJSONEncoder(encoderCfg)
+
+	// Set up the logger core
 	core := zapcore.NewCore(encoder, logWriter, zap.NewAtomicLevelAt(logLevel))
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 

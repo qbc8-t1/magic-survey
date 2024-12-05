@@ -3,10 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
-
 	"github.com/QBC8-Team1/magic-survey/config"
 	"github.com/QBC8-Team1/magic-survey/internal/server"
+	"log"
 )
 
 func main() {
@@ -15,12 +14,12 @@ func main() {
 
 	conf, err := config.LoadConfig(*configPath)
 	if err != nil {
-		log.Panic(fmt.Errorf("load config error: %w", err))
+		panic(fmt.Errorf("load config error: %w", err))
 	}
 
 	s, err := server.NewServer(conf)
 	if err != nil {
-		log.Panic(fmt.Errorf("could not start server: %w", err))
+		panic(fmt.Errorf("could not start server: %w", err))
 	}
 
 	err = s.Run()
