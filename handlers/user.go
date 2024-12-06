@@ -38,7 +38,7 @@ func UserCreate(userService service.UserService) fiber.Handler {
 		if err != nil {
 			if utils.ErrorIncludes(err, knownErrors) {
 				logger.Info(err.Error())
-				response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
+				return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 			}
 			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, "try again later", nil)
