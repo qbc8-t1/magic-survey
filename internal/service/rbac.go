@@ -19,6 +19,20 @@ var (
 	ErrorPermissionsFieldIsRequired      = errors.New("field permissions is required")
 )
 
+type IRbacService interface {
+	GetAllPermissions() []string
+	GivePermissions(giverUserID uint, receiverUserId uint, questionnaireID uint, permissions []PermissionType) error
+	CanDo(userID uint, questionnaireID uint, permissionName string) (bool, error)
+	RevokePermission(revokerUserID uint, targetUserID uint, questionnaireID uint, permissionName string) error
+	HasPermission(userID uint, questionnaireID uint, permissionName string) (bool, error)
+	MakeFakeUser() (model.User, error)
+	MakeFakeQuestionnaire(userID uint) (model.Questionnaire, error)
+	GetUser(userID uint) (model.User, error)
+	GetUserRolesWithPermissions(userID uint) ([]domain_repository.RoleWithPermissions, error)
+	CanDoAsSuperadmin(userID uint, permissionName string) (bool, error)
+	GetUsersIDsWithVisibleAnswers(questionnaireID uint, userID uint) ([]uint, error)
+}
+
 type RbacService struct {
 	repo domain_repository.IRbacRepository
 }

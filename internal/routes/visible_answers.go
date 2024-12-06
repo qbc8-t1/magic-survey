@@ -9,18 +9,20 @@ import (
 )
 
 // RegisterAnswerRoutes registers routes related to answer management
-
-func RegisterAnswerRoutes(router fiber.Router, s *common.Server) {
+func RegisterVisibleAnswersRoutes(router fiber.Router, s *common.Server) {
 	answerRepo := repository.NewAnswerRepository(s.DB)
 	userRepo := repository.NewUserRepository(s.DB)
 	submissionRepo := repository.NewSubmissionRepository(s.DB)
 	questionRepo := repository.NewQuestionRepository(s.DB)
 	optionRepo := repository.NewOptionRepository(s.DB)
+	rbacRepo := repository.NewRbacRepository(s.DB)
+	questionnaireRepo := repository.NewQuestionnaireRepository(s.DB)
 
 	answerService := service.NewAnswerService(answerRepo, userRepo, submissionRepo, questionRepo, optionRepo)
+	rbacService := service.NewRbacService(rbacRepo)
+	questionnaireService := service.NewQuestionnaireService(questionnaireRepo)
+	questionService := service.NewQuestionService(questionRepo, questionnaireRepo)
 
-	router.Get("/:id", handlers.GetAnswerHandler(answerService))
-	router.Post("", handlers.CreateAnswerHandler(answerService))
-	router.Put("/:id", handlers.UpdateAnswerHandler(answerService))
-	router.Delete("/:id", handlers.DeleteAnswerHandler(answerService))
+	router.Get("/see-another-user-answer", handlers.GetAnotherUserAnswer(answerService, rbacService, questionService, questionnaireService))
+	router.Get("/users-with-visible-answers", handlers.GetUsersWithVisibleAnswers(rbacService, questionnaireService))
 }

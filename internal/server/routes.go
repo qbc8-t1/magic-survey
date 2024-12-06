@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/handlers"
 	"github.com/QBC8-Team1/magic-survey/internal/common"
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
@@ -12,20 +11,25 @@ import (
 func registerRoutes(app *fiber.App, s *common.Server) {
 	app.Get("/health", middleware.WithAuthMiddleware(s.DB, s.Cfg.Server.Secret), handlers.HealthCheck)
 
-	api := app.Group("/api")
-
-	auth := api.Group("/v1/auth")
-
+	api := app.Group("/api/v1")
 	middleware.RegisterRbacMiddlewares(api, s.DB)
+
+	auth := api.Group("/auth")
+	rbac := api.Group("/rbac")
+	superadmin := api.Group("/superadmin")
+
+	routes.RegisterRbacRoutes(rbac, s)
+	routes.RegisterSuperadminRoutes(superadmin, s)
 
 	routes.RegisterUserRoutes(auth, s)
 
-	rbac := api.Group("/rbac")
-	routes.RegisterRbacRoutes(rbac, s)
+	questionnaire := api.Group("/questionnaires/:questionnaire_id")
+	questions := questionnaire.Group("/questions")
+	answers := questionnaire.Group("/answers")
+	options := questionnaire.Group("/options")
 
-	superadminGroup := api.Group("/superadmin")
-	routes.RegisterSuperadminRoutes(superadminGroup, s)
-
-	questionnaireGroup := api.Group("/questionnaires/:questionnaire_id")
-	routes.RegisterAnswerRoutes(questionnaireGroup, s)
+	routes.RegisterVisibleAnswersRoutes(questionnaire, s)
+	routes.RegisterQuestionRoutes(questions, s)
+	routes.RegisterAnswerRoutes(answers, s)
+	routes.RegisterOptionRoutes(options, s)
 }

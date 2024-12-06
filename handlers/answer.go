@@ -1,128 +1,93 @@
 package handlers
 
 import (
+	"strconv"
+
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 
-type GetAnswerData struct {
-	QuestionID uint `json:"question_id"`
-	UserID     uint `json:"user_id"`
+func CreateAnswerHandler(service service.IAnswerService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var answerDTO model.CreateAnswerDTO
+		if err := c.BodyParser(&answerDTO); err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "invalid body", nil)
+		}
+
+		err := answerDTO.Validate()
+
+		if err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+		}
+
+		err = service.CreateAnswer(&answerDTO)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "error in creating the answer", nil)
+		}
+
+		return response.Success(c, fiber.StatusCreated, "answer created", nil)
+	}
 }
 
-func GetAnswer(answerService service.AnswerService, rbacService service.RbacService, questionnaireService service.QuestionnaireService, questionService service.QuestionService) fiber.Handler {
+func GetAnswerHandler(service service.IAnswerService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-
-		// get user from local
-		localUser := c.Locals("user")
-		if localUser == nil {
-			return response.Error(c, fiber.StatusUnauthorized, "user is not signed in", nil)
+		idStr := c.Params("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil || id <= 0 {
+			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
-		// cast to model user
-		loggedInUser, ok := localUser.(model.User)
-		if !ok {
-			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get signed in user", nil)
-		}
-
-		// get questionnaire id
-		questionnaireID, err := c.ParamsInt("questionnaire_id")
+		res, err := service.GetAnswerByID(model.AnswerID(id))
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "bad questionnaire id", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "error in retrieving the answer", nil)
 		}
 
-		// get questionnaire object by id
-		questionnaire, err := questionnaireService.GetQuestionnaireByID(uint(questionnaireID))
+		return response.Success(c, fiber.StatusOK, "answer Found", res)
+	}
+}
+
+func UpdateAnswerHandler(service service.IAnswerService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		idStr := c.Params("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil || id <= 0 {
+			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a positive integer", nil)
+		}
+
+		var answerDTO model.UpdateAnswerDTO
+		if err := c.BodyParser(&answerDTO); err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "invalid body", nil)
+		}
+
+		err = answerDTO.Validate()
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaireID", err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
 		}
 
-		// parse body of request
-		data := new(GetAnswerData)
-		err = c.BodyParser(&data)
+		err = service.UpdateAnswer(model.AnswerID(id), &answerDTO)
 		if err != nil {
-			return response.Error(c, fiber.StatusUnprocessableEntity, "faild to parse body", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "error in updating the answer", nil)
 		}
 
-		// check if question is for the questionnaire
-		is, err := questionService.IsQuestionForQuestionnaire(data.QuestionID, questionnaire.ID)
+		return response.Success(c, fiber.StatusOK, "answer updated successfully", nil)
+	}
+}
+
+func DeleteAnswerHandler(service service.IAnswerService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		idStr := c.Params("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil || id <= 0 {
+			return response.Error(c, fiber.StatusBadRequest, "invalid id. the id must be a posetive integer", nil)
+		}
+
+		err = service.DeleteAnswer(model.AnswerID(id))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to get question", err.Error())
-		}
-		if !is {
-			return response.Error(c, fiber.StatusBadRequest, "question is not for questionnaire", nil)
+			return response.Error(c, fiber.StatusInternalServerError, "error in deleting the answer", nil)
 		}
 
-		// user can see his/her answer
-		if data.UserID == loggedInUser.ID {
-			answer, err := answerService.GetUserAnswer(data.QuestionID, data.UserID)
-			if err != nil {
-				return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
-			}
-			return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerResponse(answer))
-		}
-
-		// switch on questionnaire visibility type
-		switch questionnaire.AnswersVisibleFor {
-
-		// if everybody can see it
-		case model.QuestionnaireVisibilityEverybody:
-			// check if logged in user is superadmin or the owner of the questionnaire
-			isSuperadmin, _ := rbacService.CanDoAsSuperadmin(loggedInUser.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
-			if questionnaire.OwnerID == loggedInUser.ID || isSuperadmin {
-				answer, err := answerService.GetUserAnswer(data.QuestionID, data.UserID)
-				if err != nil {
-					return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
-				}
-				return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerResponse(answer))
-			}
-
-			// check if user has permission
-			has, err := rbacService.HasPermission(loggedInUser.ID, questionnaire.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
-			if err != nil {
-				return response.Error(c, fiber.StatusInternalServerError, "failed to check permission", err.Error())
-			}
-			if !has {
-				return response.Error(c, fiber.StatusForbidden, "you don't have permission to see the answer", nil)
-			}
-
-			// get selected users which users can see their answers
-			usersIDs, err := rbacService.GetUsersIDsWithVisibleAnswers(questionnaire.ID, loggedInUser.ID)
-			if err != nil {
-				return response.Error(c, fiber.StatusInternalServerError, "failed to get users ids with visible answers", err.Error())
-			}
-			found := false
-			for _, userID := range usersIDs {
-				if data.UserID == userID {
-					found = true
-				}
-			}
-			if !found {
-				return response.Error(c, fiber.StatusForbidden, "you don't have permission to see this user answer for this questionnaire", nil)
-			}
-			answer, err := answerService.GetUserAnswer(data.QuestionID, data.UserID)
-			if err != nil {
-				return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
-			}
-			return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerResponse(answer))
-
-		case model.QuestionnaireVisibilityAdminAndOwner:
-			isSuperadmin, _ := rbacService.CanDoAsSuperadmin(loggedInUser.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
-
-			if questionnaire.OwnerID == loggedInUser.ID || isSuperadmin {
-				answer, err := answerService.GetUserAnswer(data.QuestionID, data.UserID)
-				if err != nil {
-					return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
-				}
-				return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerResponse(answer))
-			}
-
-			return response.Error(c, fiber.StatusForbidden, "you don't have permission to see the answer", nil)
-		case model.QuestionnaireVisibilityNobody:
-			return response.Success(c, fiber.StatusOK, "answer is not visible for anyone", nil)
-		}
-		return nil
+		return response.Success(c, fiber.StatusOK, "answer deleted", nil)
 	}
 }
