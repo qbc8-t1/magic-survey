@@ -17,12 +17,12 @@ var (
 
 // Answer represents the answers table
 type Answer struct {
-	ID           AnswerID   `gorm:"primaryKey"`
-	UserID       UserId     `gorm:"not null;unique"`
-	SubmissionID uint       `gorm:"not null;unique"`
-	QuestionID   QuestionID `gorm:"not null;unique"`
-	OptionID     *OptionID  `gorm:"default:null"`
-	AnswerText   *string    `gorm:"default:null"`
+	ID           AnswerID `gorm:"primaryKey"`
+	UserID       UserId
+	SubmissionID uint
+	QuestionID   QuestionID
+	OptionID     *OptionID `gorm:"default:null"`
+	AnswerText   *string   `gorm:"default:null"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Submission   Submission `gorm:"foreignKey:SubmissionID"`
@@ -75,6 +75,29 @@ func ToAnswerResponse(answer *Answer) *AnswerResponse {
 		Question:     answer.Question,
 		Option:       answer.Option,
 	}
+}
+
+type AnswerSummaryResponse struct {
+	SubmissionID uint      `json:"submission_id"`
+	OptionID     *OptionID `json:"option_id"`
+	AnswerText   *string   `json:"answer_text"`
+	Option       *Option   `json:"option"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+func ToAnswerSummaryResponses(answers *[]Answer) *[]AnswerSummaryResponse {
+	answerResponses := make([]AnswerSummaryResponse, 0, len(*answers))
+	for _, answer := range *answers {
+		answerResponses = append(answerResponses, AnswerSummaryResponse{
+			SubmissionID: answer.SubmissionID,
+			OptionID:     answer.OptionID,
+			AnswerText:   answer.AnswerText,
+			Option:       answer.Option,
+			CreatedAt:    answer.CreatedAt,
+		})
+	}
+
+	return &answerResponses
 }
 
 func ToAnswerResponses(answers *[]Answer) *[]AnswerResponse {

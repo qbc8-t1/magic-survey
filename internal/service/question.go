@@ -34,17 +34,18 @@ type IQuestionService interface {
 	GetQuestionsByQuestionnaireID(quesionnaireID model.QuestionnaireID) (*[]model.QuestionResponse, error)
 	UpdateQuestion(id model.QuestionID, questionDTO *model.UpdateQuestionDTO) error
 	DeleteQuestion(id model.QuestionID) error
+	IsQuestionForQuestionnaire(questionID uint, questionnaireID uint) (bool, error)
 }
 
 type QuestionService struct {
 	// dependency injection
 	questionRepo      domain_repository.IQuestionRepository
-	questionnaireRepo domain_repository.IQuestionnaireRepo
+	questionnaireRepo domain_repository.IQuestionnaireRepository
 }
 
 // NewQuestionService creates a new QuestionService object
 func NewQuestionService(questionRepo domain_repository.IQuestionRepository,
-	questionnaireRepo domain_repository.IQuestionnaireRepo) *QuestionService {
+	questionnaireRepo domain_repository.IQuestionnaireRepository) *QuestionService {
 	return &QuestionService{
 		questionRepo:      questionRepo,
 		questionnaireRepo: questionnaireRepo,
@@ -140,4 +141,18 @@ func (s *QuestionService) DeleteQuestion(id model.QuestionID) error {
 	}
 
 	return nil
+}
+
+func (s *QuestionService) IsQuestionForQuestionnaire(questionID uint, questionnaireID uint) (bool, error) {
+	question, err := s.questionRepo.FindQuestionByQuestionIDAndQuestionnaireID(questionID, questionnaireID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	if question.ID == 0 {
+		return false, nil
+	}
+	return true, nil
 }

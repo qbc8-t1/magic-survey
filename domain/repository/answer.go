@@ -8,4 +8,5 @@ type IAnswerRepository interface {
 	GetAnswerByID(id model.AnswerID) (*model.Answer, error)
 	UpdateAnswer(answer *model.Answer) error
 	DeleteAnswer(id model.AnswerID) error
+	GetAnswersByUserAndQuestionID(questionID uint, userID uint) (*[]model.Answer, error)
 }

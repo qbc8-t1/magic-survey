@@ -37,3 +37,9 @@ func (r *AnswerRepository) UpdateAnswer(answer *model.Answer) error {
 func (r *AnswerRepository) DeleteAnswer(id model.AnswerID) error {
 	return r.db.Delete(&model.Answer{}, id).Error
 }
+
+func (r *AnswerRepository) GetAnswersByUserAndQuestionID(questionID uint, userID uint) (*[]model.Answer, error) {
+	var answers []model.Answer
+	result := r.db.Preload("Option").Find(&answers, "question_id = ? and user_id = ?", questionID, userID)
+	return &answers, result.Error
+}
