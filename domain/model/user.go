@@ -34,7 +34,7 @@ type User struct {
 	Password               string      `gorm:"not null"`
 	IsActive               bool        `gorm:"not null"`
 	WalletBalance          int64
-	MaxQuestionnairesCount int             `gorm:"null"`
+	MaxQuestionnairesCount int `gorm:"null"`
 	CreatedAt              time.Time
 	UpdatedAt              time.Time       `gorm:"not null"`
 	Questionnaires         []Questionnaire `gorm:"foreignKey:OwnerID"`
