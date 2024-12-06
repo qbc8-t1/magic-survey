@@ -90,6 +90,11 @@ func Login(userService service.UserService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
+		if errors.Is(err, service.ErrUserNotVerified) {
+			logger.Error(err.Error())
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+
 		logger.Info(err.Error())
 		return response.Success(c, fiber.StatusOK, "Login successful", tokens)
 	}
