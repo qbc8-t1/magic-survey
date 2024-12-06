@@ -27,8 +27,8 @@ var (
 	ErrCantSaveCode       = errors.New("cant save code")
 	ErrCantDeleteCode     = errors.New("cant delete code")
 	ErrCantGetCode        = errors.New("cant get code")
-
 	ErrUserRetrieveFailed = errors.New("failed to retrieve user")
+	ErrUserNotVerified    = errors.New("user is not verified")
 )
 
 type UserService struct {
@@ -100,6 +100,9 @@ func (s *UserService) LoginUser(user *model.LoginRequest) (*model.AuthResponse, 
 		return nil, ErrWrongEmailPass
 	}
 
+	if !res.IsActive {
+		return nil, ErrUserNotVerified
+	}
 	err = utils.CheckPasswordHash(user.Password, res.Password)
 	if err != nil {
 		return nil, ErrWrongEmailPass

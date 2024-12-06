@@ -35,6 +35,7 @@ type IAnswerService interface {
 	GetAnswerByID(id model.AnswerID) (*model.AnswerResponse, error)
 	UpdateAnswer(id model.AnswerID, AnswerDTO *model.UpdateAnswerDTO) error
 	DeleteAnswer(id model.AnswerID) error
+	GetUserAnswers(questionID model.QuestionID, userID model.UserId) (*[]model.Answer, error)
 }
 
 type AnswerService struct {
@@ -43,6 +44,10 @@ type AnswerService struct {
 	submissionRepo domain_repository.ISubmissionRepository
 	questionRepo   domain_repository.IQuestionRepository
 	optionRepo     domain_repository.IOptionRepository
+}
+
+func (s *AnswerService) GetUserAnswers(questionID model.QuestionID, userID model.UserId) (*[]model.Answer, error) {
+	return s.answerRepo.GetAnswersByUserAndQuestionID(questionID, userID)
 }
 
 func NewAnswerService(

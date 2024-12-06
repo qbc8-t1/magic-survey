@@ -43,3 +43,9 @@ func (r *AnswerRepository) GetAnswerBySubmissionIDAndQuestionID(submissionID mod
 	result := r.db.Where("submission_id = ? AND question_id = ?", submissionID, questionID).First(&answer)
 	return &answer, result.Error
 }
+
+func (r *AnswerRepository) GetAnswersByUserAndQuestionID(questionID model.QuestionID, userID model.UserId) (*[]model.Answer, error) {
+	var answers []model.Answer
+	result := r.db.Preload("Option").Find(&answers, "question_id = ? and user_id = ?", questionID, userID)
+	return &answers, result.Error
+}

@@ -16,8 +16,22 @@ import (
 
 var (
 	ErrorSelectedUsersIdsFieldIsRequired = errors.New("field selected_users_ids is required")
-	ErrorPermissionNamesFieldIsRequired  = errors.New("field permission_names is required")
+	ErrorPermissionsFieldIsRequired      = errors.New("field permissions is required")
 )
+
+type IRbacService interface {
+	GetAllPermissions() []string
+	GivePermissions(giverUserID uint, receiverUserId uint, questionnaireID uint, permissions []PermissionType) error
+	CanDo(userID uint, questionnaireID uint, permissionName string) (bool, error)
+	RevokePermission(revokerUserID uint, targetUserID uint, questionnaireID uint, permissionName string) error
+	HasPermission(userID uint, questionnaireID uint, permissionName string) (bool, error)
+	MakeFakeUser() (model.User, error)
+	MakeFakeQuestionnaire(userID uint) (model.Questionnaire, error)
+	GetUser(userID uint) (model.User, error)
+	GetUserRolesWithPermissions(userID uint) ([]domain_repository.RoleWithPermissions, error)
+	CanDoAsSuperadmin(userID uint, permissionName string) (bool, error)
+	GetUsersIDsWithVisibleAnswers(questionnaireID uint, userID uint) ([]uint, error)
+}
 
 type RbacService struct {
 	repo domain_repository.IRbacRepository
@@ -54,7 +68,7 @@ func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, que
 		return err
 	}
 
-	can, err := o.CanDo(giverUserID, questionnaireID, model.PERMISSION_QUESTIONNAIRE_GIVE_OR_TAKE_PERMISSION)
+	can, err := o.CanDo(giverUserID, questionnaireID, model.PERMISSION_GIVE_OR_TAKE_PERMISSION)
 	if err != nil {
 		return err
 	}
@@ -74,7 +88,7 @@ func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, que
 			return err
 		}
 
-		if permission.Name == model.PERMISSION_QUESTIONNAIRE_SEE_SELECTED_USERS_ANSWERS && len(permission.SelectedUsersIds) == 0 {
+		if permission.Name == model.PERMISSION_SEE_SELECTED_USERS_ANSWERS && len(permission.SelectedUsersIds) == 0 {
 			return ErrorSelectedUsersIdsFieldIsRequired
 		}
 
@@ -98,7 +112,7 @@ func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, que
 				return err // rollback will be triggered
 			}
 
-			if permission.Name == model.PERMISSION_QUESTIONNAIRE_SEE_SELECTED_USERS_ANSWERS {
+			if permission.Name == model.PERMISSION_SEE_SELECTED_USERS_ANSWERS {
 				err = o.repo.InsertUsersWithVisibleAnswers(tx, rolePermissionID, permission.SelectedUsersIds)
 				if err != nil {
 					return err
@@ -163,7 +177,7 @@ func (o *RbacService) RevokePermission(revokerUserID uint, targetUserID uint, qu
 		return err
 	}
 
-	can, err := o.CanDo(revokerUserID, questionnaireID, model.PERMISSION_QUESTIONNAIRE_GIVE_OR_TAKE_PERMISSION)
+	can, err := o.CanDo(revokerUserID, questionnaireID, model.PERMISSION_GIVE_OR_TAKE_PERMISSION)
 	if err != nil {
 		return err
 	}
@@ -206,7 +220,7 @@ func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissio
 		return false, err
 	}
 
-	superadmin, err := o.repo.IsSuperadmin(userID)
+	superadmin, err := o.repo.GetSuperadmin(userID)
 	if err != nil {
 		return false, err
 	}
@@ -237,41 +251,6 @@ func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissio
 	}
 
 	return false, nil
-}
-
-func (o *RbacService) GetUsersWithVisibleAnswers(questionnaireID uint, userID uint) ([]uint, error) {
-	roles, err := o.repo.GetUserRoles(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	permissionID, err := o.repo.FindPermission(model.PERMISSION_QUESTIONNAIRE_SEE_SELECTED_USERS_ANSWERS)
-	if err != nil {
-		return nil, err
-	}
-
-	rolePermission := new(model.RolePermission)
-	for _, role := range roles {
-		rolePermission, err = o.repo.FindRolePermission(role.ID, questionnaireID, permissionID)
-		if err != nil {
-			return nil, err
-		}
-
-		if rolePermission.ID != 0 {
-			break
-		}
-	}
-
-	if rolePermission.ID == 0 {
-		return nil, model.ErrorNotHavePermission
-	}
-
-	usersIDs, err := o.repo.FindUsersWithVisibleAnswers(rolePermission.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return usersIDs, nil
 }
 
 func (o *RbacService) MakeFakeUser() (model.User, error) {
@@ -313,74 +292,67 @@ func (o *RbacService) GetUserRolesWithPermissions(userID uint) ([]domain_reposit
 	return o.repo.GetUserRolesWithPermissions(userID)
 }
 
-func (o *RbacService) MakeSuperadmin(giverUserID uint, userID uint, permissionNames []string) error {
-	if err := o.repo.IsUserExist(giverUserID); err != nil {
-		return err
+func (o *RbacService) CanDoAsSuperadmin(userID uint, permissionName string) (bool, error) {
+	if err := o.repo.IsUserExist(userID); err != nil {
+		return false, err
 	}
 
-	superadmin, err := o.repo.IsSuperadmin(giverUserID)
+	superadmin, err := o.repo.GetSuperadmin(userID)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if superadmin.ID == 0 {
-		return model.ErrorUserCanNotDoThis
+		return false, model.ErrorUserCanNotDoThis
 	}
 
-	permissionID, err := o.repo.FindPermission(model.PERMISSION_MAKE_NEW_SUPERADMIN)
+	permissionID, err := o.repo.FindPermission(permissionName)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	hasSuperadminPermission, err := o.repo.FindSuperadminPermission(superadmin.ID, permissionID)
 	if err != nil {
-		return err
+		return false, err
 	}
+
 	if !hasSuperadminPermission {
-		return model.ErrorUserCanNotDoThis
+		return false, model.ErrorUserCanNotDoThis
 	}
 
-	if err := o.repo.IsUserExist(userID); err != nil {
-		return err
-	}
+	return true, nil
+}
 
-	if len(permissionNames) == 0 {
-		return ErrorPermissionNamesFieldIsRequired
-	}
-
-	permissionIDs := make([]uint, 0, len(permissionNames))
-	for _, permissionName := range permissionNames {
-		id, err := o.repo.FindPermission(permissionName)
-		if err != nil {
-			return err
-		}
-
-		permissionIDs = append(permissionIDs, id)
-	}
-
-	oldSuperadmin, err := o.repo.IsSuperadmin(userID)
+func (o *RbacService) GetUsersIDsWithVisibleAnswers(questionnaireID uint, userID uint) ([]uint, error) {
+	roles, err := o.repo.GetUserRoles(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = o.repo.Transaction(func(tx *gorm.DB) error {
-		userSuperadminID := oldSuperadmin.ID
-		if userSuperadminID == 0 {
-			userSuperadminID, err = o.repo.GiveSuperadminRole(tx, userID, giverUserID)
-			if err != nil {
-				return err
-			}
+	permissionID, err := o.repo.FindPermission(model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
+	if err != nil {
+		return nil, err
+	}
+
+	rolePermission := new(model.RolePermission)
+	for _, role := range roles {
+		rolePermission, err = o.repo.FindRolePermission(role.ID, questionnaireID, permissionID)
+		if err != nil {
+			return nil, err
 		}
 
-		for _, permissionID := range permissionIDs {
-			err := o.repo.MakeSuperadminPermission(tx, userSuperadminID, permissionID)
-
-			if err != nil {
-				return err
-			}
+		if rolePermission.ID != 0 {
+			break
 		}
+	}
 
-		return nil
-	})
+	if rolePermission.ID == 0 {
+		return nil, model.ErrorNotHavePermission
+	}
 
-	return nil
+	usersIDs, err := o.repo.FindUsersWithVisibleAnswers(rolePermission.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return usersIDs, nil
 }

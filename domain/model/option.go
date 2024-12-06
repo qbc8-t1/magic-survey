@@ -17,7 +17,7 @@ type OptionID uint
 
 // Option represents the options table
 type Option struct {
-	ID         OptionID   `gorm:"primaryKey"`
+	ID         OptionID   `gorm:"primaryKey;unique"`
 	QuestionID QuestionID `gorm:"not null"`
 	Order      int        `gorm:"not null"`
 	Caption    string     `gorm:"size:255;not null"`

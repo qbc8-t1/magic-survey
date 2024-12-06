@@ -40,10 +40,8 @@ type IRbacRepository interface {
 	GetUserRolesWithPermissions(userID uint) ([]RoleWithPermissions, error)
 	DeleteRolePermissions(roleID uint, questionnaireID uint, permissionID uint) error
 	HasRolePermission(roleID uint, questionnaireID uint, permissionID uint) (bool, error)
-	IsSuperadmin(userID uint) (model.Superadmin, error)
+	GetSuperadmin(userID uint) (model.Superadmin, error)
 	FindSuperadminPermission(superadminID uint, permissionID uint) (bool, error)
-	GiveSuperadminRole(tx *gorm.DB, userID uint, giverUserID uint) (uint, error)
-	MakeSuperadminPermission(tx *gorm.DB, superadminID uint, permissionID uint) error
 	FindRolePermission(roleID, questionnaireID, permissionID uint) (*model.RolePermission, error)
 	FindUsersWithVisibleAnswers(rolePermissionID uint) ([]uint, error)
 }

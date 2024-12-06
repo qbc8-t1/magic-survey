@@ -23,23 +23,24 @@ const (
 
 // User represents the database model for a user
 type User struct {
-	ID             uint        `gorm:"primaryKey"`
-	FirstName      string      `gorm:"size:255"`
-	LastName       string      `gorm:"size:255"`
-	Birthdate      string      `gorm:"size:255"`
-	City           string      `gorm:"size:255"`
-	NationalCode   string      `gorm:"size:10;unique"`
-	Gender         *GenderEnum `gorm:"type:gender_enum"`
-	Email          string      `gorm:"unique;size:255"`
-	Password       string      `gorm:"not null"`
-	IsActive       bool        `gorm:"not null"`
-	WalletBalance  int64
-	CreatedAt      time.Time
-	UpdatedAt      time.Time       `gorm:"not null"`
-	Questionnaires []Questionnaire `gorm:"foreignKey:OwnerID"`
-	Notifications  []Notification  `gorm:"foreignKey:UserID"`
-	Superadmin     *Superadmin     `gorm:"foreignKey:UserID"`
-	Roles          []Role          `gorm:"many2many:role_users;"`
+	ID                     uint        `gorm:"primaryKey"`
+	FirstName              string      `gorm:"size:255"`
+	LastName               string      `gorm:"size:255"`
+	Birthdate              string      `gorm:"size:255"`
+	City                   string      `gorm:"size:255"`
+	NationalCode           string      `gorm:"size:10;unique"`
+	Gender                 *GenderEnum `gorm:"type:gender_enum"`
+	Email                  string      `gorm:"unique;size:255"`
+	Password               string      `gorm:"not null"`
+	IsActive               bool        `gorm:"not null"`
+	WalletBalance          int64
+	MaxQuestionnairesCount int `gorm:"null"`
+	CreatedAt              time.Time
+	UpdatedAt              time.Time       `gorm:"not null"`
+	Questionnaires         []Questionnaire `gorm:"foreignKey:OwnerID"`
+	Notifications          []Notification  `gorm:"foreignKey:UserID"`
+	Superadmin             *Superadmin     `gorm:"foreignKey:UserID"`
+	Roles                  []Role          `gorm:"many2many:role_users;"`
 }
 
 // TwoFACode stores 2FA codes for users
@@ -154,9 +155,15 @@ func (u *User) Validate() error {
 	if !utils.IsValidEmail(u.Email) {
 		return errors.New("invalid email format")
 	}
-	if len(u.NationalCode) != 10 || !utils.IsAllDigits(u.NationalCode) {
-		return errors.New("national code must be a 10-digit number")
+
+	isValidNationalCode, err := utils.IsValidNationalCode(u.NationalCode)
+	if err != nil {
+		return errors.New("national code validation failed")
 	}
+	if !isValidNationalCode {
+		return errors.New("national code is not valid")
+	}
+
 	if len(u.Password) < 6 {
 		return errors.New("password must be at least 6 characters long")
 	}

@@ -77,6 +77,29 @@ func ToAnswerResponse(answer *Answer) *AnswerResponse {
 	}
 }
 
+type AnswerSummaryResponse struct {
+	SubmissionID SubmissionID `json:"submission_id"`
+	OptionID     *OptionID    `json:"option_id"`
+	AnswerText   *string      `json:"answer_text"`
+	Option       *Option      `json:"option"`
+	CreatedAt    time.Time    `json:"created_at"`
+}
+
+func ToAnswerSummaryResponses(answers *[]Answer) *[]AnswerSummaryResponse {
+	answerResponses := make([]AnswerSummaryResponse, 0, len(*answers))
+	for _, answer := range *answers {
+		answerResponses = append(answerResponses, AnswerSummaryResponse{
+			SubmissionID: answer.SubmissionID,
+			OptionID:     answer.OptionID,
+			AnswerText:   answer.AnswerText,
+			Option:       answer.Option,
+			CreatedAt:    answer.CreatedAt,
+		})
+	}
+
+	return &answerResponses
+}
+
 func ToAnswerResponses(answers *[]Answer) *[]AnswerResponse {
 	answerResponses := make([]AnswerResponse, 0)
 	for _, answer := range *answers {

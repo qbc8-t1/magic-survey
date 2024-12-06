@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
@@ -19,102 +20,133 @@ type RevokePermissionData struct {
 }
 
 type HasPermissionData struct {
-	UserID          uint   `json:"user_id"`
 	QuestionnaireID uint   `json:"questionnaire_id"`
 	PermissionName  string `json:"permission_name"`
 }
 
-type MakeSuperadminData struct {
-	UserID      uint     `json:"user_id"`
-	Permissions []string `json:"permissions"`
-}
-
-type GetUsersWithVisibleAnswersData struct {
-	UserID          uint `json:"user_id"`
-	QuestionnaireID uint `json:"questionnaire_id"`
-}
-
-func GetAllPermissions(rbacService service.RbacService) fiber.Handler {
+func GetAllPermissions(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		c.JSON(rbacService.GetAllPermissions())
 		return nil
 	}
 }
 
-func GivePermissions(rbacService service.RbacService) fiber.Handler {
+func GivePermissions(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		giverUserId, err := c.ParamsInt("userid")
-		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "user id param invalid", err)
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "user is not signed in", nil)
+		}
+
+		giverUser, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get signed in user", nil)
 		}
 
 		data := new(GivePermissionsData)
-		err = c.BodyParser(data)
+		err := c.BodyParser(data)
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
 		}
 
-		err = rbacService.GivePermissions(uint(giverUserId), data.UserID, data.QuestionnaireID, data.Permissions)
+		err = rbacService.GivePermissions(uint(giverUser.ID), data.UserID, data.QuestionnaireID, data.Permissions)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to process", err)
+			return response.Error(c, fiber.StatusInternalServerError, "failed to give permissions", err.Error())
 		}
 
 		return response.Success(c, fiber.StatusCreated, "permissions gived to user", nil)
 	}
 }
 
-func MakeFakeUser(rbacService service.RbacService) fiber.Handler {
+func RevokePermission(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		user, err := rbacService.MakeFakeUser()
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "user is not signed in", nil)
+		}
+
+		revokerUser, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get signed in user", nil)
+		}
+
+		data := new(RevokePermissionData)
+		err := c.BodyParser(data)
+		if err != nil {
+			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+		}
+
+		err = rbacService.RevokePermission(uint(revokerUser.ID), data.UserID, data.QuestionnaireID, data.PermissionName)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		c.Status(fiber.StatusOK).SendString("permissions revoked from user")
+		return nil
+	}
+}
+
+func CanDo(rbacService service.IRbacService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "user is not signed in", nil)
+		}
+
+		user, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get signed in user", nil)
+		}
+
+		data := new(HasPermissionData)
+		err := c.BodyParser(data)
+		if err != nil {
+			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+		}
+
+		has, err := rbacService.CanDo(user.ID, data.QuestionnaireID, data.PermissionName)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		return c.JSON(has)
+	}
+}
+
+func GetUser(rbacService service.IRbacService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "user is not signed in", nil)
+		}
+
+		user, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get signed in user", nil)
+		}
+
+		user, err := rbacService.GetUser(user.ID)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
 		return c.JSON(user)
 	}
 }
 
-func MakeFakeQuestionnaire(rbacService service.RbacService) fiber.Handler {
+func GetUserRolesWithPermissions(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userID, err := c.ParamsInt("userid")
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "user is not signed in", nil)
 		}
 
-		questionnaire, err := rbacService.MakeFakeQuestionnaire(uint(userID))
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		user, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get signed in user", nil)
 		}
 
-		return c.JSON(questionnaire)
-	}
-}
-
-func GetUser(rbacService service.RbacService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		userID, err := c.ParamsInt("userid")
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
-		}
-
-		user, err := rbacService.GetUser(uint(userID))
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
-		}
-
-		c.JSON(user)
-		return nil
-	}
-}
-
-func GetUserRolesWithPermissions(rbacService service.RbacService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		userID, err := c.ParamsInt("userid")
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
-		}
-
-		roles, err := rbacService.GetUserRolesWithPermissions(uint(userID))
+		roles, err := rbacService.GetUserRolesWithPermissions(user.ID)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
@@ -127,81 +159,59 @@ func GetUserRolesWithPermissions(rbacService service.RbacService) fiber.Handler 
 	}
 }
 
-func RevokePermission(rbacService service.RbacService) fiber.Handler {
+func GetUserRolesAndPermissions(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		revokerUserID, err := c.ParamsInt("userid")
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "user is not signed in", nil)
+		}
+
+		user, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get signed in user", nil)
+		}
+
+		roles, err := rbacService.GetUserRolesWithPermissions(user.ID)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
-		data := new(RevokePermissionData)
-		err = c.BodyParser(data)
-		if err != nil {
-			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+		if len(roles) == 0 {
+			return c.SendString("user doesn't have any roles")
 		}
 
-		err = rbacService.RevokePermission(uint(revokerUserID), data.UserID, data.QuestionnaireID, data.PermissionName)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-		}
-
-		c.Status(fiber.StatusOK).SendString("permissions revoked from user")
-		return nil
+		return c.JSON(roles)
 	}
 }
 
-func CanDo(rbacService service.RbacService) fiber.Handler {
+func MakeFakeUser(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		data := new(HasPermissionData)
-		err := c.BodyParser(data)
-		if err != nil {
-			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
-		}
-
-		has, err := rbacService.CanDo(data.UserID, data.QuestionnaireID, data.PermissionName)
+		user, err := rbacService.MakeFakeUser()
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
 
-		return c.JSON(has)
+		return c.JSON(user)
 	}
 }
 
-func MakeSuperadmin(rbacService service.RbacService) fiber.Handler {
+func MakeFakeQuestionnaire(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		giverUserID, err := c.ParamsInt("userid")
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "user is not signed in", nil)
 		}
 
-		data := new(MakeSuperadminData)
-		err = c.BodyParser(&data)
-		if err != nil {
-			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+		user, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get signed in user", nil)
 		}
 
-		err = rbacService.MakeSuperadmin(uint(giverUserID), data.UserID, data.Permissions)
+		questionnaire, err := rbacService.MakeFakeQuestionnaire(user.ID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
 
-		return c.Status(fiber.StatusCreated).SendString("superadmin created")
-	}
-}
-
-func GetUsersWithVisibleAnswers(rbacService service.RbacService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		data := new(GetUsersWithVisibleAnswersData)
-		err := c.BodyParser(&data)
-		if err != nil {
-			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
-		}
-
-		usersIDs, err := rbacService.GetUsersWithVisibleAnswers(data.QuestionnaireID, data.UserID)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-		}
-
-		return c.JSON(usersIDs)
+		return c.JSON(questionnaire)
 	}
 }

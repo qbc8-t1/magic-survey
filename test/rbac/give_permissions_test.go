@@ -267,7 +267,7 @@ func TestMakeNewRole(t *testing.T) {
 	}
 
 	rbacInstance := service.NewRbacService(repository.NewRbacRepository(db))
-	rbacInstance.GivePermissions(user1.ID, user2.ID, questionnaire.ID, []service.PermissionType{{Name: model.PERMISSION_QUESTIONNAIRE_SEE_SELECTED_USERS_ANSWERS, SelectedUsersIds: []uint{1}}})
+	rbacInstance.GivePermissions(user1.ID, user2.ID, questionnaire.ID, []service.PermissionType{{Name: model.PERMISSION_SEE_SELECTED_USERS_ANSWERS, SelectedUsersIds: []uint{1}}})
 }
 
 func getDB() (*gorm.DB, error) {
@@ -283,7 +283,7 @@ func getDB() (*gorm.DB, error) {
 	appLogger.InitLogger(conf.Logger.Path)
 	db, err := db.InitDB(conf, appLogger)
 	if err != nil {
-		appLogger.Panic("Counldnt init the db")
+		appLogger.Fatal("Counldnt init the db")
 		return nil, err
 	}
 

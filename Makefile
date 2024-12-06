@@ -6,4 +6,4 @@ build-app:
 	GOOS=linux GOARCH=amd64 go build -o $(APP_LINUX_BIN) cmd/app/main.go
 
 run-app:
-	go run ./cmd/app/main.go -c ./config.yml
+	go run ./cmd/app/main.go -c ./config.local.yml
