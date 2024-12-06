@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"os"
@@ -14,7 +13,9 @@ import (
 
 // Logger methods interface
 type Logger interface {
-	InitLogger()
+	InitLogger(filePath string)
+	WithField(key string, value interface{}) *zap.Logger
+	WithFields(fields map[string]interface{}) *zap.Logger
 	Debug(args ...interface{})
 	Debugf(template string, args ...interface{})
 	Info(args ...interface{})
@@ -29,9 +30,10 @@ type Logger interface {
 	Fatalf(template string, args ...interface{})
 }
 
-// Logger
+// AppLogger encapsulates the zap logger and config
 type AppLogger struct {
 	cfg         *config.Config
+	logger      *zap.Logger
 	sugarLogger *zap.SugaredLogger
 }
 
@@ -40,7 +42,7 @@ func NewAppLogger(cfg *config.Config) *AppLogger {
 	return &AppLogger{cfg: cfg}
 }
 
-// For mapping config logger to app logger levels
+// Logger level map
 var loggerLevelMap = map[string]zapcore.Level{
 	"debug":  zapcore.DebugLevel,
 	"info":   zapcore.InfoLevel,
@@ -60,9 +62,8 @@ func (l *AppLogger) getLoggerLevel(cfg *config.Config) zapcore.Level {
 	return level
 }
 
-// InitLogger will init logger with config and log rotation
+// InitLogger initializes the logger with config and log rotation
 func (l *AppLogger) InitLogger(filePath string) {
-	fmt.Println(filePath)
 	logLevel := l.getLoggerLevel(l.cfg)
 
 	// Ensure the directory exists
@@ -91,18 +92,36 @@ func (l *AppLogger) InitLogger(filePath string) {
 	encoderCfg.TimeKey = "TIME"
 	encoderCfg.NameKey = "NAME"
 	encoderCfg.MessageKey = "MESSAGE"
+	encoderCfg.StacktraceKey = "TRACE"
 	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 
 	encoder := zapcore.NewJSONEncoder(encoderCfg)
 
 	core := zapcore.NewCore(encoder, logWriter, zap.NewAtomicLevelAt(logLevel))
-	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 
-	l.sugarLogger = logger.Sugar()
+	l.logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+
+	l.sugarLogger = l.logger.Sugar()
 	if err := l.sugarLogger.Sync(); err != nil {
 		l.sugarLogger.Error(err)
 	}
 }
+
+// Add a single field to the logger
+func (l *AppLogger) WithField(key string, value interface{}) *zap.Logger {
+	return l.logger.With(zap.Any(key, value))
+}
+
+// Add multiple fields to the logger
+func (l *AppLogger) WithFields(fields map[string]interface{}) *zap.Logger {
+	zapFields := make([]zap.Field, 0, len(fields))
+	for k, v := range fields {
+		zapFields = append(zapFields, zap.Any(k, v))
+	}
+	return l.logger.With(zapFields...)
+}
+
+// Logging methods
 func (l *AppLogger) Debug(args ...interface{}) {
 	l.sugarLogger.Debug(args...)
 }
@@ -141,14 +160,6 @@ func (l *AppLogger) DPanic(args ...interface{}) {
 
 func (l *AppLogger) DPanicf(template string, args ...interface{}) {
 	l.sugarLogger.DPanicf(template, args...)
-}
-
-func (l *AppLogger) Panic(args ...interface{}) {
-	l.sugarLogger.Panic(args...)
-}
-
-func (l *AppLogger) Panicf(template string, args ...interface{}) {
-	l.sugarLogger.Panicf(template, args...)
 }
 
 func (l *AppLogger) Fatal(args ...interface{}) {

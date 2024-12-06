@@ -1,27 +1,36 @@
 package middleware
 
 import (
-	"github.com/QBC8-Team1/magic-survey/internal/common"
+	"github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"github.com/gofiber/fiber/v2"
-	"time"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
-func WithLogger(s *common.Server) fiber.Handler {
+// LoggingMiddleware sets up a basic logger for each request
+func WithLoggingMiddleware(appLogger *logger.AppLogger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		start := time.Now()
-		log := s.Logger
+		traceId := uuid.NewString()
+		// Enrich the logger with request details
+		requestLogger := appLogger.WithFields(map[string]interface{}{
+			"path":      c.Path(),
+			"method":    c.Method(),
+			"client_ip": c.IP(),
+			"trace_id":  traceId,
+		})
 
-		log.Infof("Request: %s %s from %s", c.Method(), c.Path(), c.IP())
+		c.Locals("logger", requestLogger)
 
-		err := c.Next()
+		return c.Next()
 
-		log.Infof(
-			"Response: Status %d - Duration %v - Path %s",
-			c.Response().StatusCode(),
-			time.Since(start),
-			c.Path(),
-		)
-
-		return err
 	}
+}
+
+// GetLogger retrieves the logger from the Fiber context
+func GetLogger(c *fiber.Ctx) *zap.Logger {
+	logger, ok := c.Locals("logger").(*zap.Logger)
+	if !ok {
+		return zap.L() // Fallback to the global logger
+	}
+	return logger
 }

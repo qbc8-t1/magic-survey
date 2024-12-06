@@ -1,18 +1,15 @@
 package server
 
 import (
-<<<<<<< HEAD
 	"errors"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 
-=======
->>>>>>> c2167d9 (feat: finally config the logging)
 	"github.com/QBC8-Team1/magic-survey/config"
 	"github.com/QBC8-Team1/magic-survey/internal/common"
 	"github.com/QBC8-Team1/magic-survey/pkg/db"
 	"github.com/QBC8-Team1/magic-survey/pkg/logger"
-	"github.com/gofiber/fiber/v2"
 )
 
 func NewServer(cfg *config.Config) (*common.Server, error) {
@@ -25,14 +22,9 @@ func NewServer(cfg *config.Config) (*common.Server, error) {
 
 	db, err := db.InitDB(cfg, appLogger)
 	if err != nil {
-<<<<<<< HEAD
 		appLogger.Panic(errors.Join(errors.New("can't init the db connection"), err))
-=======
-		appLogger.Panic("can't init the db connection")
-		panic("can't init the db connection")
->>>>>>> c2167d9 (feat: finally config the logging)
 	}
-
+	fmt.Println("db", db)
 	s := &common.Server{
 		App:    app,
 		Logger: appLogger,
@@ -40,6 +32,6 @@ func NewServer(cfg *config.Config) (*common.Server, error) {
 		DB:     db,
 	}
 
-	registerRoutes(s)
+	registerRoutes(s, cfg.Server.Secret)
 	return s, nil
 }

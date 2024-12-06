@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func registerRoutes(s *common.Server) {
+func registerRoutes(s *common.Server, secret string) {
 	limiterCfg := limiter.Config{
 		Max:               10,
 		Expiration:        30 * time.Second,
