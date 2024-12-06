@@ -28,10 +28,7 @@ func registerRoutes(s *common.Server, secret string) {
 	s.App.Use(middleware.WithLoggingMiddleware(s.Logger), limiter.New(limiterCfg), cors.New(CORSCfg), compress.New())
 	s.App.Get("/health", monitor.New())
 
-	api := app.Group("/api/v1")
-
-	s.App.Use(middleware.WithLogger(s), limiter.New(limiterCfg), cors.New(CORSCfg), compress.New())
-	s.App.Get("/health", monitor.New())
+	api := s.App.Group("/api/v1")
 
 	middleware.RegisterRbacMiddlewares(api, s.DB)
 

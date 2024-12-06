@@ -20,7 +20,7 @@ func NewServer(cfg *config.Config) (*common.Server, error) {
 
 	db, err := db.InitDB(cfg, appLogger)
 	if err != nil {
-		appLogger.Panic(errors.Join(errors.New("can't init the db connection"), err))
+		appLogger.Fatal(errors.Join(errors.New("can't init the db connection"), err))
 	}
 
 	s := &common.Server{
