@@ -2,8 +2,6 @@ package server
 
 import (
 	"errors"
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/QBC8-Team1/magic-survey/config"
@@ -24,7 +22,7 @@ func NewServer(cfg *config.Config) (*common.Server, error) {
 	if err != nil {
 		appLogger.Panic(errors.Join(errors.New("can't init the db connection"), err))
 	}
-	fmt.Println("db", db)
+
 	s := &common.Server{
 		App:    app,
 		Logger: appLogger,

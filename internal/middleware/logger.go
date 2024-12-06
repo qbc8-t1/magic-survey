@@ -11,7 +11,6 @@ import (
 func WithLoggingMiddleware(appLogger *logger.AppLogger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		traceId := uuid.NewString()
-		// Enrich the logger with request details
 		requestLogger := appLogger.WithFields(map[string]interface{}{
 			"path":      c.Path(),
 			"method":    c.Method(),
@@ -22,7 +21,6 @@ func WithLoggingMiddleware(appLogger *logger.AppLogger) fiber.Handler {
 		c.Locals("logger", requestLogger)
 
 		return c.Next()
-
 	}
 }
 

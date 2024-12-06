@@ -37,7 +37,7 @@ type AppLogger struct {
 	sugarLogger *zap.SugaredLogger
 }
 
-// App Logger constructor
+// NewAppLogger App Logger constructor
 func NewAppLogger(cfg *config.Config) *AppLogger {
 	return &AppLogger{cfg: cfg}
 }
@@ -107,12 +107,7 @@ func (l *AppLogger) InitLogger(filePath string) {
 	}
 }
 
-// Add a single field to the logger
-func (l *AppLogger) WithField(key string, value interface{}) *zap.Logger {
-	return l.logger.With(zap.Any(key, value))
-}
-
-// Add multiple fields to the logger
+// WithFields Add multiple fields to the logger
 func (l *AppLogger) WithFields(fields map[string]interface{}) *zap.Logger {
 	zapFields := make([]zap.Field, 0, len(fields))
 	for k, v := range fields {
@@ -121,7 +116,6 @@ func (l *AppLogger) WithFields(fields map[string]interface{}) *zap.Logger {
 	return l.logger.With(zapFields...)
 }
 
-// Logging methods
 func (l *AppLogger) Debug(args ...interface{}) {
 	l.sugarLogger.Debug(args...)
 }
