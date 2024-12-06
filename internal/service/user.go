@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"github.com/QBC8-Team1/magic-survey/pkg/jwt"
@@ -10,12 +12,12 @@ import (
 	t "github.com/QBC8-Team1/magic-survey/pkg/time"
 	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 	jwt2 "github.com/golang-jwt/jwt/v5"
-	"time"
 )
 
 var (
-	ErrUserOnCreate             = errors.New("Cant Create the user")
-	ErrUserOnUpdate             = errors.New("Cant Update the user")
+	ErrUserNotFound             = errors.New("user not found")
+	ErrUserOnCreate             = errors.New("cant Create the user")
+	ErrUserOnUpdate             = errors.New("cant Update the user")
 	ErrEmailExists              = errors.New("mail already exits")
 	ErrNationalCodeExists       = errors.New("national code already exits")
 	ErrWrongEmailPass           = errors.New("wrong mail or password")
@@ -25,9 +27,11 @@ var (
 	ErrCantSaveCode             = errors.New("cant save code")
 	ErrCantDeleteCode           = errors.New("cant delete code")
 	ErrCantGetCode              = errors.New("cant get code")
-	ErrUserIdNotFound           = errors.New("user id not found")
+	ErrUserRetrieveFailed       = errors.New("failed to retrieve user")
+	ErrUserNotVerified          = errors.New("user is not verified")
 	ErrHasOneDayPassedBirthdate = errors.New("The time to change birthdate has passed and you cannot change it")
 	ErrMoreCreditThanAllowed    = errors.New("You are a billionaire, this app will not help you")
+	ErrUserIdNotFound           = errors.New("user id not found")
 )
 
 type UserService struct {
@@ -68,13 +72,6 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 	user.IsActive = false
-
-	switch user.Gender {
-	case "male":
-		user.Gender = model.Male
-	case "female":
-		user.Gender = model.Female
-	}
 
 	hashedPassword, err := utils.HashPassword(user.Password)
 	user.Password = hashedPassword
@@ -156,6 +153,9 @@ func (s *UserService) LoginUser(user *model.LoginRequest) (*model.AuthResponse, 
 		return nil, ErrWrongEmailPass
 	}
 
+	if !res.IsActive {
+		return nil, ErrUserNotVerified
+	}
 	err = utils.CheckPasswordHash(user.Password, res.Password)
 	if err != nil {
 		return nil, ErrWrongEmailPass

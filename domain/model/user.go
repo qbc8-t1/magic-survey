@@ -9,6 +9,10 @@ import (
 	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 )
 
+var (
+	ErrInvalidUserID = errors.New("userID is required and must be greater than 0")
+)
+
 type GenderEnum string
 type UserId uint
 
@@ -19,22 +23,25 @@ const (
 
 // User represents the database model for a user
 type User struct {
-	ID             uint       `gorm:"primaryKey"`
-	FirstName      string     `gorm:"size:255"`
-	LastName       string     `gorm:"size:255"`
-	Birthdate      string     `gorm:"size:255"`
-	City           string     `gorm:"size:255"`
-	NationalCode   string     `gorm:"size:10;unique"`
-	Gender         GenderEnum `gorm:"type:gender_enum;not null"`
-	Email          string     `gorm:"unique;size:255"`
-	Password       string     `gorm:"not null"`
-	IsActive       bool       `gorm:"not null"`
-	Credit         int64
-	CreatedAt      time.Time
-	UpdatedAt      time.Time       `gorm:"not null"`
-	Questionnaires []Questionnaire `gorm:"foreignKey:OwnerID"`
-	Notifications  []Notification  `gorm:"foreignKey:UserID"`
-	SuperAdmin     *SuperAdmin     `gorm:"foreignKey:UserID"`
+	ID                     uint        `gorm:"primaryKey"`
+	FirstName              string      `gorm:"size:255"`
+	LastName               string      `gorm:"size:255"`
+	Birthdate              string      `gorm:"size:255"`
+	City                   string      `gorm:"size:255"`
+	NationalCode           string      `gorm:"size:10;unique"`
+	Gender                 *GenderEnum `gorm:"type:gender_enum"`
+	Email                  string      `gorm:"unique;size:255"`
+	Password               string      `gorm:"not null"`
+	IsActive               bool        `gorm:"not null"`
+	WalletBalance          int64
+	Credit                 int64
+	MaxQuestionnairesCount int `gorm:"null"`
+	CreatedAt              time.Time
+	UpdatedAt              time.Time       `gorm:"not null"`
+	Questionnaires         []Questionnaire `gorm:"foreignKey:OwnerID"`
+	Notifications          []Notification  `gorm:"foreignKey:UserID"`
+	Superadmin             *Superadmin     `gorm:"foreignKey:UserID"`
+	Roles                  []Role          `gorm:"many2many:role_users;"`
 }
 
 // TwoFACode stores 2FA codes for users
@@ -65,10 +72,6 @@ type UpdateUserDTO struct {
 	LastName  string `json:"last_name,required"`
 	Birthdate string `json:"birthdate,required"`
 	City      string `json:"city,required"`
-	//Gender    *GenderEnum `json:"gender,omitempty" validate:"omitempty,oneof=male female"`
-	//Email        *string     `json:"email,omitempty" validate:"email"`
-	//NationalCode *string     `json:"national_code,omitempty"`
-	//Password     *string     `json:"password,omitempty"`
 }
 
 // IncreaseCreditDTO represents the data needed to update credit user
@@ -130,7 +133,7 @@ func ToUserResponse(user *User) *UserResponse {
 		LastName:     user.LastName,
 		Email:        user.Email,
 		NationalCode: user.NationalCode,
-		Gender:       string(user.Gender),
+		Gender:       string(*user.Gender),
 		City:         user.City,
 		Birthdate:    user.Birthdate,
 		Credit:       user.Credit,
@@ -142,7 +145,7 @@ func ToPublicUserResponse(user *User) *PublicUserResponse {
 	return &PublicUserResponse{
 		ID:     UserId(user.ID),
 		Name:   user.GetFullName(),
-		Gender: string(user.Gender),
+		Gender: string(*user.Gender),
 	}
 }
 
@@ -154,7 +157,6 @@ func ToUserModel(dto *CreateUserDTO) *User {
 		Email:        dto.Email,
 		NationalCode: dto.NationalCode,
 		Password:     dto.Password,
-		Gender:       dto.Gender,
 	}
 }
 
@@ -184,10 +186,13 @@ func ToUserModelForUpdate(user User, dto *UpdateUserDTO) User {
 	if dto.Password != nil {
 		user.Password = *dto.Password
 	}
+
 	if dto.Gender != nil {
 		user.Gender = *dto.Gender
 	}
 }*/
+
+//}
 
 // Validate checks the User struct for common validation rules.
 func (u *User) Validate() error {
@@ -200,9 +205,15 @@ func (u *User) Validate() error {
 	if !utils.IsValidEmail(u.Email) {
 		return errors.New("invalid email format")
 	}
-	if len(u.NationalCode) != 10 || !utils.IsAllDigits(u.NationalCode) {
-		return errors.New("national code must be a 10-digit number")
+
+	isValidNationalCode, err := utils.IsValidNationalCode(u.NationalCode)
+	if err != nil {
+		return errors.New("national code validation failed")
 	}
+	if !isValidNationalCode {
+		return errors.New("national code is not valid")
+	}
+
 	if len(u.Password) < 6 {
 		return errors.New("password must be at least 6 characters long")
 	}

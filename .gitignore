@@ -3,3 +3,6 @@
 .vscode
 build
 config.yml
+config.local.yml
+logs
+*.log.gz

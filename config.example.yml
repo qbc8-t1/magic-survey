@@ -1,22 +1,24 @@
 server:
-  host: "127.0.0.1"
-  port: "8080"
-  mode:
-  appVersion:
-  MailPass: "pass"
-  FromMail: "youremail@gmail.com"
-  Secret: "abc"
-  AuthExpMinute: 600
-  AuthRefreshMinute: 1200
-  MaxSecondForChangeBirthdate: 99400
+  host: "0.0.0.0"
+  port: 8080
+  mode: "development"
+  appVersion: "0.0.1"
+  secret: "abc"
+  authExpMinute: 30
+  authRefreshMinute: 180
+  mailPass: "pass"
+  fromMail: "youremail@gmail.com"
+  meiliSearchHost: "http://meilisearch:7700"
+  maxSecondForChangeBirthdate: 99400
+
 postgres:
-  host: "127.0.0.1"
-  port: "5432"
+  host: db
+  port: 5432
   user: "postgres"
-  password:
-  dbname: "golang_test"
+  password: "postgres"
+  dbname: "survey_db"
   SslMode: "disable"
 logger:
-  level:
-  encoding:
-  path: "./log.log"
+  level: "info"
+  encoding: "json"
+  path: "sample-log.log"

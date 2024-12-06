@@ -1,6 +1,13 @@
 package model
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+var (
+	ErrInvalidSubmissionID = errors.New("submissionID is required and must be greater than 0")
+)
 
 // SubmissionsStatusEnum represents the submissions_status_enum type in Postgres
 type SubmissionsStatusEnum string

@@ -1,18 +1,52 @@
 package server
 
 import (
-	"github.com/QBC8-Team1/magic-survey/handlers"
 	"github.com/QBC8-Team1/magic-survey/internal/common"
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
 	"github.com/QBC8-Team1/magic-survey/internal/routes"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
+	"time"
 )
 
-func registerRoutes(app *fiber.App, s *common.Server) {
-	app.Get("/health", middleware.WithAuthMiddleware(s.DB, s.Cfg.Server.Secret), handlers.HealthCheck)
+func registerRoutes(s *common.Server, secret string) {
+	limiterCfg := limiter.Config{
+		Max:               10,
+		Expiration:        30 * time.Second,
+		LimiterMiddleware: limiter.FixedWindow{},
+	}
 
-	api := app.Group("/api")
-	auth := api.Group("/v1/auth")
+	// this is just for learning purpose, not useful in real-world project
+	CORSCfg := cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "*",
+		AllowHeaders: "*",
+	}
 
+	s.App.Use(middleware.WithLoggingMiddleware(s.Logger), limiter.New(limiterCfg), cors.New(CORSCfg), compress.New())
+	s.App.Get("/health", monitor.New())
+
+	api := s.App.Group("/api/v1")
+
+	middleware.RegisterRbacMiddlewares(api, s.DB)
+
+	auth := api.Group("/auth")
+	rbac := api.Group("/rbac")
+	superadmin := api.Group("/superadmin")
+
+	routes.RegisterRbacRoutes(rbac, s)
+	routes.RegisterSuperadminRoutes(superadmin, s)
 	routes.RegisterUserRoutes(auth, s)
+
+	questionnaire := api.Group("/questionnaires/:questionnaire_id")
+	questions := questionnaire.Group("/questions")
+	answers := questionnaire.Group("/answers")
+	options := questionnaire.Group("/options")
+
+	routes.RegisterVisibleAnswersRoutes(questionnaire, s)
+	routes.RegisterQuestionRoutes(questions, s)
+	routes.RegisterAnswerRoutes(answers, s)
+	routes.RegisterOptionRoutes(options, s)
 }

@@ -8,7 +8,6 @@ type UsersWithVisibleAnswers struct {
 	RolePermissionID uint      `gorm:"not null;index"`
 	UserID           uint      `gorm:"not null;index"`
 	CreatedAt        time.Time `gorm:"autoCreateTime"`
-	UpdatedAt        time.Time `gorm:"autoUpdateTime"`
 
 	RolePermission RolePermission `gorm:"foreignKey:RolePermissionID"`
 	User           User           `gorm:"foreignKey:UserID"`

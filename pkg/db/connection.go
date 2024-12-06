@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+
 	"github.com/QBC8-Team1/magic-survey/config"
 	applog "github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"gorm.io/driver/postgres"
@@ -31,11 +32,20 @@ func InitDB(cfg *config.Config, logger *applog.AppLogger) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	// deleteAllTablesAndTypes(db)
+	// err = deleteAllTablesAndTypes(db)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to delete tables and types: %w", err)
+	// }
+
 	err = migrate(db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate: %w", err)
 	}
+
+	// err = seed(db)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to seed: %w", err)
+	// }
 
 	return db, nil
 }
