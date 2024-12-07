@@ -3,7 +3,6 @@ package common
 import (
 	"context"
 	"fmt"
-
 	"github.com/QBC8-Team1/magic-survey/config"
 	"github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"github.com/gofiber/fiber/v2"
@@ -26,7 +25,6 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	if err := s.App.ShutdownWithContext(ctx); err != nil {
 		return err
 	}
-
 	appDB, err := s.DB.DB()
 	if err != nil {
 		return fmt.Errorf("error accessing database connection: %w", err)
