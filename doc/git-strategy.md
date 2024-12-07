@@ -49,21 +49,9 @@ git checkout -b feat/add-user-authentication
    git rebase origin/develop
    ```
 
-6. **Squash Commits**: When merging the PR, squash all commits to create a single, concise commit message from the PR title.
-
-7. **Approval and Merge**:
+6.**Approval and Merge**:
    - Once the PR is approved, **any team member** can merge the branch into `develop`.
-
-## Release Plan: Merging `develop` to `master`
-
-We follow a scheduled release plan where changes from `develop` are merged into `master` every 2 days. This helps maintain a stable main branch with frequent, manageable updates.
-
-- **Release Frequency**: Every 2 days.
-- **Release Process**:
-  1. Review and test `develop` to ensure it’s ready for release.
-  2. Create a release PR from `develop` to `master`.
-  3. After approval, merge into `master`.
-
+   
 ## Commit Message Convention
 
 We follow the **Conventional Commits** specification to write clear and structured commit messages. This helps keep our Git history consistent and readable.

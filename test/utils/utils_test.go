@@ -81,3 +81,27 @@ func TestIsValidEmail(t *testing.T) {
 		assert.False(t, isValid, "expected is valid to be false, but got %v", isValid)
 	})
 }
+
+func TestIsValidNationalCode(t *testing.T) {
+	tests := []struct {
+		code     string
+		expected bool
+	}{
+		{"1234567891", true},
+		{"9876543210", true},
+		{"12345abc890", false},
+		{"123", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.code, func(t *testing.T) {
+			result, err := utils.IsValidNationalCode(tt.code)
+			if err != nil {
+				t.Fatalf("IsValidNationalCode(%q) returned error: %v", tt.code, err)
+			}
+			if result != tt.expected {
+				t.Errorf("IsValidNationalCode(%q) = %v; want %v", tt.code, result, tt.expected)
+			}
+		})
+	}
+}
