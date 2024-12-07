@@ -133,13 +133,13 @@ func (s *UserService) IncreaseCredit(user *model.User, value int64) (*model.User
 }
 
 // Show User
-func (s *UserService) ShowUser(id int) (*model.PublicUserResponse, error) {
-	user, err := s.repo.GetUserByID(id)
-	if err != nil {
-		return nil, ErrUserIdNotFound
-	}
-	return model.ToPublicUserResponse(user), nil
-}
+//func (s *UserService) ShowUser(id int) (*model.PublicUserResponse, error) {
+//	user, err := s.repo.GetUserByID(id)
+//	if err != nil {
+//		return nil, ErrUserIdNotFound
+//	}
+//	return model.ToPublicUserResponse(user), nil
+//}
 
 // Profile User
 func (s *UserService) Profile(user *model.User) (*model.UserResponse, error) {

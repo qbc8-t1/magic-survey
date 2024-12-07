@@ -20,7 +20,7 @@ func RegisterUserRoutes(auth fiber.Router, s *common.Server) {
 
 	// ---------------- routes
 	// global
-	auth.Get("user/:id", handlers.ShowUser(*userService))
+	//auth.Get("user/:id", handlers.ShowUser(*userService))
 	auth.Post("signup", handlers.UserCreate(*userService))
 	auth.Post("verify", handlers.Verify2FACode(*userService))
 	auth.Post("login", handlers.Login(*userService))
