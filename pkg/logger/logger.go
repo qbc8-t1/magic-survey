@@ -163,3 +163,13 @@ func (l *AppLogger) Fatal(args ...interface{}) {
 func (l *AppLogger) Fatalf(template string, args ...interface{}) {
 	l.sugarLogger.Fatalf(template, args...)
 }
+
+// log category types
+const (
+	LogAuth     = "auth"
+	LogDb       = "db"
+	LogAnswer   = "answer"
+	LogQuestion = "question"
+	LogRbac     = "rbac"
+	LogServer   = "server"
+)
