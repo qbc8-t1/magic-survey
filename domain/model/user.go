@@ -23,18 +23,18 @@ const (
 
 // User represents the database model for a user
 type User struct {
-	ID                     uint        `gorm:"primaryKey"`
-	FirstName              string      `gorm:"size:255"`
-	LastName               string      `gorm:"size:255"`
-	Birthdate              string      `gorm:"size:255"`
-	City                   string      `gorm:"size:255"`
-	NationalCode           string      `gorm:"size:10;unique"`
-	Gender                 *GenderEnum `gorm:"type:gender_enum"`
-	Email                  string      `gorm:"unique;size:255"`
-	Password               string      `gorm:"not null"`
-	IsActive               bool        `gorm:"not null"`
+	ID           uint        `gorm:"primaryKey"`
+	FirstName    string      `gorm:"size:255"`
+	LastName     string      `gorm:"size:255"`
+	Birthdate    string      `gorm:"size:255"`
+	City         string      `gorm:"size:255"`
+	NationalCode string      `gorm:"size:10;unique"`
+	Gender       *GenderEnum `gorm:"type:gender_enum"`
+	Email        string      `gorm:"unique;size:255"`
+	Password     string      `gorm:"not null"`
+	IsActive     bool        `gorm:"not null"`
+	//WalletBalance          int64
 	WalletBalance          int64
-	Credit                 int64
 	MaxQuestionnairesCount int `gorm:"null"`
 	CreatedAt              time.Time
 	UpdatedAt              time.Time       `gorm:"not null"`
@@ -74,8 +74,8 @@ type UpdateUserDTO struct {
 	City      string `json:"city,required"`
 }
 
-// IncreaseCreditDTO represents the data needed to update credit user
-type IncreaseCreditDTO struct {
+// IncreaseWalletBalanceDTO represents the data needed to update credit user
+type IncreaseWalletBalanceDTO struct {
 	Value string `json:"value,required"`
 }
 
@@ -100,16 +100,16 @@ type Verify2FACodeRequest struct {
 
 // UserResponse represents the user data returned in API responses
 type UserResponse struct {
-	ID           UserId `json:"id"`
-	Name         string `json:"name"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	Email        string `json:"email"`
-	NationalCode string `json:"national_code"`
-	Gender       string `json:"gender"`
-	Birthdate    string `json:"birthdate"`
-	City         string `json:"city"`
-	Credit       int64  `json:"credit"`
+	ID            UserId `json:"id"`
+	Name          string `json:"name"`
+	FirstName     string `json:"first_name"`
+	LastName      string `json:"last_name"`
+	Email         string `json:"email"`
+	NationalCode  string `json:"national_code"`
+	Gender        string `json:"gender"`
+	Birthdate     string `json:"birthdate"`
+	City          string `json:"city"`
+	WalletBalance int64  `json:"wallet_balance"`
 }
 
 // PublicUserResponse represents the user data returned in API responses
@@ -134,16 +134,16 @@ func (u *User) GetGender() string {
 // ToUserResponse maps a User model to a UserResponse DTO
 func ToUserResponse(user *User) *UserResponse {
 	return &UserResponse{
-		ID:           UserId(user.ID),
-		Name:         user.GetFullName(),
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		Email:        user.Email,
-		NationalCode: user.NationalCode,
-		Gender:       user.GetGender(),
-		City:         user.City,
-		Birthdate:    user.Birthdate,
-		Credit:       user.Credit,
+		ID:            UserId(user.ID),
+		Name:          user.GetFullName(),
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+		Email:         user.Email,
+		NationalCode:  user.NationalCode,
+		Gender:        user.GetGender(),
+		City:          user.City,
+		Birthdate:     user.Birthdate,
+		WalletBalance: user.WalletBalance,
 	}
 }
 

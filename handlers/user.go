@@ -74,9 +74,9 @@ func UpdateProfile(userService service.UserService) fiber.Handler {
 	}
 }
 
-func IncreaseCredit(userService service.UserService) fiber.Handler {
+func IncreaseWalletBalance(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var dto model.IncreaseCreditDTO
+		var dto model.IncreaseWalletBalanceDTO
 		if err := c.BodyParser(&dto); err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
 		}
@@ -88,7 +88,7 @@ func IncreaseCredit(userService service.UserService) fiber.Handler {
 		// all validation params
 		user := c.Locals("user").(model.User)
 
-		res, err := userService.IncreaseCredit(&user, int64(value))
+		res, err := userService.IncreaseWalletBalance(&user, int64(value))
 
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)

@@ -28,5 +28,5 @@ func RegisterUserRoutes(auth fiber.Router, s *common.Server) {
 	// with auth
 	auth.Get("profile", withAuthMiddleware, handlers.ShowProfile(*userService))
 	auth.Put("profile", withAuthMiddleware, handlers.UpdateProfile(*userService))
-	auth.Post("credit", withAuthMiddleware, handlers.IncreaseCredit(*userService))
+	auth.Post("wallet-balance", withAuthMiddleware, handlers.IncreaseWalletBalance(*userService))
 }
