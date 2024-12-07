@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
@@ -27,12 +30,12 @@ func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 			return response.Error(c, fiber.StatusForbidden, "you have reached your limitation to make questionnaires", nil)
 		}
 
-		var requestData model.CreateQuestionnaireDTO
-		if err := c.BodyParser(&requestData); err != nil {
+		var createData model.CreateQuestionnaireDTO
+		if err := c.BodyParser(&createData); err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
 		}
 
-		questionnaireRawObject, err := requestData.ValidateAndMakeObject()
+		questionnaireRawObject, err := createData.ValidateAndMakeObjectForCreate()
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
@@ -44,6 +47,32 @@ func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 		}
 
 		return response.Success(c, fiber.StatusCreated, "Questionnaire Created Successfully", model.ToQuestionnaireResponse(&questionnaire))
+	}
+}
+
+func QuestionnairesList(qService service.IQuestionnaireService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// localUser := c.Locals("user")
+		// if localUser == nil {
+		// 	return response.Error(c, fiber.StatusUnauthorized, "you are not logged in", nil)
+		// }
+
+		// user, ok := localUser.(model.User)
+		// if !ok {
+		// 	return response.Error(c, fiber.StatusInternalServerError, "failed to get user", nil)
+		// }
+
+		// qList, err := qService.GetQuestionnairesList(user.ID)
+		// if err != nil {
+		// 	return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaires list", err.Error())
+		// }
+
+		// if len(qList) == 0 {
+		// 	return response.Success(c, fiber.StatusOK, "you don't have any questionnaires yet", nil)
+		// }
+
+		// return response.Success(c, fiber.StatusOK, "list of your questionnaires", qList)
+		return nil
 	}
 }
 
@@ -59,26 +88,39 @@ func QuestionnaireUpdate(qService service.IQuestionnaireService) fiber.Handler {
 			return response.Error(c, fiber.StatusInternalServerError, "failed to get user", nil)
 		}
 
-		// in the rbac middleware we check ownership and permission
-
 		questionnaireID, err := c.ParamsInt("questionnaire_id")
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "questionnaire param is invalid", nil)
+			return response.Error(c, fiber.StatusBadRequest, "questionnaire_id param is invalid", nil)
 		}
 
-		var requestData model.CreateQuestionnaireDTO
-		if err := c.BodyParser(&requestData); err != nil {
+		questionnaire, err := qService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
+		if err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "failed to get the questionnaire", err.Error())
+		}
+
+		var updateData model.UpdateQuestionnaireDTO
+		if err := c.BodyParser(&updateData); err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
 		}
 
-		questionnaireRawObject, err := requestData.ValidateAndMakeObject()
+		if updateData.CanSubmitFrom == "" {
+			updateData.CanSubmitFrom = questionnaire.CanSubmitFrom.Format(time.DateTime)
+		}
+
+		if updateData.CanSubmitUntil == "" {
+			updateData.CanSubmitUntil = questionnaire.CanSubmitUntil.Format(time.DateTime)
+		}
+
+		if updateData.MaxMinutesToResponse == "" {
+			updateData.MaxMinutesToResponse = strconv.Itoa(questionnaire.MaxMinutesToResponse)
+		}
+
+		questionnaireRawObject, err := updateData.ValidateAndMakeObjectForUpdate()
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
-		questionnaireRawObject.ID = uint(questionnaireID)
-
-		err = qService.UpdateQuestionaire(&questionnaireRawObject)
+		err = qService.UpdateQuestionaire(model.QuestionnaireID(questionnaireID), &questionnaireRawObject)
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "failed to update questionnaire", err.Error())
 		}
@@ -89,12 +131,52 @@ func QuestionnaireUpdate(qService service.IQuestionnaireService) fiber.Handler {
 
 func QuestionnaireGet(qService service.IQuestionnaireService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		return nil
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "you are not logged in", nil)
+		}
+
+		_, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get user", nil)
+		}
+
+		questionnaireID, err := c.ParamsInt("questionnaire_id")
+		if err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "questionnaire_id param is invalid", nil)
+		}
+
+		questionnaire, err := qService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get the questionnaire", err.Error())
+		}
+
+		return response.Success(c, fiber.StatusOK, "questionnaire data", model.ToQuestionnaireResponse(&questionnaire))
 	}
 }
 
 func QuestionnaireDelete(qService service.IQuestionnaireService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		return nil
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "you are not logged in", nil)
+		}
+
+		_, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get user", nil)
+		}
+
+		questionnaireID, err := c.ParamsInt("questionnaire_id")
+		if err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "questionnaire_id param is invalid", nil)
+		}
+
+		err = qService.DeleteQuestionnaire(model.QuestionnaireID(questionnaireID))
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "failed to delete the questionnaire", err.Error())
+		}
+
+		return response.Success(c, fiber.StatusOK, "questionnaire deleted", nil)
 	}
 }

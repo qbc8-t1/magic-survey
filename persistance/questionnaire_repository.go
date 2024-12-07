@@ -16,7 +16,7 @@ func NewQuestionnaireRepository(db *gorm.DB) domain_repository.IQuestionnaireRep
 	return &QuestionnaireRepository{db: db}
 }
 
-func (r *QuestionnaireRepository) GetUserQuestionnairesCount(userID uint) (int64, error) {
+func (r *QuestionnaireRepository) GetUserQuestionnairesCount(userID model.UserId) (int64, error) {
 	var count int64
 	result := r.db.Model(&model.Questionnaire{}).Where("owner_id = ?", userID).Count(&count)
 	return count, result.Error
@@ -31,15 +31,15 @@ func (r *QuestionnaireRepository) CreateQuestionnaire(questionnaire *model.Quest
 	return *questionnaire, err
 }
 
-func (r *QuestionnaireRepository) UpdateQuestionaire(questionnaire *model.Questionnaire) error {
-	return r.db.Save(questionnaire).Error
+func (r *QuestionnaireRepository) UpdateQuestionaire(questionnnaireID model.QuestionnaireID, updateData *model.Questionnaire) error {
+	return r.db.Model(&model.Questionnaire{}).Where("id = ?", questionnnaireID).Updates(updateData).Error
 }
 
-func (r *QuestionnaireRepository) DeleteQuestionnaire(id uint) error {
-	return nil
+func (r *QuestionnaireRepository) DeleteQuestionnaire(questionnnaireID model.QuestionnaireID) error {
+	return r.db.Delete(&model.Questionnaire{}, questionnnaireID).Error
 }
 
-func (qr *QuestionnaireRepository) GetQuestionnaireByID(questionnnaireID uint) (model.Questionnaire, error) {
+func (qr *QuestionnaireRepository) GetQuestionnaireByID(questionnnaireID model.QuestionnaireID) (model.Questionnaire, error) {
 	questionnaire := new(model.Questionnaire)
 	err := qr.db.First(questionnaire, "id = ?", questionnnaireID).Error
 

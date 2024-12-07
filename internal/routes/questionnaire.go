@@ -9,16 +9,15 @@ import (
 )
 
 // RegisterUserRoutes registers routes related to user management
-func RegisterQuestionnaireRoutes(r fiber.Router, s *common.Server) {
+func RegisterQuestionnaireRoutes(router fiber.Router, s *common.Server) {
 	qRepo := repository.NewQuestionnaireRepository(s.DB)
 	userRepo := repository.NewUserRepository(s.DB)
 	// repo domain_repository.IQuestionnaireRepository
 	qService := service.NewQuestionnaireService(qRepo, userRepo)
 
-	router := r.Group("/questionnaires")
 	router.Post("/", handlers.QuestionnaireCreate(qService))
-	router.Post("/:qid", handlers.QuestionnaireUpdate(qService))
-	router.Get("/:qid", handlers.QuestionnaireGet(qService))
-	router.Delete("/:qid", handlers.QuestionnaireDelete(qService))
+	router.Post("/:questionnaire_id", handlers.QuestionnaireUpdate(qService))
+	router.Get("/:questionnaire_id", handlers.QuestionnaireGet(qService))
+	router.Delete("/:questionnaire_id", handlers.QuestionnaireDelete(qService))
 
 }

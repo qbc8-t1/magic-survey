@@ -55,7 +55,7 @@ func NewQuestionService(questionRepo domain_repository.IQuestionRepository,
 func (s *QuestionService) CreateQuestion(questionDTO *model.CreateQuestionDTO) error {
 	// Check if the Questionnaire exists
 	questionnaireID := questionDTO.QuestionnaireID
-	_, err := s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
+	_, err := s.questionnaireRepo.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrQuestionnaireNotFound
@@ -88,7 +88,7 @@ func (s *QuestionService) UpdateQuestion(id model.QuestionID, questionDTO *model
 
 	// If QuestionnaireID is being updated, check if the new Questionnaire exists
 	if questionDTO.QuestionnaireID != nil {
-		_, err := s.questionnaireRepo.GetQuestionnaireByID(*questionDTO.QuestionnaireID)
+		_, err := s.questionnaireRepo.GetQuestionnaireByID(model.QuestionnaireID(*questionDTO.QuestionnaireID))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return ErrQuestionnaireNotFound

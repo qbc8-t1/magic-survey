@@ -13,10 +13,11 @@ var (
 
 type IQuestionnaireService interface {
 	CreateQuestionnaire(questionnaire *model.Questionnaire) (model.Questionnaire, error)
-	GetQuestionnaireByID(questionnaireID uint) (model.Questionnaire, error)
-	UpdateQuestionaire(questionnaire *model.Questionnaire) error
-	DeleteQuestionnaire(id uint) error
+	GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (model.Questionnaire, error)
+	UpdateQuestionaire(questionnaireID model.QuestionnaireID, updateData *model.Questionnaire) error
+	DeleteQuestionnaire(questionnaireID model.QuestionnaireID) error
 	CheckIfUserCanMakeNewQuestionnaire(user model.User) (bool, error)
+	// QuestionnairesList() (bool, error)
 }
 
 type QuestionnaireService struct {
@@ -24,7 +25,7 @@ type QuestionnaireService struct {
 	userRepo          domain_repository.IUserRepository
 }
 
-func (s *QuestionnaireService) GetQuestionnaireByID(questionnaireID uint) (model.Questionnaire, error) {
+func (s *QuestionnaireService) GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (model.Questionnaire, error) {
 	return s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
 }
 
@@ -36,7 +37,7 @@ func NewQuestionnaireService(questionnaireRepo domain_repository.IQuestionnaireR
 }
 
 func (s *QuestionnaireService) CheckIfUserCanMakeNewQuestionnaire(user model.User) (bool, error) {
-	count, err := s.questionnaireRepo.GetUserQuestionnairesCount(user.ID)
+	count, err := s.questionnaireRepo.GetUserQuestionnairesCount(model.UserId(user.ID))
 	if err != nil {
 		return false, errors.Join(errors.New("error in getting questionnaires count"), err)
 	}
@@ -52,10 +53,10 @@ func (s *QuestionnaireService) CreateQuestionnaire(questionnaire *model.Question
 	return s.questionnaireRepo.CreateQuestionnaire(questionnaire)
 }
 
-func (s *QuestionnaireService) UpdateQuestionaire(questionnaire *model.Questionnaire) error {
-	return s.questionnaireRepo.UpdateQuestionaire(questionnaire)
+func (s *QuestionnaireService) UpdateQuestionaire(questionnaireID model.QuestionnaireID, updateData *model.Questionnaire) error {
+	return s.questionnaireRepo.UpdateQuestionaire(questionnaireID, updateData)
 }
 
-func (s *QuestionnaireService) DeleteQuestionnaire(id uint) error {
-	return nil
+func (s *QuestionnaireService) DeleteQuestionnaire(questionnaireID model.QuestionnaireID) error {
+	return s.questionnaireRepo.DeleteQuestionnaire(questionnaireID)
 }
