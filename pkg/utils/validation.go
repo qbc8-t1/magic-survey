@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"log"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 // IsValidEmail checks if an mail address is in a valid format.
@@ -20,4 +23,51 @@ func IsAllDigits(s string) bool {
 		}
 	}
 	return true
+}
+
+func IsValidNationalCode(code string) (bool, error) {
+	reg, err := regexp.Compile("/[^0-9]/")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	code = reg.ReplaceAllString(code, "")
+
+	if len(code) != 10 {
+		return false, nil
+	}
+
+	codes := strings.Split(code, "")
+
+	last, err := strconv.Atoi(codes[9])
+	if err != nil {
+		return false, err
+	}
+
+	i := 10
+	sum := 0
+
+	for in, el := range codes {
+		temp, err := strconv.Atoi(el)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if in == 9 {
+			break
+		}
+
+		sum += temp * i
+		i -= 1
+	}
+
+	mod := sum % 11
+
+	if mod >= 2 {
+		mod = 11 - mod
+	}
+
+	return mod == last, nil
 }

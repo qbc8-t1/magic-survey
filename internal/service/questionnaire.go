@@ -7,19 +7,13 @@ import (
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 )
 
-// CRUD
-
-// createQuestionnaire()
-
-// GetQuestionnaire()
-
-// DeleteQuestionnaire()
-
-// UpdateQuestionaire()
+var (
+	ErrQuestionnaireRetrieveFailed = errors.New("failed to retrieve questionnaire")
+)
 
 type IQuestionnaireService interface {
 	CreateQuestionnaire(questionnaire *model.Questionnaire) (model.Questionnaire, error)
-	GetQuestionnaireByID(id uint) (*model.Questionnaire, error)
+	GetQuestionnaireByID(questionnaireID uint) (model.Questionnaire, error)
 	UpdateQuestionaire(questionnaire *model.Questionnaire) error
 	DeleteQuestionnaire(id uint) error
 	CheckIfUserCanMakeNewQuestionnaire(user model.User) (bool, error)
@@ -30,7 +24,11 @@ type QuestionnaireService struct {
 	userRepo          domain_repository.IUserRepository
 }
 
-func NewQuestionnaireService(questionnaireRepo domain_repository.IQuestionnaireRepository, userRepo domain_repository.IUserRepository) IQuestionnaireService {
+func (s *QuestionnaireService) GetQuestionnaireByID(questionnaireID uint) (model.Questionnaire, error) {
+	return s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
+}
+
+func NewQuestionnaireService(questionnaireRepo domain_repository.IQuestionnaireRepository, userRepo domain_repository.IUserRepository) *QuestionnaireService {
 	return &QuestionnaireService{
 		questionnaireRepo: questionnaireRepo,
 		userRepo:          userRepo,
@@ -52,10 +50,6 @@ func (s *QuestionnaireService) CheckIfUserCanMakeNewQuestionnaire(user model.Use
 
 func (s *QuestionnaireService) CreateQuestionnaire(questionnaire *model.Questionnaire) (model.Questionnaire, error) {
 	return s.questionnaireRepo.CreateQuestionnaire(questionnaire)
-}
-
-func (s *QuestionnaireService) GetQuestionnaireByID(id uint) (*model.Questionnaire, error) {
-	return nil, nil
 }
 
 func (s *QuestionnaireService) UpdateQuestionaire(questionnaire *model.Questionnaire) error {

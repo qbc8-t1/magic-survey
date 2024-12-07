@@ -6,8 +6,13 @@ import (
 	"time"
 )
 
+var (
+	ErrInvalidQuestionnaireID = errors.New("questionnaireID is required and must be greater than 0")
+)
+
 // QuestionnairesStatusEnum represents the questionnaires_status_enum type in Postgres
 type QuestionnairesStatusEnum string
+type QuestionnaireID uint
 
 const (
 	QuestionnaireStatusOpen      QuestionnairesStatusEnum = "open"

@@ -9,6 +9,10 @@ import (
 	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 )
 
+var (
+	ErrInvalidUserID = errors.New("userID is required and must be greater than 0")
+)
+
 type GenderEnum string
 type UserId uint
 
@@ -29,13 +33,14 @@ type User struct {
 	Email                  string      `gorm:"unique;size:255"`
 	Password               string      `gorm:"not null"`
 	IsActive               bool        `gorm:"not null"`
-	Credit                 int64
+	WalletBalance          int64
 	MaxQuestionnairesCount int `gorm:"null"`
 	CreatedAt              time.Time
 	UpdatedAt              time.Time       `gorm:"not null"`
 	Questionnaires         []Questionnaire `gorm:"foreignKey:OwnerID"`
 	Notifications          []Notification  `gorm:"foreignKey:UserID"`
-	SuperAdmin             *SuperAdmin     `gorm:"foreignKey:UserID"`
+	Superadmin             *Superadmin     `gorm:"foreignKey:UserID"`
+	Roles                  []Role          `gorm:"many2many:role_users;"`
 }
 
 // TwoFACode stores 2FA codes for users
@@ -87,10 +92,11 @@ type Verify2FACodeRequest struct {
 
 // UserResponse represents the user data returned in API responses
 type UserResponse struct {
-	ID           UserId `json:"id"`
-	Name         string `json:"name"`
-	Email        string `json:"email"`
-	NationalCode string `json:"national_code"`
+	ID           UserId      `json:"id"`
+	Name         string      `json:"name"`
+	Email        string      `json:"email"`
+	NationalCode string      `json:"national_code"`
+	Gender       *GenderEnum `json:"gender"`
 }
 
 // GetFullName returns the full name of a user
@@ -149,10 +155,15 @@ func (u *User) Validate() error {
 	if !utils.IsValidEmail(u.Email) {
 		return errors.New("invalid email format")
 	}
-	// TODO!!
-	if len(u.NationalCode) != 10 || !utils.IsAllDigits(u.NationalCode) {
-		return errors.New("national code must be a 10-digit number")
+
+	isValidNationalCode, err := utils.IsValidNationalCode(u.NationalCode)
+	if err != nil {
+		return errors.New("national code validation failed")
 	}
+	if !isValidNationalCode {
+		return errors.New("national code is not valid")
+	}
+
 	if len(u.Password) < 6 {
 		return errors.New("password must be at least 6 characters long")
 	}

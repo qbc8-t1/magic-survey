@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"gorm.io/gorm"
@@ -29,14 +31,25 @@ func (r *QuestionnaireRepository) CreateQuestionnaire(questionnaire *model.Quest
 	return *questionnaire, err
 }
 
-func (r *QuestionnaireRepository) GetQuestionnaireByID(id uint) (*model.Questionnaire, error) {
-	return nil, nil
-}
-
 func (r *QuestionnaireRepository) UpdateQuestionaire(questionnaire *model.Questionnaire) error {
 	return r.db.Save(questionnaire).Error
 }
 
 func (r *QuestionnaireRepository) DeleteQuestionnaire(id uint) error {
 	return nil
+}
+
+func (qr *QuestionnaireRepository) GetQuestionnaireByID(questionnnaireID uint) (model.Questionnaire, error) {
+	questionnaire := new(model.Questionnaire)
+	err := qr.db.First(questionnaire, "id = ?", questionnnaireID).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return model.Questionnaire{}, errors.New("questionnaire not found")
+		}
+
+		return model.Questionnaire{}, err
+	}
+
+	return *questionnaire, nil
 }
