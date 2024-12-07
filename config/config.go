@@ -36,6 +36,7 @@ type Postgres struct {
 	Password string
 	Dbname   string
 	SslMode  string
+	Clean    bool
 }
 
 type Config struct {

@@ -16,6 +16,7 @@ postgres:
   password: "postgres"
   dbname: "survey_db"
   SslMode: "disable"
+  clean: false
 logger:
   level: "info"
   encoding: "json"
