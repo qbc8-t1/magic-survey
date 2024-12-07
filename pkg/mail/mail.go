@@ -6,7 +6,7 @@ import (
 )
 
 func SendMail(pass, to, subject, body string) error {
-	from := "mahdimomeni6@gmail.com"
+	from := "sajjad.boodaghi@gmail.com"
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 

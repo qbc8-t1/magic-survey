@@ -1,16 +1,20 @@
 server:
-  host: localhost
+  host: "0.0.0.0"
   port: 8080
-  mode:
-  appVersion:
+  mode: "development"
+  appVersion: "0.0.1"
+  secret: "1234568"
+  authExpMinute: 30
+  authRefreshMinute: 180
+  mailPass: ""
 postgres:
-  host: 0.0.0.0
+  host: localhost
   port: 5432
-  user: postgres
-  password: 123456
-  dbname: test
-  SslMode: disable
+  user: "postgres"
+  password: "postgres"
+  dbname: "survey_db_test"
+  SslMode: "disable"
 logger:
-  level:
-  encoding:
-  path: "./log"
+  level: "info"
+  encoding: "json"
+  path: "./log.log"

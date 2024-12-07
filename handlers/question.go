@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"github.com/QBC8-Team1/magic-survey/internal/middleware"
+	logger2 "github.com/QBC8-Team1/magic-survey/pkg/logger"
+	"go.uber.org/zap"
 	"strconv"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
@@ -11,39 +14,50 @@ import (
 
 func CreateQuestionHandler(service service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestion))
+
 		var questionDTO model.CreateQuestionDTO
 		if err := c.BodyParser(&questionDTO); err != nil {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusBadRequest, "invalid body", nil)
 		}
 
 		err := questionDTO.Validate()
 
 		if err != nil {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
 		}
 
 		err = service.CreateQuestion(&questionDTO)
 		if err != nil {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, "error in creating the question", nil)
 		}
 
+		logger.Info("question created")
 		return response.Success(c, fiber.StatusCreated, "question created", nil)
 	}
 }
 
 func GetQuestionHandler(service service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestion))
+
 		idStr := c.Params("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil || id <= 0 {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
 		res, err := service.GetQuestionByID(model.QuestionID(id))
 		if err != nil {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, "error in retrieving the question", nil)
 		}
 
+		logger.Info("question Found")
 		return response.Success(c, fiber.StatusOK, "question Found", res)
 	}
 }

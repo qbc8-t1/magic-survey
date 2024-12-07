@@ -73,7 +73,11 @@ func GetQuestionnairesList(qService service.IQuestionnaireService) fiber.Handler
 		}
 
 		if len(qList) == 0 {
-			return response.Success(c, fiber.StatusOK, "you don't have any questionnaires yet", nil)
+			if page == 1 {
+				return response.Success(c, fiber.StatusOK, "you don't have any questionnaires yet", nil)
+			} else {
+				return response.Success(c, fiber.StatusOK, "no items for this page", nil)
+			}
 		}
 
 		return response.Success(c, fiber.StatusOK, "list of your questionnaires", qList)
@@ -155,7 +159,7 @@ func QuestionnaireGet(qService service.IQuestionnaireService) fiber.Handler {
 			return response.Error(c, fiber.StatusInternalServerError, "failed to get the questionnaire", err.Error())
 		}
 
-		return response.Success(c, fiber.StatusOK, "questionnaire data", model.ToQuestionnaireResponse(&questionnaire))
+		return response.Success(c, fiber.StatusOK, "questionnaire data", model.ToQuestionnaireResponse(questionnaire))
 	}
 }
 

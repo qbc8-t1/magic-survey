@@ -7,8 +7,11 @@ import (
 )
 
 type IQuestionnaireRepository interface {
+	GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (*model.Questionnaire, error)
+	GetFirstQuestion(questionnaireID model.QuestionnaireID) (*model.Question, error)
+	GetNextQuestion(questionnaireID model.QuestionnaireID, currentOrder int) (*model.Question, error)
+	GetPreviousQuestion(questionnaireID model.QuestionnaireID, currentOrder int) (*model.Question, error)
 	CreateQuestionnaire(questionnaire *model.Questionnaire) (model.Questionnaire, error)
-	GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (model.Questionnaire, error)
 	UpdateQuestionaire(questionnaireID model.QuestionnaireID, questionnaire *model.Questionnaire) error
 	DeleteQuestionnaire(questionnaireID model.QuestionnaireID) error
 	GetUserQuestionnairesCount(userID model.UserID) (int64, error)

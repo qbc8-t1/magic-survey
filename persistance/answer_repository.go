@@ -38,7 +38,13 @@ func (r *AnswerRepository) DeleteAnswer(id model.AnswerID) error {
 	return r.db.Delete(&model.Answer{}, id).Error
 }
 
-func (r *AnswerRepository) GetAnswersByUserAndQuestionID(questionID uint, userID uint) (*[]model.Answer, error) {
+func (r *AnswerRepository) GetAnswerBySubmissionIDAndQuestionID(submissionID model.SubmissionID, questionID model.QuestionID) (*model.Answer, error) {
+	var answer model.Answer
+	result := r.db.Where("submission_id = ? AND question_id = ?", submissionID, questionID).First(&answer)
+	return &answer, result.Error
+}
+
+func (r *AnswerRepository) GetAnswersByUserAndQuestionID(questionID model.QuestionID, userID model.UserID) (*[]model.Answer, error) {
 	var answers []model.Answer
 	result := r.db.Preload("Option").Find(&answers, "question_id = ? and user_id = ?", questionID, userID)
 	return &answers, result.Error

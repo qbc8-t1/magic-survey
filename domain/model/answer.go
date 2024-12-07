@@ -17,12 +17,12 @@ var (
 
 // Answer represents the answers table
 type Answer struct {
-	ID           AnswerID `gorm:"primaryKey"`
-	UserID       UserID
-	SubmissionID uint
-	QuestionID   QuestionID
-	OptionID     *OptionID `gorm:"default:null"`
-	AnswerText   *string   `gorm:"default:null"`
+	ID           AnswerID     `gorm:"primaryKey"`
+	UserID       UserID       `gorm:"not null"`
+	SubmissionID SubmissionID `gorm:"not null"`
+	QuestionID   QuestionID   `gorm:"not null"`
+	OptionID     *OptionID    `gorm:"default:null"`
+	AnswerText   *string      `gorm:"default:null"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Submission   Submission `gorm:"foreignKey:SubmissionID"`
@@ -32,11 +32,11 @@ type Answer struct {
 
 // CreateANswerDTO represents the data needed to create a new answer
 type CreateAnswerDTO struct {
-	UserID       UserID     `json:"user_id"`
-	SubmissionID uint       `json:"submission_id"`
-	QuestionID   QuestionID `json:"question_id"`
-	OptionID     *OptionID  `json:"option_id,omitempty"`
-	AnswerText   *string    `json:"answer_text,omitempty"`
+	UserID       UserID       `json:"user_id"`
+	SubmissionID SubmissionID `json:"submission_id"`
+	QuestionID   QuestionID   `json:"question_id"`
+	OptionID     *OptionID    `json:"option_id,omitempty"`
+	AnswerText   *string      `json:"answer_text,omitempty"`
 }
 
 // UpdateAnswerDTO represents the data needed to update an existing answer
@@ -47,17 +47,17 @@ type UpdateAnswerDTO struct {
 
 // AnswerResponse represents the answer data returned in API responses
 type AnswerResponse struct {
-	ID           AnswerID   `json:"id"`
-	UserID       UserID     `json:"user_id"`
-	SubmissionID uint       `json:"submission_id"`
-	QuestionID   QuestionID `json:"question_id"`
-	OptionID     *OptionID  `json:"option_id"`
-	AnswerText   *string    `json:"answer_text"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
-	Submission   Submission `json:"submission"`
-	Question     Question   `json:"question"`
-	Option       *Option    `json:"option"`
+	ID           AnswerID     `json:"id"`
+	UserID       UserID       `json:"user_id"`
+	SubmissionID SubmissionID `json:"submission_id"`
+	QuestionID   QuestionID   `json:"question_id"`
+	OptionID     *OptionID    `json:"option_id"`
+	AnswerText   *string      `json:"answer_text"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	Submission   Submission   `json:"submission"`
+	Question     Question     `json:"question"`
+	Option       *Option      `json:"option"`
 }
 
 // ToAnswerResponse maps an Answer model to an AnswerResponseDTO
@@ -78,11 +78,11 @@ func ToAnswerResponse(answer *Answer) *AnswerResponse {
 }
 
 type AnswerSummaryResponse struct {
-	SubmissionID uint      `json:"submission_id"`
-	OptionID     *OptionID `json:"option_id"`
-	AnswerText   *string   `json:"answer_text"`
-	Option       *Option   `json:"option"`
-	CreatedAt    time.Time `json:"created_at"`
+	SubmissionID SubmissionID `json:"submission_id"`
+	OptionID     *OptionID    `json:"option_id"`
+	AnswerText   *string      `json:"answer_text"`
+	Option       *Option      `json:"option"`
+	CreatedAt    time.Time    `json:"created_at"`
 }
 
 func ToAnswerSummaryResponses(answers *[]Answer) *[]AnswerSummaryResponse {

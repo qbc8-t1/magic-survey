@@ -8,12 +8,15 @@ import (
 )
 
 var (
-	ErrQuestionnaireRetrieveFailed = errors.New("failed to retrieve questionnaire")
+	ErrQuestionnaireRetrieveFailed          = errors.New("failed to retrieve questionnaire")
+	ErrNoNextQuestionAvailable              = errors.New("no next question available")
+	ErrNoQuestionsInQuestionnaire           = errors.New("no questions available in this questionnaire")
+	ErrQuestionDoesNotBelongToQuestionnaire = errors.New("question does not belong to the current questionnaire")
 )
 
 type IQuestionnaireService interface {
 	CreateQuestionnaire(questionnaire *model.Questionnaire) (model.Questionnaire, error)
-	GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (model.Questionnaire, error)
+	GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (*model.Questionnaire, error)
 	UpdateQuestionaire(questionnaireID model.QuestionnaireID, updateData *model.Questionnaire) error
 	DeleteQuestionnaire(questionnaireID model.QuestionnaireID) error
 	CheckIfUserCanMakeNewQuestionnaire(user model.User) (bool, error)
@@ -32,7 +35,7 @@ func NewQuestionnaireService(questionnaireRepo domain_repository.IQuestionnaireR
 	}
 }
 
-func (s *QuestionnaireService) GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (model.Questionnaire, error) {
+func (s *QuestionnaireService) GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (*model.Questionnaire, error) {
 	return s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
 }
 

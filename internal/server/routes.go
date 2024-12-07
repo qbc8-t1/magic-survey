@@ -44,12 +44,15 @@ func registerRoutes(s *common.Server, secret string) {
 	options := api.Group("/options")
 	questionnaires := api.Group("/questionnaires")
 	superadmin := api.Group("/superadmin")
+	core := api.Group("/core")
 
-	routes.RegisterRbacRoutes(rbac, s)
-	routes.RegisterSuperadminRoutes(superadmin, s)
-	routes.RegisterQuestionnaireRoutes(questionnaires, s)
 	routes.RegisterVisibleAnswersRoutes(questionnaires, s)
+	routes.RegisterQuestionnaireRoutes(questionnaires, s)
 	routes.RegisterQuestionRoutes(questions, s)
 	routes.RegisterAnswerRoutes(answers, s)
 	routes.RegisterOptionRoutes(options, s)
+	routes.RegisterRbacRoutes(rbac, s)
+	routes.RegisterCoreRoutes(core, s)
+	routes.RegisterSuperadminRoutes(superadmin, s)
+	routes.RegisterUserRoutes(auth, s)
 }

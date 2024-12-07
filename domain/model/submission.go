@@ -9,8 +9,9 @@ var (
 	ErrInvalidSubmissionID = errors.New("submissionID is required and must be greater than 0")
 )
 
-// SubmissionsStatusEnum represents the submissions_status_enum type in Postgres
+// SubmissionsStatusEnum represents the submissions_status_enum type in postgres
 type SubmissionsStatusEnum string
+type SubmissionID uint
 
 const (
 	SubmissionsStatusAnswering SubmissionsStatusEnum = "answering"
@@ -21,11 +22,11 @@ const (
 
 // Submission represents the submissions table
 type Submission struct {
-	ID                     uint `gorm:"primaryKey"`
-	QuestionnaireID        uint
-	UserID                 uint
+	ID                     SubmissionID `gorm:"primaryKey"`
+	QuestionnaireID        QuestionnaireID
+	UserID                 UserID
 	Status                 SubmissionsStatusEnum `gorm:"type:submissions_status_enum;default:'answering'"`
-	LastAnsweredQuestionID *uint
+	LastAnsweredQuestionID *QuestionID
 	SubmittedAt            *time.Time
 	SpentMinutes           *int
 	Questionnaire          Questionnaire `gorm:"foreignKey:QuestionnaireID"`
