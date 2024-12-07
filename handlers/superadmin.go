@@ -41,17 +41,17 @@ func MakeSuperadmin(superadminService service.SuperadminService) fiber.Handler {
 		err := c.BodyParser(&data)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusUnprocessableEntity, "failed to process entity", err.Error())
+			return response.Error(c, fiber.StatusUnprocessableEntity, "failed to process entity", nil)
 		}
 
 		err = superadminService.MakeSuperadmin(loggedInUser.ID, data.UserID, data.Permissions)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to make super admin", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to make super admin", nil)
 		}
 
 		logger.Info("super admin created")
-		return c.Status(fiber.StatusCreated).SendString("superadmin created")
+		return response.Success(c, fiber.StatusCreated, "superadmin created", nil)
 	}
 }
 
@@ -62,7 +62,7 @@ func LimitUserQuestionnaireCount(superadminService service.SuperadminService) fi
 		err := c.BodyParser(data)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusUnprocessableEntity, "data is no valid", err.Error())
+			return response.Error(c, fiber.StatusUnprocessableEntity, "data is no valid", nil)
 		}
 
 		if data.Max == 0 {
@@ -73,7 +73,7 @@ func LimitUserQuestionnaireCount(superadminService service.SuperadminService) fi
 		err = superadminService.LimitUserQuestionnairesCount(data.UserID, data.Max)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "something went wrong with saving limit user questionnaires count", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong with saving limit user questionnaires count", nil)
 		}
 
 		logger.Error("limit questionnaire count successfully")

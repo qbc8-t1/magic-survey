@@ -37,7 +37,7 @@ func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 
 		questionnaireRawObject, err := createData.ValidateAndMakeObjectForCreate()
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
 		}
 
 		questionnaireRawObject.OwnerID = user.ID
@@ -69,7 +69,7 @@ func GetQuestionnairesList(qService service.IQuestionnaireService) fiber.Handler
 
 		qList, err := qService.GetQuestionnairesList(model.UserID(user.ID), page)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaires list", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaires list", nil)
 		}
 
 		if len(qList) == 0 {
@@ -103,7 +103,7 @@ func QuestionnaireUpdate(qService service.IQuestionnaireService) fiber.Handler {
 
 		questionnaire, err := qService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "failed to get the questionnaire", err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "failed to get the questionnaire", nil)
 		}
 
 		var updateData model.UpdateQuestionnaireDTO
@@ -125,12 +125,12 @@ func QuestionnaireUpdate(qService service.IQuestionnaireService) fiber.Handler {
 
 		questionnaireRawObject, err := updateData.ValidateAndMakeObjectForUpdate()
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
 		}
 
 		err = qService.UpdateQuestionaire(model.QuestionnaireID(questionnaireID), &questionnaireRawObject)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to update questionnaire", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to update questionnaire", nil)
 		}
 
 		return response.Success(c, fiber.StatusCreated, "questionnaire updated", nil)
@@ -156,7 +156,7 @@ func QuestionnaireGet(qService service.IQuestionnaireService) fiber.Handler {
 
 		questionnaire, err := qService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to get the questionnaire", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get the questionnaire", nil)
 		}
 
 		return response.Success(c, fiber.StatusOK, "questionnaire data", model.ToQuestionnaireResponse(questionnaire))
@@ -182,7 +182,7 @@ func QuestionnaireDelete(qService service.IQuestionnaireService) fiber.Handler {
 
 		err = qService.DeleteQuestionnaire(model.QuestionnaireID(questionnaireID))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to delete the questionnaire", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to delete the questionnaire", nil)
 		}
 
 		return response.Success(c, fiber.StatusOK, "questionnaire deleted", nil)
