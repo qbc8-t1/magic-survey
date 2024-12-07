@@ -35,6 +35,7 @@ func UserCreate(userService service.UserService) fiber.Handler {
 			service.ErrNationalCodeExists,
 			service.ErrWrongEmailPass,
 			service.ErrCodeExpired,
+			service.ErrEmailExists,
 		}
 		if err != nil {
 			if utils.ErrorIncludes(err, knownErrors) {
@@ -96,7 +97,11 @@ func Login(userService service.UserService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
-		logger.Info(err.Error())
+		if err != nil {
+			logger.Error(err.Error())
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+
 		return response.Success(c, fiber.StatusOK, "Login successful", tokens)
 	}
 }
