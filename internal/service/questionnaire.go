@@ -17,16 +17,12 @@ type IQuestionnaireService interface {
 	UpdateQuestionaire(questionnaireID model.QuestionnaireID, updateData *model.Questionnaire) error
 	DeleteQuestionnaire(questionnaireID model.QuestionnaireID) error
 	CheckIfUserCanMakeNewQuestionnaire(user model.User) (bool, error)
-	// QuestionnairesList() (bool, error)
+	GetQuestionnairesList(userID model.UserID, page int) ([]domain_repository.Questionnaire, error)
 }
 
 type QuestionnaireService struct {
 	questionnaireRepo domain_repository.IQuestionnaireRepository
 	userRepo          domain_repository.IUserRepository
-}
-
-func (s *QuestionnaireService) GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (model.Questionnaire, error) {
-	return s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
 }
 
 func NewQuestionnaireService(questionnaireRepo domain_repository.IQuestionnaireRepository, userRepo domain_repository.IUserRepository) *QuestionnaireService {
@@ -36,8 +32,12 @@ func NewQuestionnaireService(questionnaireRepo domain_repository.IQuestionnaireR
 	}
 }
 
+func (s *QuestionnaireService) GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (model.Questionnaire, error) {
+	return s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
+}
+
 func (s *QuestionnaireService) CheckIfUserCanMakeNewQuestionnaire(user model.User) (bool, error) {
-	count, err := s.questionnaireRepo.GetUserQuestionnairesCount(model.UserId(user.ID))
+	count, err := s.questionnaireRepo.GetUserQuestionnairesCount(model.UserID(user.ID))
 	if err != nil {
 		return false, errors.Join(errors.New("error in getting questionnaires count"), err)
 	}
@@ -59,4 +59,8 @@ func (s *QuestionnaireService) UpdateQuestionaire(questionnaireID model.Question
 
 func (s *QuestionnaireService) DeleteQuestionnaire(questionnaireID model.QuestionnaireID) error {
 	return s.questionnaireRepo.DeleteQuestionnaire(questionnaireID)
+}
+
+func (s *QuestionnaireService) GetQuestionnairesList(userID model.UserID, page int) ([]domain_repository.Questionnaire, error) {
+	return s.questionnaireRepo.GetQuestionnairesByOwnerID(userID, page)
 }

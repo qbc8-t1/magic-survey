@@ -50,29 +50,33 @@ func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 	}
 }
 
-func QuestionnairesList(qService service.IQuestionnaireService) fiber.Handler {
+func GetQuestionnairesList(qService service.IQuestionnaireService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// localUser := c.Locals("user")
-		// if localUser == nil {
-		// 	return response.Error(c, fiber.StatusUnauthorized, "you are not logged in", nil)
-		// }
+		localUser := c.Locals("user")
+		if localUser == nil {
+			return response.Error(c, fiber.StatusUnauthorized, "you are not logged in", nil)
+		}
 
-		// user, ok := localUser.(model.User)
-		// if !ok {
-		// 	return response.Error(c, fiber.StatusInternalServerError, "failed to get user", nil)
-		// }
+		user, ok := localUser.(model.User)
+		if !ok {
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get user", nil)
+		}
 
-		// qList, err := qService.GetQuestionnairesList(user.ID)
-		// if err != nil {
-		// 	return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaires list", err.Error())
-		// }
+		page := c.QueryInt("page")
+		if page == 0 {
+			page = 1
+		}
 
-		// if len(qList) == 0 {
-		// 	return response.Success(c, fiber.StatusOK, "you don't have any questionnaires yet", nil)
-		// }
+		qList, err := qService.GetQuestionnairesList(model.UserID(user.ID), page)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaires list", err.Error())
+		}
 
-		// return response.Success(c, fiber.StatusOK, "list of your questionnaires", qList)
-		return nil
+		if len(qList) == 0 {
+			return response.Success(c, fiber.StatusOK, "you don't have any questionnaires yet", nil)
+		}
+
+		return response.Success(c, fiber.StatusOK, "list of your questionnaires", qList)
 	}
 }
 

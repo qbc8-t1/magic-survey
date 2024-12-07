@@ -39,11 +39,11 @@ type IAnswerService interface {
 }
 
 type AnswerService struct {
-	answerRepo        domain_repository.IAnswerRepository
-	userRepo          domain_repository.IUserRepository
-	submissionRepo    domain_repository.ISubmissionRepository
-	questionRepo      domain_repository.IQuestionRepository
-	optionRepo        domain_repository.IOptionRepository
+	answerRepo     domain_repository.IAnswerRepository
+	userRepo       domain_repository.IUserRepository
+	submissionRepo domain_repository.ISubmissionRepository
+	questionRepo   domain_repository.IQuestionRepository
+	optionRepo     domain_repository.IOptionRepository
 }
 
 func (s *AnswerService) GetUserAnswers(questionID uint, userID uint) (*[]model.Answer, error) {
@@ -58,11 +58,11 @@ func NewAnswerService(
 	optionRepo domain_repository.IOptionRepository,
 ) *AnswerService {
 	return &AnswerService{
-		answerRepo:        answerRepo,
-		userRepo:          userRepo,
-		submissionRepo:    submissionRepo,
-		questionRepo:      questionRepo,
-		optionRepo:        optionRepo,
+		answerRepo:     answerRepo,
+		userRepo:       userRepo,
+		submissionRepo: submissionRepo,
+		questionRepo:   questionRepo,
+		optionRepo:     optionRepo,
 	}
 }
 
@@ -72,7 +72,7 @@ func (s *AnswerService) CreateAnswer(answerDTO *model.CreateAnswerDTO) error {
 		return ErrInvalidUserID
 	}
 	// Check if User exists
-	_, err := s.userRepo.GetUserByID(model.UserId(answerDTO.UserID))
+	_, err := s.userRepo.GetUserByID(model.UserID(answerDTO.UserID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrUserNotFound

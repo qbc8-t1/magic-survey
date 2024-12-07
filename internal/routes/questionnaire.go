@@ -16,8 +16,8 @@ func RegisterQuestionnaireRoutes(router fiber.Router, s *common.Server) {
 	qService := service.NewQuestionnaireService(qRepo, userRepo)
 
 	router.Post("/", handlers.QuestionnaireCreate(qService))
+	router.Get("/", handlers.GetQuestionnairesList(qService))
 	router.Post("/:questionnaire_id", handlers.QuestionnaireUpdate(qService))
 	router.Get("/:questionnaire_id", handlers.QuestionnaireGet(qService))
 	router.Delete("/:questionnaire_id", handlers.QuestionnaireDelete(qService))
-
 }

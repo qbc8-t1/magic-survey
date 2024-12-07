@@ -18,7 +18,7 @@ var (
 // Answer represents the answers table
 type Answer struct {
 	ID           AnswerID `gorm:"primaryKey"`
-	UserID       UserId
+	UserID       UserID
 	SubmissionID uint
 	QuestionID   QuestionID
 	OptionID     *OptionID `gorm:"default:null"`
@@ -32,7 +32,7 @@ type Answer struct {
 
 // CreateANswerDTO represents the data needed to create a new answer
 type CreateAnswerDTO struct {
-	UserID       UserId     `json:"user_id"`
+	UserID       UserID     `json:"user_id"`
 	SubmissionID uint       `json:"submission_id"`
 	QuestionID   QuestionID `json:"question_id"`
 	OptionID     *OptionID  `json:"option_id,omitempty"`
@@ -48,7 +48,7 @@ type UpdateAnswerDTO struct {
 // AnswerResponse represents the answer data returned in API responses
 type AnswerResponse struct {
 	ID           AnswerID   `json:"id"`
-	UserID       UserId     `json:"user_id"`
+	UserID       UserID     `json:"user_id"`
 	SubmissionID uint       `json:"submission_id"`
 	QuestionID   QuestionID `json:"question_id"`
 	OptionID     *OptionID  `json:"option_id"`

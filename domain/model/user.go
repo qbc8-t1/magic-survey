@@ -14,7 +14,7 @@ var (
 )
 
 type GenderEnum string
-type UserId uint
+type UserID uint
 
 const (
 	Male   GenderEnum = "male"
@@ -92,7 +92,7 @@ type Verify2FACodeRequest struct {
 
 // UserResponse represents the user data returned in API responses
 type UserResponse struct {
-	ID           UserId      `json:"id"`
+	ID           UserID      `json:"id"`
 	Name         string      `json:"name"`
 	Email        string      `json:"email"`
 	NationalCode string      `json:"national_code"`
@@ -107,7 +107,7 @@ func (u *User) GetFullName() string {
 // ToUserResponse maps a User model to a UserResponse DTO
 func ToUserResponse(user *User) *UserResponse {
 	return &UserResponse{
-		ID:           UserId(user.ID),
+		ID:           UserID(user.ID),
 		Name:         user.GetFullName(),
 		Email:        user.Email,
 		NationalCode: user.NationalCode,

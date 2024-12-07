@@ -124,6 +124,7 @@ func ToQuestionnaireResponse(q *Questionnaire) *QuestionnaireResponse {
 	}
 }
 
+
 func (dto CreateQuestionnaireDTO) ValidateAndMakeObjectForCreate() (Questionnaire, error) {
 	questionnaire := new(Questionnaire)
 

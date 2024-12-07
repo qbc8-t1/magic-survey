@@ -8,6 +8,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const PAGE_SIZE = 1
+
 type QuestionnaireRepository struct {
 	db *gorm.DB
 }
@@ -16,7 +18,7 @@ func NewQuestionnaireRepository(db *gorm.DB) domain_repository.IQuestionnaireRep
 	return &QuestionnaireRepository{db: db}
 }
 
-func (r *QuestionnaireRepository) GetUserQuestionnairesCount(userID model.UserId) (int64, error) {
+func (r *QuestionnaireRepository) GetUserQuestionnairesCount(userID model.UserID) (int64, error) {
 	var count int64
 	result := r.db.Model(&model.Questionnaire{}).Where("owner_id = ?", userID).Count(&count)
 	return count, result.Error
@@ -52,4 +54,20 @@ func (qr *QuestionnaireRepository) GetQuestionnaireByID(questionnnaireID model.Q
 	}
 
 	return *questionnaire, nil
+}
+
+func (qr *QuestionnaireRepository) GetQuestionnairesByOwnerID(ownerID model.UserID, page int) ([]domain_repository.Questionnaire, error) {
+	var questionnaires []domain_repository.Questionnaire
+
+	offset := (page - 1) * PAGE_SIZE
+
+	err := qr.db.Model(&model.Questionnaire{}).
+		Preload("Questions").
+		Preload("Questions.Options").
+		Where("owner_id = ?", ownerID).
+		Limit(PAGE_SIZE).
+		Offset(offset).
+		Find(&questionnaires).Error
+
+	return questionnaires, err
 }
