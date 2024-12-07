@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrInvalidUserID = errors.New("userID is required and must be greater than 0")
+	ErrInvalidUserIDCreate = errors.New("userID is required and must be greater than 0")
 )
 
 type GenderEnum string

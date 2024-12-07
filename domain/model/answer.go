@@ -18,9 +18,9 @@ var (
 // Answer represents the answers table
 type Answer struct {
 	ID           AnswerID     `gorm:"primaryKey"`
-	UserID       UserId       `gorm:"not null;unique"`
-	SubmissionID SubmissionID `gorm:"not null;unique"`
-	QuestionID   QuestionID   `gorm:"not null;unique"`
+	UserID       UserId       `gorm:"not null"`
+	SubmissionID SubmissionID `gorm:"not null"`
+	QuestionID   QuestionID   `gorm:"not null"`
 	OptionID     *OptionID    `gorm:"default:null"`
 	AnswerText   *string      `gorm:"default:null"`
 	CreatedAt    time.Time
@@ -145,13 +145,13 @@ func UpdateAnswerModel(answer *Answer, answerDTO *UpdateAnswerDTO) {
 func (dto *CreateAnswerDTO) Validate() error {
 	// Validate required fields
 	if dto.UserID == 0 {
-		return ErrInvalidUserID
+		return ErrInvalidUserIDCreate
 	}
 	if dto.SubmissionID == 0 {
-		return ErrInvalidSubmissionID
+		return ErrInvalidSubmissionIDCreate
 	}
 	if dto.QuestionID == 0 {
-		return ErrInvalidQuestionID
+		return ErrInvalidQuestionIDCreate
 	}
 
 	// Validate that either OptionID or AnswerText is provided, but not both

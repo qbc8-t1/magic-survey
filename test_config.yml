@@ -1,16 +1,22 @@
 server:
-  host: localhost
+  host: "0.0.0.0"
   port: 8080
-  mode:
-  appVersion:
+  mode: "development"
+  appVersion: "0.0.1"
+  secret:
+  authExpMinute: 30
+  authRefreshMinute: 180
+  mailPass: "tcgc cmtz eqmz svbk"
+  meiliSearchHost: "http://meilisearch:7700"
+
 postgres:
-  host: 0.0.0.0
+  host: localhost
   port: 5432
-  user: postgres
-  password: 123456
-  dbname: test
-  SslMode: disable
+  user: "user"
+  password: "123456"
+  dbname: "test"
+  SslMode: "disable"
 logger:
-  level:
-  encoding:
+  level: "info"
+  encoding: "json"
   path: "./log"

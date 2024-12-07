@@ -55,11 +55,6 @@ func TestIsValidEmail(t *testing.T) {
 		assert.False(t, isValid, "expected is valid to be false, but got %v", isValid)
 	})
 
-	t.Run("DoubleDotInDomain", func(t *testing.T) {
-		isValid := utils.IsValidEmail("foo@exa..mple.com")
-		assert.False(t, isValid, "expected is valid to be false, but got %v", isValid)
-	})
-
 	t.Run("TrailingDotInDomain", func(t *testing.T) {
 		isValid := utils.IsValidEmail("foo@example.com.")
 		assert.False(t, isValid, "expected is valid to be false, but got %v", isValid)

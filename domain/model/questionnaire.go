@@ -6,8 +6,11 @@ import (
 )
 
 var (
-	ErrInvalidQuestionnaireID  = errors.New("questionnaireID is required and must be greater than 0")
-	ErrorQuestionnaireNotFound = errors.New("questionnaire not found")
+	// create
+	ErrInvalidQuestionnaireIDCreate = errors.New("questionnaireID is required and must be greater than 0")
+
+	// update
+	ErrInvalidQuestionnaireIDUpdate = errors.New("questionnaireID must be greater than 0")
 )
 
 // QuestionnairesStatusEnum represents the questionnaires_status_enum type in Postgres

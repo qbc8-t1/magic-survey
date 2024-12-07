@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	ErrQuestionnaireNotFound                = errors.New("questionnaire not found")
 	ErrQuestionnaireRetrieveFailed          = errors.New("failed to retrieve questionnaire")
 	ErrNoNextQuestionAvailable              = errors.New("no next question available")
 	ErrNoQuestionsInQuestionnaire           = errors.New("no questions available in this questionnaire")

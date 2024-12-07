@@ -78,7 +78,7 @@ func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.
 	_, err := s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, model.ErrorQuestionnaireNotFound
+			return nil, ErrQuestionnaireNotFound
 
 		}
 		return nil, ErrQuestionnaireRetrieveFailed
@@ -120,7 +120,7 @@ func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.
 		}
 
 		if nextQuestion.Type == model.QuestionsTypeMultioption {
-			options, err := s.optionRepo.GetOptionsByQuestionID(nextQuestion.ID)
+			options, err := s.optionRepo.GetOptionsByQuestionID(model.QuestionID(nextQuestion.ID))
 			if err != nil {
 				return nil, ErrOptionRetrieveFailed
 			}
@@ -154,7 +154,7 @@ func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.
 
 	// Load options if multioption
 	if firstQuestion.Type == model.QuestionsTypeMultioption {
-		options, err := s.optionRepo.GetOptionsByQuestionID(firstQuestion.ID)
+		options, err := s.optionRepo.GetOptionsByQuestionID(model.QuestionID(firstQuestion.ID))
 		if err != nil {
 			return nil, ErrOptionRetrieveFailed
 		}
@@ -256,7 +256,7 @@ func (s *CoreService) Back(userID model.UserId) (*model.QuestionResponse, error)
 
 	// Get options if it's a multioption question
 	if prevQuestion.Type == model.QuestionsTypeMultioption {
-		options, err := s.optionRepo.GetOptionsByQuestionID(prevQuestion.ID)
+		options, err := s.optionRepo.GetOptionsByQuestionID(model.QuestionID(prevQuestion.ID))
 		if err != nil {
 			return nil, ErrOptionRetrieveFailed
 		}
@@ -331,7 +331,7 @@ func (s *CoreService) Next(userID model.UserId) (*model.QuestionResponse, error)
 
 	// Load options if it's a multioption question
 	if nextQuestion.Type == model.QuestionsTypeMultioption {
-		options, err := s.optionRepo.GetOptionsByQuestionID(nextQuestion.ID)
+		options, err := s.optionRepo.GetOptionsByQuestionID(model.QuestionID(nextQuestion.ID))
 		if err != nil {
 			return nil, ErrOptionRetrieveFailed
 		}

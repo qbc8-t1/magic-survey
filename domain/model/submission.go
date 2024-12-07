@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrInvalidSubmissionID = errors.New("submissionID is required and must be greater than 0")
+	ErrInvalidSubmissionIDCreate = errors.New("submissionID is required and must be greater than 0")
 )
 
 // SubmissionsStatusEnum represents the submissions_status_enum type in postgres

@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
+	"log"
+
 	"github.com/QBC8-Team1/magic-survey/config"
 	"github.com/QBC8-Team1/magic-survey/internal/server"
-	"log"
 )
 
 func main() {
-	configPath := flag.String("c", "config.yml", "Path to the configuration file")
+	configPath := flag.String("c", "test_config.yml", "Path to the configuration file")
 	flag.Parse()
 
 	conf, err := config.LoadConfig(*configPath)

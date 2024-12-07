@@ -19,15 +19,15 @@ func CreateQuestionHandler(service service.IQuestionService) fiber.Handler {
 		err := questionDTO.Validate()
 
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
 		err = service.CreateQuestion(&questionDTO)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "error in creating the question", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
-		return response.Success(c, fiber.StatusCreated, "question created", nil)
+		return response.Success(c, fiber.StatusCreated, "question created successfully", nil)
 	}
 }
 
@@ -41,7 +41,7 @@ func GetQuestionHandler(service service.IQuestionService) fiber.Handler {
 
 		res, err := service.GetQuestionByID(model.QuestionID(id))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "error in retrieving the question", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		return response.Success(c, fiber.StatusOK, "question Found", res)
@@ -58,7 +58,7 @@ func GetQuestionsByQuestionnaireIDHandler(service service.IQuestionService) fibe
 
 		questions, err := service.GetQuestionsByQuestionnaireID(model.QuestionnaireID(questionnaireId))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to fetch questions", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		return response.Success(c, fiber.StatusOK, "questions retrieved successfully", questions)
@@ -80,12 +80,12 @@ func UpdateQuestionHandler(service service.IQuestionService) fiber.Handler {
 
 		err = questionDTO.Validate()
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
 		err = service.UpdateQuestion(model.QuestionID(id), &questionDTO)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "error in updating the question", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		return response.Success(c, fiber.StatusOK, "question updated successfully", nil)
@@ -102,9 +102,9 @@ func DeleteQuestionHandler(service service.IQuestionService) fiber.Handler {
 
 		err = service.DeleteQuestion(model.QuestionID(id))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "error in deleting the question", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
-		return response.Success(c, fiber.StatusOK, "question deleted", nil)
+		return response.Success(c, fiber.StatusOK, "question deleted successfully", nil)
 	}
 }

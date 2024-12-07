@@ -34,7 +34,7 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 		}
 
 		// get questionnaire object by id
-		questionnaire, err := questionnaireService.GetQuestionnaireByID(model.QuestionnaireID(uint(questionnaireID)))
+		questionnaire, err := questionnaireService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaireID", err.Error())
 		}
@@ -47,7 +47,7 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 		}
 
 		// check if question is for the questionnaire
-		is, err := questionService.IsQuestionForQuestionnaire(data.QuestionID, questionnaire.ID)
+		is, err := questionService.IsQuestionForQuestionnaire(model.QuestionID(data.QuestionID), model.QuestionnaireID(questionnaire.ID))
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "failed to get question", err.Error())
 		}
