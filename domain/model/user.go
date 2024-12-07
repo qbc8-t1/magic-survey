@@ -62,8 +62,8 @@ type CreateUserDTO struct {
 	NationalCode string     `json:"national_code" validate:"required"`
 	Password     string     `json:"password" validate:"required"`
 	Gender       GenderEnum `json:"gender" validate:"required,oneof=male female"`
-	Birthdate    string     `json:"birthdate,required"`
-	City         string     `json:"city,required"`
+	Birthdate    string     `json:"birthdate" validate:"required"`
+	City         string     `json:"city" validate:"required"`
 }
 
 // UpdateUserDTO represents the data needed to update an existing user
@@ -124,6 +124,13 @@ func (u *User) GetFullName() string {
 	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
 }
 
+func (u *User) GetGender() string {
+	if u.Gender == nil {
+		return "unknown"
+	}
+	return string(*u.Gender)
+}
+
 // ToUserResponse maps a User model to a UserResponse DTO
 func ToUserResponse(user *User) *UserResponse {
 	return &UserResponse{
@@ -133,7 +140,7 @@ func ToUserResponse(user *User) *UserResponse {
 		LastName:     user.LastName,
 		Email:        user.Email,
 		NationalCode: user.NationalCode,
-		Gender:       string(*user.Gender),
+		Gender:       user.GetGender(),
 		City:         user.City,
 		Birthdate:    user.Birthdate,
 		Credit:       user.Credit,
@@ -145,7 +152,7 @@ func ToPublicUserResponse(user *User) *PublicUserResponse {
 	return &PublicUserResponse{
 		ID:     UserId(user.ID),
 		Name:   user.GetFullName(),
-		Gender: string(*user.Gender),
+		Gender: user.GetGender(),
 	}
 }
 
@@ -157,6 +164,8 @@ func ToUserModel(dto *CreateUserDTO) *User {
 		Email:        dto.Email,
 		NationalCode: dto.NationalCode,
 		Password:     dto.Password,
+		City:         dto.City,
+		Birthdate:    dto.Birthdate,
 	}
 }
 
