@@ -1,6 +1,8 @@
 package server
 
 import (
+	"time"
+
 	"github.com/QBC8-Team1/magic-survey/internal/common"
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
 	"github.com/QBC8-Team1/magic-survey/internal/routes"
@@ -8,7 +10,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
-	"time"
 )
 
 func registerRoutes(s *common.Server, secret string) {
@@ -33,20 +34,25 @@ func registerRoutes(s *common.Server, secret string) {
 	middleware.RegisterRbacMiddlewares(api, s.DB)
 
 	auth := api.Group("/auth")
+	questions := api.Group("/questions")
+	answers := api.Group("/answers")
+	options := api.Group("/options")
 	rbac := api.Group("/rbac")
+	core := api.Group("/core")
+
 	superadmin := api.Group("/superadmin")
 
-	routes.RegisterRbacRoutes(rbac, s)
-	routes.RegisterSuperadminRoutes(superadmin, s)
-	routes.RegisterUserRoutes(auth, s)
-
 	questionnaire := api.Group("/questionnaires/:questionnaire_id")
-	questions := questionnaire.Group("/questions")
-	answers := questionnaire.Group("/answers")
-	options := questionnaire.Group("/options")
+	// questionnareQuestions := questionnaire.Group("/questions")
+	// questionnaireAnswers := questionnaire.Group("/answers")
+	// questionnaireOptions := questionnaire.Group("/options")
 
 	routes.RegisterVisibleAnswersRoutes(questionnaire, s)
 	routes.RegisterQuestionRoutes(questions, s)
 	routes.RegisterAnswerRoutes(answers, s)
 	routes.RegisterOptionRoutes(options, s)
+	routes.RegisterRbacRoutes(rbac, s)
+	routes.RegisterCoreRoutes(core, s)
+	routes.RegisterSuperadminRoutes(superadmin, s)
+	routes.RegisterUserRoutes(auth, s)
 }

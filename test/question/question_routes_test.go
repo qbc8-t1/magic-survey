@@ -9,22 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHelloQuestionAPI(t *testing.T) {
-	resp, err := http.Get("http://localhost:8080/api/v1/questions/hello")
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	defer resp.Body.Close()
-
-	// Check response status code
-	assert.Equal(t, http.StatusOK, resp.StatusCode, "expected HTTP 200 OK")
-
-	// Validate response body
-	var body map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&body)
-	assert.NoError(t, err)
-	assert.Equal(t, "Hello from Question Service!", body["message"])
-}
-
 func TestCreateQuestionAPI(t *testing.T) {
 	question := map[string]interface{}{
 		"title":            "Sample Question",

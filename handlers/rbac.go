@@ -27,14 +27,14 @@ type HasPermissionData struct {
 	PermissionName  string `json:"permission_name"`
 }
 
-func GetAllPermissions(rbacService service.RbacService) fiber.Handler {
+func GetAllPermissions(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		c.JSON(rbacService.GetAllPermissions())
 		return nil
 	}
 }
 
-func GivePermissions(rbacService service.RbacService) fiber.Handler {
+func GivePermissions(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogRbac))
 		localUser := c.Locals("user")
@@ -66,7 +66,7 @@ func GivePermissions(rbacService service.RbacService) fiber.Handler {
 	}
 }
 
-func RevokePermission(rbacService service.RbacService) fiber.Handler {
+func RevokePermission(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogRbac))
 
@@ -101,7 +101,7 @@ func RevokePermission(rbacService service.RbacService) fiber.Handler {
 	}
 }
 
-func CanDo(rbacService service.RbacService) fiber.Handler {
+func CanDo(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogRbac))
 		localUser := c.Locals("user")
@@ -133,7 +133,7 @@ func CanDo(rbacService service.RbacService) fiber.Handler {
 	}
 }
 
-func GetUser(rbacService service.RbacService) fiber.Handler {
+func GetUser(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogRbac))
 		localUser := c.Locals("user")
@@ -159,7 +159,7 @@ func GetUser(rbacService service.RbacService) fiber.Handler {
 	}
 }
 
-func GetUserRolesWithPermissions(rbacService service.RbacService) fiber.Handler {
+func GetUserRolesWithPermissions(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogRbac))
 		localUser := c.Locals("user")
@@ -190,7 +190,7 @@ func GetUserRolesWithPermissions(rbacService service.RbacService) fiber.Handler 
 	}
 }
 
-func GetUserRolesAndPermissions(rbacService service.RbacService) fiber.Handler {
+func GetUserRolesAndPermissions(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		localUser := c.Locals("user")
 		if localUser == nil {
@@ -215,7 +215,7 @@ func GetUserRolesAndPermissions(rbacService service.RbacService) fiber.Handler {
 	}
 }
 
-func MakeFakeUser(rbacService service.RbacService) fiber.Handler {
+func MakeFakeUser(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		user, err := rbacService.MakeFakeUser()
 		if err != nil {
@@ -226,7 +226,7 @@ func MakeFakeUser(rbacService service.RbacService) fiber.Handler {
 	}
 }
 
-func MakeFakeQuestionnaire(rbacService service.RbacService) fiber.Handler {
+func MakeFakeQuestionnaire(rbacService service.IRbacService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		localUser := c.Locals("user")
 		if localUser == nil {

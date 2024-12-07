@@ -1,10 +1,8 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/QBC8-Team1/magic-survey/domain/model"
-	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
+
 	"gorm.io/gorm"
 )
 
@@ -12,21 +10,30 @@ type QuestionnaireRepository struct {
 	db *gorm.DB
 }
 
-func NewQuestionnaireRepository(db *gorm.DB) domain_repository.IQuestionnaireRepository {
+func NewQuestionnaireRepository(db *gorm.DB) *QuestionnaireRepository {
 	return &QuestionnaireRepository{db: db}
 }
 
-func (qr *QuestionnaireRepository) GetQuestionnaireByID(questionnnaireID uint) (model.Questionnaire, error) {
-	questionnaire := new(model.Questionnaire)
-	err := qr.db.First(questionnaire, "id = ?", questionnnaireID).Error
+func (r *QuestionnaireRepository) GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (*model.Questionnaire, error) {
+	var questionnaire model.Questionnaire
+	result := r.db.First(&questionnaire, questionnaireID)
+	return &questionnaire, result.Error
+}
 
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return model.Questionnaire{}, errors.New("questionnaire not found")
-		}
+func (r *QuestionnaireRepository) GetFirstQuestion(questionnaireID model.QuestionnaireID) (*model.Question, error) {
+	var question model.Question
+	result := r.db.Where("questionnaire_id = ?", questionnaireID).Order("\"order\" ASC").First(&question)
+	return &question, result.Error
+}
 
-		return model.Questionnaire{}, err
-	}
+func (r *QuestionnaireRepository) GetNextQuestion(questionnaireID model.QuestionnaireID, currentOrder int) (*model.Question, error) {
+	var question model.Question
+	result := r.db.Where("questionnaire_id = ? AND \"order\" > ?", questionnaireID, currentOrder).Order("\"order\" ASC").First(&question)
+	return &question, result.Error
+}
 
-	return *questionnaire, nil
+func (r *QuestionnaireRepository) GetPreviousQuestion(questionnaireID model.QuestionnaireID, currentOrder int) (*model.Question, error) {
+	var question model.Question
+	result := r.db.Where("questionnaire_id = ? AND \"order\" < ?", questionnaireID, currentOrder).Order("\"order\" DESC").First(&question)
+	return &question, result.Error
 }
