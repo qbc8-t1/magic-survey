@@ -234,6 +234,17 @@ func (s *CoreService) Back(userID model.UserId) (*model.QuestionResponse, error)
 		return nil, ErrSubmissionRetrieveFailed
 	}
 
+	// Check if user can go to the previous question
+	questionnaire, err := s.questionnaireRepo.GetQuestionnaireByID(submission.QuestionnaireID)
+	if err != nil {
+		return nil, ErrQuestionnaireRetrieveFailed
+	}
+
+	// Check if user can go to the previous question based on the configured questionnaire properties
+	if !questionnaire.CanBackToPreviousQuestion {
+		return nil, ErrQuestionnaireBackNotAllowed
+	}
+
 	// Check if LastAnsweredQuestionID is set
 	if submission.LastAnsweredQuestionID == nil {
 		return nil, errors.New("already at the first question")
