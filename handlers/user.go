@@ -5,15 +5,17 @@ import (
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
+	logger2 "github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
 func UserCreate(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var dto model.CreateUserDTO
-		logger := middleware.GetLogger(c)
+		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogAuth))
 		if err := c.BodyParser(&dto); err != nil {
 			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
@@ -52,7 +54,8 @@ func UserCreate(userService service.UserService) fiber.Handler {
 // Verify2FACode handles the verification of the 2FA code
 func Verify2FACode(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		logger := middleware.GetLogger(c)
+		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogAuth))
+
 		var req model.Verify2FACodeRequest
 		if err := c.BodyParser(&req); err != nil {
 			logger.Error(err.Error())
@@ -76,7 +79,7 @@ func Verify2FACode(userService service.UserService) fiber.Handler {
 
 func Login(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		logger := middleware.GetLogger(c)
+		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogAuth))
 		var req model.LoginRequest
 		if err := c.BodyParser(&req); err != nil {
 			logger.Error(err.Error())
