@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func ShowUser(userService service.UserService) fiber.Handler {
+/*func ShowUser(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		idStr := c.Params("id")
 		id, err := strconv.Atoi(idStr)
@@ -27,7 +27,7 @@ func ShowUser(userService service.UserService) fiber.Handler {
 
 		return response.Success(c, fiber.StatusCreated, "User found", res)
 	}
-}
+}*/
 
 func ShowProfile(userService service.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -119,6 +119,8 @@ func UserCreate(userService service.UserService) fiber.Handler {
 			service.ErrNationalCodeExists,
 			service.ErrWrongEmailPass,
 			service.ErrCodeExpired,
+			service.ErrEmailExists,
+			service.ErrEmailExists,
 		}
 		if err != nil {
 			if utils.ErrorIncludes(err, knownErrors) {
@@ -180,7 +182,10 @@ func Login(userService service.UserService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
-		logger.Info(err.Error())
+		if err != nil {
+			logger.Info(err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "server error", nil)
+		}
 		return response.Success(c, fiber.StatusOK, "Login successful", tokens)
 	}
 }
