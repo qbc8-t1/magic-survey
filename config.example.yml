@@ -3,11 +3,13 @@ server:
   port: 8080
   mode: "development"
   appVersion: "0.0.1"
-  secret:
+  secret: "abc"
   authExpMinute: 30
   authRefreshMinute: 180
-  mailPass:
+  mailPass: "pass"
+  fromMail: "youremail@gmail.com"
   meiliSearchHost: "http://meilisearch:7700"
+  maxSecondForChangeBirthdate: 99400
 
 postgres:
   host: db

@@ -15,37 +15,44 @@ import (
 )
 
 var (
-	ErrUserNotFound       = errors.New("user not found")
-	ErrUserOnCreate       = errors.New("cant Create the user")
-	ErrUserOnUpdate       = errors.New("cant Update the user")
-	ErrEmailExists        = errors.New("mail already exits")
-	ErrNationalCodeExists = errors.New("national code already exits")
-	ErrWrongEmailPass     = errors.New("wrong mail or password")
-	ErrInvalid2FACode     = errors.New("wrong code")
-	ErrCodeExpired        = errors.New("code expired")
-	ErrCodeVerification   = errors.New("cant verify code")
-	ErrCantSaveCode       = errors.New("cant save code")
-	ErrCantDeleteCode     = errors.New("cant delete code")
-	ErrCantGetCode        = errors.New("cant get code")
-	ErrUserRetrieveFailed = errors.New("failed to retrieve user")
-	ErrUserNotVerified    = errors.New("user is not verified")
+	ErrUserNotFound                 = errors.New("user not found")
+	ErrUserOnCreate                 = errors.New("cant Create the user")
+	ErrUserOnUpdate                 = errors.New("cant Update the user")
+	ErrEmailExists                  = errors.New("mail already exits")
+	ErrNationalCodeExists           = errors.New("national code already exits")
+	ErrWrongEmailPass               = errors.New("wrong mail or password")
+	ErrInvalid2FACode               = errors.New("wrong code")
+	ErrCodeExpired                  = errors.New("code expired")
+	ErrCodeVerification             = errors.New("cant verify code")
+	ErrCantSaveCode                 = errors.New("cant save code")
+	ErrCantDeleteCode               = errors.New("cant delete code")
+	ErrCantGetCode                  = errors.New("cant get code")
+	ErrUserRetrieveFailed           = errors.New("failed to retrieve user")
+	ErrUserNotVerified              = errors.New("user is not verified")
+	ErrHasOneDayPassedBirthdate     = errors.New("The time to change birthdate has passed and you cannot change it")
+	ErrMoreWalletBalanceThanAllowed = errors.New("You are a billionaire, this app will not help you")
+	ErrUserIdNotFound               = errors.New("user id not found")
 )
 
 type UserService struct {
-	repo                  domain_repository.IUserRepository
-	authSecret            string
-	expMin, refreshExpMin uint
-	mailPass              string
+	repo                        domain_repository.IUserRepository
+	authSecret                  string
+	expMin, refreshExpMin       uint
+	mailPass                    string
+	fromMail                    string
+	maxSecondForChangeBirthdate int
 }
 
 // NewUserService creates a new instance of UserService
-func NewUserService(repo domain_repository.IUserRepository, authSecret string, expMin, refreshExpMin uint, mailPass string) *UserService {
+func NewUserService(repo domain_repository.IUserRepository, authSecret string, expMin, refreshExpMin uint, mailPass string, fromMail string, maxSecondForChangeBirthdate int) *UserService {
 	return &UserService{
-		repo:          repo,
-		authSecret:    authSecret,
-		expMin:        expMin,
-		refreshExpMin: refreshExpMin,
-		mailPass:      mailPass,
+		repo:                        repo,
+		authSecret:                  authSecret,
+		expMin:                      expMin,
+		refreshExpMin:               refreshExpMin,
+		mailPass:                    mailPass,
+		fromMail:                    fromMail,
+		maxSecondForChangeBirthdate: maxSecondForChangeBirthdate,
 	}
 }
 
@@ -75,7 +82,7 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 	}
 
 	twoFACode := utils.GenerateRandomCode()
-	err = mail.SendMail(s.mailPass, user.Email, "Your 2FA Code", fmt.Sprintf("Your 2FA code is: %s", twoFACode))
+	err = mail.SendMail(s.fromMail, s.mailPass, user.Email, "Your 2FA Code", fmt.Sprintf("Your 2FA code is: %s", twoFACode))
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +98,52 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 		RefreshToken:  "",
 		TwoFACodeSent: true,
 	}, nil
+}
+
+// UpdateUser handles business logic for update a user - just [city, first_name, last_name, birthdate]
+func (s *UserService) UpdateUser(user *model.User, newUser *model.User) (*model.UserResponse, error) {
+
+	// The user has changed the birthdate - Display error if a day has passed since registration
+	if newUser.Birthdate != user.Birthdate && utils.HasTimePassed(user.CreatedAt, s.maxSecondForChangeBirthdate) {
+		return nil, ErrHasOneDayPassedBirthdate
+	}
+
+	err := s.repo.UpdateUser(newUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ToUserResponse(newUser), nil
+}
+
+// IncreaseWalletBalance handles business logic for update a credit user
+func (s *UserService) IncreaseWalletBalance(user *model.User, value int64) (*model.UserResponse, error) {
+	const maxWalletBalance = 10000000
+	newWalletBalance := user.WalletBalance + value
+	if newWalletBalance > maxWalletBalance {
+		return nil, ErrMoreWalletBalanceThanAllowed
+	}
+	user.WalletBalance = newWalletBalance
+	err := s.repo.UpdateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ToUserResponse(user), nil
+}
+
+// Show User
+//func (s *UserService) ShowUser(id int) (*model.PublicUserResponse, error) {
+//	user, err := s.repo.GetUserByID(id)
+//	if err != nil {
+//		return nil, ErrUserIdNotFound
+//	}
+//	return model.ToPublicUserResponse(user), nil
+//}
+
+// Profile User
+func (s *UserService) Profile(user *model.User) (*model.UserResponse, error) {
+	return model.ToUserResponse(user), nil
 }
 
 // LoginUser handles user logging in logics
