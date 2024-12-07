@@ -130,6 +130,10 @@ func (dto CreateQuestionnaireDTO) ValidateAndMakeObject() (Questionnaire, error)
 		return *questionnaire, errors.New("can_submit_from date can not be after can_submit_until")
 	}
 
+	if canSubmitUntil.Sub(canSubmitFrom).Minutes() < float64(dto.MaxMinutesToResponse) {
+		return *questionnaire, errors.New("minutes between can_submit_until and can_submit_from must be equal or bigger than max_minutes_to_response")
+	}
+
 	// max_minutes_to_response
 	if dto.MaxMinutesToResponse < 1 {
 		return *questionnaire, errors.New("max_minutes_to_response is invalid")
