@@ -19,22 +19,23 @@ const (
 
 // User represents the database model for a user
 type User struct {
-	ID             uint       `gorm:"primaryKey"`
-	FirstName      string     `gorm:"size:255"`
-	LastName       string     `gorm:"size:255"`
-	Birthdate      string     `gorm:"size:255"`
-	City           string     `gorm:"size:255"`
-	NationalCode   string     `gorm:"size:10;unique"`
-	Gender         *GenderEnum `gorm:"type:gender_enum"`
-	Email          string     `gorm:"unique;size:255"`
-	Password       string     `gorm:"not null"`
-	IsActive       bool       `gorm:"not null"`
-	Credit         int64
-	CreatedAt      time.Time
-	UpdatedAt      time.Time       `gorm:"not null"`
-	Questionnaires []Questionnaire `gorm:"foreignKey:OwnerID"`
-	Notifications  []Notification  `gorm:"foreignKey:UserID"`
-	SuperAdmin     *SuperAdmin     `gorm:"foreignKey:UserID"`
+	ID                     uint        `gorm:"primaryKey"`
+	FirstName              string      `gorm:"size:255"`
+	LastName               string      `gorm:"size:255"`
+	Birthdate              string      `gorm:"size:255"`
+	City                   string      `gorm:"size:255"`
+	NationalCode           string      `gorm:"size:10;unique"`
+	Gender                 *GenderEnum `gorm:"type:gender_enum"`
+	Email                  string      `gorm:"unique;size:255"`
+	Password               string      `gorm:"not null"`
+	IsActive               bool        `gorm:"not null"`
+	Credit                 int64
+	MaxQuestionnairesCount int `gorm:"null"`
+	CreatedAt              time.Time
+	UpdatedAt              time.Time       `gorm:"not null"`
+	Questionnaires         []Questionnaire `gorm:"foreignKey:OwnerID"`
+	Notifications          []Notification  `gorm:"foreignKey:UserID"`
+	SuperAdmin             *SuperAdmin     `gorm:"foreignKey:UserID"`
 }
 
 // TwoFACode stores 2FA codes for users
@@ -49,20 +50,20 @@ type TwoFACode struct {
 
 // CreateUserDTO represents the data needed to create a new user
 type CreateUserDTO struct {
-	FirstName    string     `json:"first_name" validate:"required"`
-	LastName     string     `json:"last_name" validate:"required"`
-	Email        string     `json:"email" validate:"required,email"`
-	NationalCode string     `json:"national_code" validate:"required"`
-	Password     string     `json:"password" validate:"required"`
+	FirstName    string `json:"first_name" validate:"required"`
+	LastName     string `json:"last_name" validate:"required"`
+	Email        string `json:"email" validate:"required,email"`
+	NationalCode string `json:"national_code" validate:"required"`
+	Password     string `json:"password" validate:"required"`
 }
 
 // UpdateUserDTO represents the data needed to update an existing user
 type UpdateUserDTO struct {
-	FirstName    *string     `json:"first_name,omitempty"`
-	LastName     *string     `json:"last_name,omitempty"`
-	Email        *string     `json:"email,omitempty" validate:"email"`
-	NationalCode *string     `json:"national_code,omitempty"`
-	Password     *string     `json:"password,omitempty"`
+	FirstName    *string `json:"first_name,omitempty"`
+	LastName     *string `json:"last_name,omitempty"`
+	Email        *string `json:"email,omitempty" validate:"email"`
+	NationalCode *string `json:"national_code,omitempty"`
+	Password     *string `json:"password,omitempty"`
 }
 
 // LoginRequest represents user login data

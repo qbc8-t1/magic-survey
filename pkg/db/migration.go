@@ -63,7 +63,7 @@ func insertTypesTable(db *gorm.DB) error {
 		// Create questions_type_enum
 		`DO $$ BEGIN
 			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'questions_type_enum') THEN
-				CREATE TYPE questions_type_enum AS ENUM ('multichoice', 'descriptive');
+				CREATE TYPE questions_type_enum AS ENUM ('multioption', 'descriptive');
 			END IF;
 		END $$;`,
 

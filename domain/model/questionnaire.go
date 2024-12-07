@@ -55,7 +55,6 @@ type Questionnaire struct {
 
 // CreateQuestionnaireDTO represents the data needed to create a new questionnaire
 type CreateQuestionnaireDTO struct {
-	// OwnerID              uint      `json:"owner_id" validate:"required"`
 	CanSubmitFrom              string `json:"can_submit_from,omitempty"`
 	CanSubmitUntil             string `json:"can_submit_until,omitempty"`
 	MaxMinutesToResponse       int    `json:"max_minutes_to_response,omitempty"`
@@ -121,6 +120,10 @@ func (dto CreateQuestionnaireDTO) ValidateAndMakeObject() (Questionnaire, error)
 		return *questionnaire, errors.New("can_submit_until date. layout is this: 2006-01-02 15:04:05")
 	}
 	questionnaire.CanSubmitUntil = canSubmitUntil
+
+	if canSubmitFrom.After(canSubmitUntil) {
+		return *questionnaire, errors.New("can_submit_from date can not be after can_submit_until")
+	}
 
 	// max_minutes_to_response
 	if dto.MaxMinutesToResponse < 1 {

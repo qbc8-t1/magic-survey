@@ -14,6 +14,12 @@ func NewQuestionnaireRepository(db *gorm.DB) domain_repository.IQuestionnaireRep
 	return &QuestionnaireRepository{db: db}
 }
 
+func (r *QuestionnaireRepository) GetUserQuestionnairesCount(userID uint) (int64, error) {
+	var count int64
+	result := r.db.Model(&model.Questionnaire{}).Where("owner_id = ?", userID).Count(&count)
+	return count, result.Error
+}
+
 func (r *QuestionnaireRepository) CreateQuestionnaire(questionnaire *model.Questionnaire) (model.Questionnaire, error) {
 	err := r.db.Create(questionnaire).Error
 	if err != nil {
@@ -27,8 +33,8 @@ func (r *QuestionnaireRepository) GetQuestionnaireByID(id uint) (*model.Question
 	return nil, nil
 }
 
-func (r *QuestionnaireRepository) UpdateQuestionare(questionnaire *model.Questionnaire) error {
-	return nil
+func (r *QuestionnaireRepository) UpdateQuestionaire(questionnaire *model.Questionnaire) error {
+	return r.db.Save(questionnaire).Error
 }
 
 func (r *QuestionnaireRepository) DeleteQuestionnaire(id uint) error {

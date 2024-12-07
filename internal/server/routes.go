@@ -11,12 +11,13 @@ import (
 func registerRoutes(app *fiber.App, s *common.Server) {
 	app.Get("/health", middleware.WithAuthMiddleware(s.DB, s.Cfg.Server.Secret), handlers.HealthCheck)
 
-	api := app.Group("/api")
-	auth := api.Group("/v1/auth")
+	api := app.Group("/api/v1")
+	auth := api.Group("/auth")
 
-	questionnaireGroup := api.Group("/questionnaire")
+	api.Use(middleware.WithAuthMiddleware(s.DB, s.Cfg.Server.Secret))
 
 	routes.RegisterUserRoutes(auth, s)
-	routes.RegisterQuestionnaireRoutes(questionnaireGroup, s)
+
+	routes.RegisterQuestionnaireRoutes(api, s)
 
 }
