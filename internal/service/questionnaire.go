@@ -8,11 +8,14 @@ import (
 )
 
 var (
-	ErrQuestionnaireRetrieveFailed = errors.New("failed to retrieve questionnaire")
+	ErrQuestionnaireRetrieveFailed          = errors.New("failed to retrieve questionnaire")
+	ErrNoNextQuestionAvailable              = errors.New("no next question available")
+	ErrNoQuestionsInQuestionnaire           = errors.New("no questions available in this questionnaire")
+	ErrQuestionDoesNotBelongToQuestionnaire = errors.New("question does not belong to the current questionnaire")
 )
 
 type IQuestionnaireService interface {
-	GetQuestionnaireByID(questionnaireID uint) (model.Questionnaire, error)
+	GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (*model.Questionnaire, error)
 }
 
 type QuestionnaireService struct {
@@ -25,6 +28,6 @@ func NewQuestionnaireService(repo domain_repository.IQuestionnaireRepository) *Q
 	}
 }
 
-func (s *QuestionnaireService) GetQuestionnaireByID(questionnaireID uint) (model.Questionnaire, error) {
+func (s *QuestionnaireService) GetQuestionnaireByID(questionnaireID model.QuestionnaireID) (*model.Questionnaire, error) {
 	return s.repo.GetQuestionnaireByID(questionnaireID)
 }

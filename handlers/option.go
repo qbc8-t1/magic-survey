@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"github.com/QBC8-Team1/magic-survey/internal/middleware"
+	logger2 "github.com/QBC8-Team1/magic-survey/pkg/logger"
+	"go.uber.org/zap"
 	"strconv"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
@@ -11,39 +14,50 @@ import (
 
 func CreateOptionHandler(service service.IOptionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogOption))
+
 		var optionDTO model.CreateOptionDTO
 		if err := c.BodyParser(&optionDTO); err != nil {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusBadRequest, "invalid body", nil)
 		}
 
 		err := optionDTO.Validate()
 
 		if err != nil {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
 		}
 
 		err = service.CreateOption(&optionDTO)
 		if err != nil {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, "error in creating the option", nil)
 		}
 
+		logger.Info("option created")
 		return response.Success(c, fiber.StatusCreated, "option created", nil)
 	}
 }
 
 func GetOptionHandler(service service.IOptionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogOption))
+
 		idStr := c.Params("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil || id <= 0 {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
 		res, err := service.GetOptionByID(model.OptionID(id))
 		if err != nil {
+			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, "error in retrieving the option", nil)
 		}
 
+		logger.Info("option Found")
 		return response.Success(c, fiber.StatusOK, "option Found", res)
 	}
 }

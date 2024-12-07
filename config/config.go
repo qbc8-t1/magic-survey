@@ -17,6 +17,7 @@ type Logger struct {
 	Level string
 	Path  string
 }
+
 type Server struct {
 	Host                        string
 	Port                        string

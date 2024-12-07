@@ -2,8 +2,9 @@ package jwt
 
 import (
 	"errors"
-	jwt2 "github.com/golang-jwt/jwt/v5"
 	"strings"
+
+	jwt2 "github.com/golang-jwt/jwt/v5"
 )
 
 func CreateToken(secret []byte, claims *UserClaims) (string, error) {

@@ -32,7 +32,7 @@ type Question struct {
 	ID                  QuestionID        `gorm:"primaryKey"`
 	Title               string            `gorm:"size:255;not null"`
 	Type                QuestionsTypeEnum `gorm:"type:questions_type_enum;not null"`
-	QuestionnaireID     uint              `gorm:"not null"`
+	QuestionnaireID     QuestionnaireID   `gorm:"not null"`
 	Order               int               `gorm:"not null"`
 	FilePath            *string           `gorm:"size:255;default:null"`
 	DependsOnQuestionID *uint             `gorm:"default:null"`
@@ -47,7 +47,7 @@ type Question struct {
 type CreateQuestionDTO struct {
 	Title               string            `json:"title" validate:"required"`
 	Type                QuestionsTypeEnum `json:"type" validate:"required,oneof=multioption descriptive"`
-	QuestionnaireID     uint              `json:"questionnaire_id" validate:"required"`
+	QuestionnaireID     QuestionnaireID   `json:"questionnaire_id" validate:"required"`
 	Order               int               `json:"order" validate:"required"`
 	FilePath            *string           `json:"file_path,omitempty" validate:"omitempty"`
 	DependsOnQuestionID *uint             `json:"depends_on_question_id,omitempty" validate:"omitempty"`
@@ -58,7 +58,7 @@ type CreateQuestionDTO struct {
 type UpdateQuestionDTO struct {
 	Title               *string            `json:"title,omitempty"`
 	Type                *QuestionsTypeEnum `json:"type,omitempty"`
-	QuestionnaireID     *uint              `json:"questionnaire_id,omitempty"`
+	QuestionnaireID     *QuestionnaireID   `json:"questionnaire_id,omitempty"`
 	Order               *int               `json:"order,omitempty"`
 	FilePath            *string            `json:"file_path,omitempty"`
 	DependsOnQuestionID *uint              `json:"depends_on_question_id,omitempty"`
@@ -70,7 +70,7 @@ type QuestionResponse struct {
 	ID                  QuestionID        `json:"id"`
 	Title               string            `json:"title"`
 	Type                QuestionsTypeEnum `json:"type"`
-	QuestionnaireID     uint              `json:"questionnaire_id"`
+	QuestionnaireID     QuestionnaireID   `json:"questionnaire_id"`
 	Order               int               `json:"order"`
 	FilePath            *string           `json:"file_path"`
 	DependsOnQuestionID *uint             `json:"depends_on_question_id"`

@@ -283,7 +283,7 @@ func getDB() (*gorm.DB, error) {
 	appLogger.InitLogger(conf.Logger.Path)
 	db, err := db.InitDB(conf, appLogger)
 	if err != nil {
-		appLogger.Panic("Counldnt init the db")
+		appLogger.Fatal("Counldnt init the db")
 		return nil, err
 	}
 

@@ -2,8 +2,9 @@ package utils
 
 import (
 	"fmt"
-	"golang.org/x/exp/rand"
 	"time"
+
+	"golang.org/x/exp/rand"
 )
 
 // GenerateRandomCode generates a random 6-digit code

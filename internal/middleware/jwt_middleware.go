@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"time"
+
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	jwt2 "github.com/QBC8-Team1/magic-survey/pkg/jwt"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
@@ -8,7 +10,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"time"
 )
 
 // CustomClaims defines custom JWT claims
