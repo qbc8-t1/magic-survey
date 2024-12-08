@@ -29,25 +29,25 @@ func registerRoutes(s *common.Server, secret string) {
 	s.App.Use(middleware.WithLoggingMiddleware(s.Logger), limiter.New(limiterCfg), cors.New(CORSCfg), compress.New())
 	s.App.Get("/health", monitor.New())
 
-	api := s.App.Group("/api/v1")
+	versionApi := s.App.Group("/api/v1")
 
+	auth := versionApi.Group("/auth")
+	routes.RegisterUserRoutes(auth, s)
+
+	api := versionApi.Group("/")
+	api.Use(middleware.WithAuthMiddleware(s.DB, secret))
 	middleware.RegisterRbacMiddlewares(api, s.DB)
 
-	auth := api.Group("/auth")
+	rbac := api.Group("/rbac")
 	questions := api.Group("/questions")
 	answers := api.Group("/answers")
 	options := api.Group("/options")
-	rbac := api.Group("/rbac")
+	questionnaires := api.Group("/questionnaires")
+	superadmin := api.Group("/superadmin")
 	core := api.Group("/core")
 
-	superadmin := api.Group("/superadmin")
-
-	questionnaire := api.Group("/questionnaires/:questionnaire_id")
-	// questionnareQuestions := questionnaire.Group("/questions")
-	// questionnaireAnswers := questionnaire.Group("/answers")
-	// questionnaireOptions := questionnaire.Group("/options")
-
-	routes.RegisterVisibleAnswersRoutes(questionnaire, s)
+	routes.RegisterVisibleAnswersRoutes(questionnaires, s)
+	routes.RegisterQuestionnaireRoutes(questionnaires, s)
 	routes.RegisterQuestionRoutes(questions, s)
 	routes.RegisterAnswerRoutes(answers, s)
 	routes.RegisterOptionRoutes(options, s)

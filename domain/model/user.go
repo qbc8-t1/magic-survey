@@ -14,7 +14,7 @@ var (
 )
 
 type GenderEnum string
-type UserId uint
+type UserID uint
 
 const (
 	Male   GenderEnum = "male"
@@ -56,27 +56,25 @@ type TwoFACode struct {
 
 // CreateUserDTO represents the data needed to create a new user
 type CreateUserDTO struct {
-	FirstName    string     `json:"first_name" validate:"required"`
-	LastName     string     `json:"last_name" validate:"required"`
-	Email        string     `json:"email" validate:"required,email"`
-	NationalCode string     `json:"national_code" validate:"required"`
-	Password     string     `json:"password" validate:"required"`
-	Gender       GenderEnum `json:"gender" validate:"required,oneof=male female"`
-	Birthdate    string     `json:"birthdate" validate:"required"`
-	City         string     `json:"city" validate:"required"`
+	FirstName    string `json:"first_name" validate:"required"`
+	LastName     string `json:"last_name" validate:"required"`
+	Email        string `json:"email" validate:"required,email"`
+	NationalCode string `json:"national_code" validate:"required"`
+	Password     string `json:"password" validate:"required"`
 }
 
 // UpdateUserDTO represents the data needed to update an existing user
 type UpdateUserDTO struct {
-	FirstName string `json:"first_name,required"`
-	LastName  string `json:"last_name,required"`
-	Birthdate string `json:"birthdate,required"`
-	City      string `json:"city,required"`
+	FirstName string     `json:"first_name" validate:"required"`
+	LastName  string     `json:"last_name" validate:"required"`
+	Birthdate string     `json:"birthdate" validate:"required"`
+	Gender    GenderEnum `json:"gender" validate:"required,oneof=male female"`
+	City      string     `json:"city" validate:"required"`
 }
 
 // IncreaseWalletBalanceDTO represents the data needed to update credit user
 type IncreaseWalletBalanceDTO struct {
-	Value string `json:"value,required"`
+	Value string `json:"value" validate:"required"`
 }
 
 // LoginRequest represents user login data
@@ -100,7 +98,7 @@ type Verify2FACodeRequest struct {
 
 // UserResponse represents the user data returned in API responses
 type UserResponse struct {
-	ID            UserId `json:"id"`
+	ID            UserID `json:"id"`
 	Name          string `json:"name"`
 	FirstName     string `json:"first_name"`
 	LastName      string `json:"last_name"`
@@ -114,7 +112,7 @@ type UserResponse struct {
 
 // PublicUserResponse represents the user data returned in API responses
 type PublicUserResponse struct {
-	ID     UserId `json:"id"`
+	ID     UserID `json:"id"`
 	Name   string `json:"name"`
 	Gender string `json:"gender"`
 }
@@ -134,7 +132,7 @@ func (u *User) GetGender() string {
 // ToUserResponse maps a User model to a UserResponse DTO
 func ToUserResponse(user *User) *UserResponse {
 	return &UserResponse{
-		ID:            UserId(user.ID),
+		ID:            UserID(user.ID),
 		Name:          user.GetFullName(),
 		FirstName:     user.FirstName,
 		LastName:      user.LastName,
@@ -150,7 +148,7 @@ func ToUserResponse(user *User) *UserResponse {
 // ToPublicUserResponse maps a User model to a UserResponse DTO
 func ToPublicUserResponse(user *User) *PublicUserResponse {
 	return &PublicUserResponse{
-		ID:     UserId(user.ID),
+		ID:     UserID(user.ID),
 		Name:   user.GetFullName(),
 		Gender: user.GetGender(),
 	}
@@ -164,8 +162,6 @@ func ToUserModel(dto *CreateUserDTO) *User {
 		Email:        dto.Email,
 		NationalCode: dto.NationalCode,
 		Password:     dto.Password,
-		City:         dto.City,
-		Birthdate:    dto.Birthdate,
 	}
 }
 
@@ -226,15 +222,15 @@ func (u *User) Validate() error {
 	if len(u.Password) < 6 {
 		return errors.New("password must be at least 6 characters long")
 	}
-	isValid, message := utils.IsValidBirthdate(u.Birthdate)
-	if !isValid {
-		return errors.New("birthdate - " + message)
-	}
+	// isValid, message := utils.IsValidBirthdate(u.Birthdate)
+	// if !isValid {
+	// 	return errors.New("birthdate - " + message)
+	// }
 
-	isValid, message = utils.IsValidCity(u.City)
-	if !isValid {
-		return errors.New("city - " + message)
-	}
+	// isValid, message = utils.IsValidCity(u.City)
+	// if !isValid {
+	// 	return errors.New("city - " + message)
+	// }
 
 	return nil
 }

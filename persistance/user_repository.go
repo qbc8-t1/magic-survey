@@ -24,7 +24,7 @@ func (r *userRepository) CreateUser(user *model.User) error {
 }
 
 // GetUserByID fetches a user by their ID
-func (r *userRepository) GetUserByID(id model.UserId) (*model.User, error) {
+func (r *userRepository) GetUserByID(id model.UserID) (*model.User, error) {
 	var user model.User
 	if err := r.db.First(&user, id).Error; err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (r *userRepository) UpdateUser(user *model.User) error {
 }
 
 // DeleteUser deletes a user from the database
-func (r *userRepository) DeleteUser(id model.UserId) error {
+func (r *userRepository) DeleteUser(id model.UserID) error {
 	return r.db.Delete(&model.User{}, id).Error
 }
 

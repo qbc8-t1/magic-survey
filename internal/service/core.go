@@ -43,11 +43,11 @@ import (
 // }
 
 type ICoreService interface {
-	Start(questionnaireID model.QuestionnaireID, userID model.UserId) (*model.QuestionResponse, error)
-	Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserId) error
-	Back(userID model.UserId) (*model.QuestionResponse, error)
-	Next(userID model.UserId) (*model.QuestionResponse, error)
-	End(userID model.UserId) error
+	Start(questionnaireID model.QuestionnaireID, userID model.UserID) (*model.QuestionResponse, error)
+	Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserID) error
+	Back(userID model.UserID) (*model.QuestionResponse, error)
+	Next(userID model.UserID) (*model.QuestionResponse, error)
+	End(userID model.UserID) error
 }
 
 type CoreService struct {
@@ -73,7 +73,7 @@ func NewCoreService(
 	}
 }
 
-func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.UserId) (*model.QuestionResponse, error) {
+func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.UserID) (*model.QuestionResponse, error) {
 	// Check if questionnaire exists
 	_, err := s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
 	if err != nil {
@@ -164,7 +164,7 @@ func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.
 	return model.ToQuestionResponse(firstQuestion), nil
 }
 
-func (s *CoreService) Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserId) error {
+func (s *CoreService) Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserID) error {
 	// Retrieve the user's active submission
 	submission, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
 	if err != nil {
@@ -224,7 +224,7 @@ func (s *CoreService) Submit(questionID model.QuestionID, answer *model.Answer, 
 }
 
 // TODO:
-func (s *CoreService) Back(userID model.UserId) (*model.QuestionResponse, error) {
+func (s *CoreService) Back(userID model.UserID) (*model.QuestionResponse, error) {
 	// Retrieve the user's active submission
 	submission, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
 	if err != nil {
@@ -269,7 +269,7 @@ func (s *CoreService) Back(userID model.UserId) (*model.QuestionResponse, error)
 }
 
 // TODO:
-func (s *CoreService) Next(userID model.UserId) (*model.QuestionResponse, error) {
+func (s *CoreService) Next(userID model.UserID) (*model.QuestionResponse, error) {
 	// Retrieve the user's active submission
 	submission, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
 	if err != nil {
@@ -343,7 +343,7 @@ func (s *CoreService) Next(userID model.UserId) (*model.QuestionResponse, error)
 	return questionResponse, nil
 }
 
-func (s *CoreService) End(userID model.UserId) error {
+func (s *CoreService) End(userID model.UserID) error {
 	// Retrieve the user's active submission
 	submission, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
 	if err != nil {

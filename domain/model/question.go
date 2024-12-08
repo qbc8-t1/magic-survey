@@ -40,7 +40,7 @@ type Question struct {
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	Questionnaire       Questionnaire `gorm:"foreignKey:QuestionnaireID"`
-	Options             *[]Option     `gorm:"foreignKey:QuestionID"`
+	Options             *[]Option     `gorm:"foreignKey:QuestionID;constraint:OnDelete:CASCADE;"`
 }
 
 // CreateQuestionDTO represents the data needed to create a new question

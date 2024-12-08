@@ -24,7 +24,7 @@ const (
 type Submission struct {
 	ID                     SubmissionID `gorm:"primaryKey"`
 	QuestionnaireID        QuestionnaireID
-	UserID                 UserId
+	UserID                 UserID
 	Status                 SubmissionsStatusEnum `gorm:"type:submissions_status_enum;default:'answering'"`
 	LastAnsweredQuestionID *QuestionID
 	SubmittedAt            *time.Time

@@ -123,7 +123,6 @@ func UserCreate(userService service.UserService) fiber.Handler {
 			service.ErrWrongEmailPass,
 			service.ErrCodeExpired,
 			service.ErrEmailExists,
-			service.ErrEmailExists,
 		}
 		if err != nil {
 			if utils.ErrorIncludes(err, knownErrors) {

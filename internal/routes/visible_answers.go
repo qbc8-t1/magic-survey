@@ -20,9 +20,9 @@ func RegisterVisibleAnswersRoutes(router fiber.Router, s *common.Server) {
 
 	answerService := service.NewAnswerService(answerRepo, userRepo, submissionRepo, questionRepo, optionRepo)
 	rbacService := service.NewRbacService(rbacRepo)
-	questionnaireService := service.NewQuestionnaireService(questionnaireRepo)
+	questionnaireService := service.NewQuestionnaireService(questionnaireRepo, userRepo)
 	questionService := service.NewQuestionService(questionRepo, questionnaireRepo)
 
-	router.Get("/see-another-user-answer", handlers.GetAnotherUserAnswer(answerService, rbacService, questionService, questionnaireService))
-	router.Get("/users-with-visible-answers", handlers.GetUsersWithVisibleAnswers(rbacService, questionnaireService))
+	router.Get("/:questionnaire_id/see-another-user-answer", handlers.GetAnotherUserAnswer(answerService, rbacService, questionService, questionnaireService))
+	router.Get("/:questionnaire_id/users-with-visible-answers", handlers.GetUsersWithVisibleAnswers(rbacService, questionnaireService))
 }

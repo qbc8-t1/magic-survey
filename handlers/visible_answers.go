@@ -35,14 +35,15 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 		questionnaireID, err := c.ParamsInt("questionnaire_id")
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "bad questionnaire id", err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "bad questionnaire id", nil)
 		}
 
 		// get questionnaire object by id
-		questionnaire, err := questionnaireService.GetQuestionnaireByID(model.QuestionnaireID(uint(questionnaireID)))
+		questionnaire, err := questionnaireService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
+
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaireID", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaireID", nil)
 		}
 
 		// parse body of request
@@ -50,26 +51,26 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 		err = c.BodyParser(&data)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusUnprocessableEntity, "faild to parse body", err.Error())
+			return response.Error(c, fiber.StatusUnprocessableEntity, "faild to parse body", nil)
 		}
 
 		// check if question is for the questionnaire
 		is, err := questionService.IsQuestionForQuestionnaire(data.QuestionID, questionnaire.ID)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to get question", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get question", nil)
 		}
 		if !is {
-			logger.Error(err.Error())
+			logger.Error("question is not for questionnaire")
 			return response.Error(c, fiber.StatusBadRequest, "question is not for questionnaire", nil)
 		}
 
 		// user can see his/her answer
 		if data.UserID == loggedInUser.ID {
-			answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserId(data.UserID))
+			answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserID(data.UserID))
 			if err != nil {
 				logger.Error(err.Error())
-				return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
+				return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", nil)
 			}
 			return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerSummaryResponses(answers))
 		}
@@ -82,10 +83,10 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 			// check if logged in user is superadmin or the owner of the questionnaire
 			isSuperadmin, _ := rbacService.CanDoAsSuperadmin(loggedInUser.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
 			if questionnaire.OwnerID == loggedInUser.ID || isSuperadmin {
-				answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserId(data.UserID))
+				answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserID(data.UserID))
 				if err != nil {
 					logger.Error(err.Error())
-					return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
+					return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", nil)
 				}
 
 				logger.Info("user answer was successful")
@@ -96,7 +97,7 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 			has, err := rbacService.HasPermission(loggedInUser.ID, questionnaire.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
 			if err != nil {
 				logger.Error(err.Error())
-				return response.Error(c, fiber.StatusInternalServerError, "failed to check permission", err.Error())
+				return response.Error(c, fiber.StatusInternalServerError, "failed to check permission", nil)
 			}
 			if !has {
 				logger.Error("you don't have permission to see the answer")
@@ -107,7 +108,7 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 			usersIDs, err := rbacService.GetUsersIDsWithVisibleAnswers(questionnaire.ID, loggedInUser.ID)
 			if err != nil {
 				logger.Error(err.Error())
-				return response.Error(c, fiber.StatusInternalServerError, "failed to get users ids with visible answers", err.Error())
+				return response.Error(c, fiber.StatusInternalServerError, "failed to get users ids with visible answers", nil)
 			}
 			found := false
 			for _, userID := range usersIDs {
@@ -120,10 +121,10 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 				logger.Error(msg)
 				return response.Error(c, fiber.StatusForbidden, msg, nil)
 			}
-			answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserId(data.UserID))
+			answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserID(data.UserID))
 			if err != nil {
 				logger.Error(err.Error())
-				return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
+				return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", nil)
 			}
 
 			logger.Info("user answer")
@@ -133,10 +134,10 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 			isSuperadmin, _ := rbacService.CanDoAsSuperadmin(loggedInUser.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
 
 			if questionnaire.OwnerID == loggedInUser.ID || isSuperadmin {
-				answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserId(data.UserID))
+				answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserID(data.UserID))
 				if err != nil {
 					logger.Error(err.Error())
-					return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", err.Error())
+					return response.Error(c, fiber.StatusInternalServerError, "failed to get answer", nil)
 				}
 				logger.Info("get another user answer successful")
 				return response.Success(c, fiber.StatusOK, "user answer", model.ToAnswerSummaryResponses(answers))
@@ -146,7 +147,7 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 			return response.Error(c, fiber.StatusForbidden, "you don't have permission to see the answer", nil)
 		case model.QuestionnaireVisibilityNobody:
 			logger.Error("answer is not visible for anyone")
-			return response.Success(c, fiber.StatusOK, "answer is not visible for anyone", nil)
+			return response.Error(c, fiber.StatusForbidden, "answer is not visible for anyone", nil)
 		}
 		return nil
 	}
@@ -174,20 +175,21 @@ func GetUsersWithVisibleAnswers(rbacService service.IRbacService, questionnaireS
 		questionnaireID, err := c.ParamsInt("questionnaire_id")
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "bad questionnaire id", err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "bad questionnaire id", nil)
 		}
 
 		// get questionnaire object by id
-		questionnaire, err := questionnaireService.GetQuestionnaireByID(model.QuestionnaireID(uint(questionnaireID)))
+		questionnaire, err := questionnaireService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
+
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaireID", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaireID", nil)
 		}
 
 		has, err := rbacService.HasPermission(loggedInUser.ID, questionnaire.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to check permission", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to check permission", nil)
 		}
 		if !has {
 			logger.Error("you don't have specific permission to see the answer")
@@ -197,7 +199,7 @@ func GetUsersWithVisibleAnswers(rbacService service.IRbacService, questionnaireS
 		usersIDs, err := rbacService.GetUsersIDsWithVisibleAnswers(questionnaire.ID, loggedInUser.ID)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to get users ids with visible answers", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get users ids with visible answers", nil)
 		}
 
 		logger.Info("you have permission to see users answers")

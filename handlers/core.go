@@ -28,7 +28,7 @@ func StartHandler(service service.ICoreService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid questionnaire_id", nil)
 		}
 
-		questionResponse, err := service.Start(model.QuestionnaireID(uint(questionnaireID)), model.UserId(user.ID))
+		questionResponse, err := service.Start(model.QuestionnaireID(uint(questionnaireID)), model.UserID(user.ID))
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
@@ -62,7 +62,7 @@ func SubmitHandler(service service.ICoreService) fiber.Handler {
 		}
 
 		// Call service method
-		err = service.Submit(model.QuestionID(uint(questionID)), &ans, model.UserId(user.ID))
+		err = service.Submit(model.QuestionID(uint(questionID)), &ans, model.UserID(user.ID))
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
@@ -80,7 +80,7 @@ func BackHandler(service service.ICoreService) fiber.Handler {
 		}
 
 		// Call the service method
-		questionResponse, err := service.Back(model.UserId(user.ID))
+		questionResponse, err := service.Back(model.UserID(user.ID))
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
@@ -98,7 +98,7 @@ func NextHandler(service service.ICoreService) fiber.Handler {
 		}
 
 		// Call the service method
-		questionResponse, err := service.Next(model.UserId(user.ID))
+		questionResponse, err := service.Next(model.UserID(user.ID))
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
@@ -115,7 +115,7 @@ func EndHandler(service service.ICoreService) fiber.Handler {
 			return response.Error(c, fiber.StatusUnauthorized, "Unauthorized", nil)
 		}
 
-		err := service.End(model.UserId(user.ID))
+		err := service.End(model.UserID(user.ID))
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}

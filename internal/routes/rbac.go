@@ -12,18 +12,18 @@ func RegisterRbacRoutes(router fiber.Router, s *common.Server) {
 	rbacRepo := repository.NewRbacRepository(s.DB)
 	questionnaireRepo := repository.NewQuestionnaireRepository(s.DB)
 	superAdminRepo := repository.NewSuperadminRepository(s.DB)
+	userRepo := repository.NewUserRepository(s.DB)
 
 	rbacService := service.NewRbacService(rbacRepo)
-	questionnaireService := service.NewQuestionnaireService(questionnaireRepo)
+	questionnaireService := service.NewQuestionnaireService(questionnaireRepo, userRepo)
 	superAdminService := service.NewSuperadminService(superAdminRepo)
 
-	// logged in user id here
 	router.Get("/users-with-visible-answers", handlers.GetUsersWithVisibleAnswers(rbacService, questionnaireService))
 	router.Post("/:userid/make-superadmin", handlers.MakeSuperadmin(*superAdminService))
 	router.Get("/can-do", handlers.CanDo(rbacService))
 	router.Get("/permissions", handlers.GetAllPermissions(rbacService))
 	router.Post("/give-permissions", handlers.GivePermissions(rbacService))
-	router.Post("/revoke-permission", handlers.RevokePermission(rbacService))
+	router.Delete("/revoke-permission", handlers.RevokePermission(rbacService))
 	router.Get("/can-do", handlers.CanDo(rbacService))
 	router.Get("/info", handlers.GetUser(rbacService))
 	router.Get("/roles-with-permissions", handlers.GetUserRolesWithPermissions(rbacService))

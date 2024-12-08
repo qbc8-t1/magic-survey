@@ -35,7 +35,7 @@ type IAnswerService interface {
 	GetAnswerByID(id model.AnswerID) (*model.AnswerResponse, error)
 	UpdateAnswer(id model.AnswerID, AnswerDTO *model.UpdateAnswerDTO) error
 	DeleteAnswer(id model.AnswerID) error
-	GetUserAnswers(questionID model.QuestionID, userID model.UserId) (*[]model.Answer, error)
+	GetUserAnswers(questionID model.QuestionID, userID model.UserID) (*[]model.Answer, error)
 }
 
 type AnswerService struct {
@@ -46,7 +46,7 @@ type AnswerService struct {
 	optionRepo     domain_repository.IOptionRepository
 }
 
-func (s *AnswerService) GetUserAnswers(questionID model.QuestionID, userID model.UserId) (*[]model.Answer, error) {
+func (s *AnswerService) GetUserAnswers(questionID model.QuestionID, userID model.UserID) (*[]model.Answer, error) {
 	return s.answerRepo.GetAnswersByUserAndQuestionID(questionID, userID)
 }
 
@@ -72,7 +72,7 @@ func (s *AnswerService) CreateAnswer(answerDTO *model.CreateAnswerDTO) error {
 		return ErrInvalidUserID
 	}
 	// Check if User exists
-	_, err := s.userRepo.GetUserByID(model.UserId(answerDTO.UserID))
+	_, err := s.userRepo.GetUserByID(model.UserID(answerDTO.UserID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrUserNotFound

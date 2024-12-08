@@ -8,5 +8,5 @@ type ISubmissionRepository interface {
 	CreateSubmission(submission *model.Submission) error
 	UpdateSubmission(submission *model.Submission) error
 
-	GetActiveSubmissionByUserID(userID model.UserId) (*model.Submission, error)
+	GetActiveSubmissionByUserID(userID model.UserID) (*model.Submission, error)
 }
