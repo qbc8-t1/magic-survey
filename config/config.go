@@ -27,6 +27,7 @@ type Server struct {
 	AuthExpMinute     uint `json:"authExpMin"`
 	AuthRefreshMinute uint `json:"authExpRefreshMin"`
 	MailPass          string
+	FromMail          string
 }
 
 type Postgres struct {

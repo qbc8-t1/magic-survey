@@ -27,7 +27,7 @@ func CreateQuestionHandler(service service.IQuestionService) fiber.Handler {
 
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
 		err = service.CreateQuestion(&questionDTO)
@@ -59,7 +59,7 @@ func GetQuestionHandler(service service.IQuestionService) fiber.Handler {
 		}
 
 		logger.Info("question Found")
-		return response.Success(c, fiber.StatusOK, "question found", res)
+		return response.Success(c, fiber.StatusOK, "question found successfully", res)
 	}
 }
 

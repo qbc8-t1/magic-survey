@@ -27,17 +27,17 @@ func CreateOptionHandler(service service.IOptionService) fiber.Handler {
 
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
 		err = service.CreateOption(&optionDTO)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in creating the option", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("option created")
-		return response.Success(c, fiber.StatusCreated, "option created", nil)
+		return response.Success(c, fiber.StatusCreated, "option created successfully", nil)
 	}
 }
 
@@ -55,11 +55,11 @@ func GetOptionHandler(service service.IOptionService) fiber.Handler {
 		res, err := service.GetOptionByID(model.OptionID(id))
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in retrieving the option", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("option Found")
-		return response.Success(c, fiber.StatusOK, "option Found", res)
+		return response.Success(c, fiber.StatusOK, "option found successfully", res)
 	}
 }
 
@@ -73,7 +73,7 @@ func GetOptionsByQuestionIDHandler(service service.IOptionService) fiber.Handler
 
 		questions, err := service.GetOptionsByQuestionID(model.QuestionID(questionId))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "failed to fetch options", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		return response.Success(c, fiber.StatusOK, "options retrieved successfully", questions)
@@ -95,12 +95,12 @@ func UpdateOptionHandler(service service.IOptionService) fiber.Handler {
 
 		err = optionDTO.Validate()
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
 		err = service.UpdateOption(model.OptionID(id), &optionDTO)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "error in updating the option", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		return response.Success(c, fiber.StatusOK, "option updated successfully", nil)
@@ -117,9 +117,9 @@ func DeleteOptionHandler(service service.IOptionService) fiber.Handler {
 
 		err = service.DeleteOption(model.OptionID(id))
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "error in deleting the option", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
-		return response.Success(c, fiber.StatusOK, "option deleted", nil)
+		return response.Success(c, fiber.StatusOK, "option deleted successfully", nil)
 	}
 }

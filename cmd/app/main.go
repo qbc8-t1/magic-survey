@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,7 +15,7 @@ import (
 )
 
 func main() {
-	configPath := flag.String("c", "test_config.yml", "Path to the configuration file")
+	configPath := flag.String("c", "config.yml", "Path to the configuration file")
 	flag.Parse()
 
 	conf, err := config.LoadConfig(*configPath)

@@ -1,10 +1,11 @@
 package handlers
 
 import (
+	"strconv"
+
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
 	logger2 "github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"go.uber.org/zap"
-	"strconv"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
@@ -31,11 +32,11 @@ func CreateAnswerHandler(service service.IAnswerService) fiber.Handler {
 		err = service.CreateAnswer(&answerDTO)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in creating the answer", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("answer created")
-		return response.Success(c, fiber.StatusCreated, "answer created", nil)
+		return response.Success(c, fiber.StatusCreated, "answer created successfully", nil)
 	}
 }
 
@@ -52,11 +53,11 @@ func GetAnswerHandler(service service.IAnswerService) fiber.Handler {
 		res, err := service.GetAnswerByID(model.AnswerID(id))
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in retrieving the answer", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("answer Found")
-		return response.Success(c, fiber.StatusOK, "answer Found", res)
+		return response.Success(c, fiber.StatusOK, "answer found successfully", res)
 	}
 }
 
@@ -80,13 +81,13 @@ func UpdateAnswerHandler(service service.IAnswerService) fiber.Handler {
 		err = answerDTO.Validate()
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
 		err = service.UpdateAnswer(model.AnswerID(id), &answerDTO)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in updating the answer", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("answer updated")
@@ -107,10 +108,10 @@ func DeleteAnswerHandler(service service.IAnswerService) fiber.Handler {
 		err = service.DeleteAnswer(model.AnswerID(id))
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in deleting the answer", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("answer deleted")
-		return response.Success(c, fiber.StatusOK, "answer deleted", nil)
+		return response.Success(c, fiber.StatusOK, "answer deleted successfully", nil)
 	}
 }
