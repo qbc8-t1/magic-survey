@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
@@ -37,7 +36,7 @@ func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 
 		questionnaireRawObject, err := createData.ValidateAndMakeObjectForCreate()
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
 		questionnaireRawObject.OwnerID = user.ID
@@ -111,6 +110,8 @@ func QuestionnaireUpdate(qService service.IQuestionnaireService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid body", err)
 		}
 
+		// we need these data to check
+
 		if updateData.CanSubmitFrom == "" {
 			updateData.CanSubmitFrom = questionnaire.CanSubmitFrom.Format(time.DateTime)
 		}
@@ -119,13 +120,13 @@ func QuestionnaireUpdate(qService service.IQuestionnaireService) fiber.Handler {
 			updateData.CanSubmitUntil = questionnaire.CanSubmitUntil.Format(time.DateTime)
 		}
 
-		if updateData.MaxMinutesToResponse == "" {
-			updateData.MaxMinutesToResponse = strconv.Itoa(questionnaire.MaxMinutesToResponse)
+		if updateData.MaxMinutesToResponse == nil {
+			updateData.MaxMinutesToResponse = &questionnaire.MaxMinutesToResponse
 		}
 
 		questionnaireRawObject, err := updateData.ValidateAndMakeObjectForUpdate()
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
 		err = qService.UpdateQuestionaire(model.QuestionnaireID(questionnaireID), &questionnaireRawObject)

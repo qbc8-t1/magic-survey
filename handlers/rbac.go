@@ -61,8 +61,8 @@ func GivePermissions(rbacService service.IRbacService) fiber.Handler {
 			return response.Error(c, fiber.StatusInternalServerError, "failed to give permissions", nil)
 		}
 
-		logger.Info("permissions given to user")
-		return response.Success(c, fiber.StatusCreated, "permissions given to user", nil)
+		logger.Info("permissions have given to user")
+		return response.Success(c, fiber.StatusCreated, "permissions have given to user", nil)
 	}
 }
 

@@ -35,16 +35,18 @@ type UserService struct {
 	repo                  domain_repository.IUserRepository
 	authSecret            string
 	expMin, refreshExpMin uint
+	senderMail            string
 	mailPass              string
 }
 
 // NewUserService creates a new instance of UserService
-func NewUserService(repo domain_repository.IUserRepository, authSecret string, expMin, refreshExpMin uint, mailPass string) *UserService {
+func NewUserService(repo domain_repository.IUserRepository, authSecret string, expMin, refreshExpMin uint, senderMail string, mailPass string) *UserService {
 	return &UserService{
 		repo:          repo,
 		authSecret:    authSecret,
 		expMin:        expMin,
 		refreshExpMin: refreshExpMin,
+		senderMail:    senderMail,
 		mailPass:      mailPass,
 	}
 }
@@ -75,7 +77,7 @@ func (s *UserService) CreateUser(user *model.User) (*model.AuthResponse, error) 
 	}
 
 	twoFACode := utils.GenerateRandomCode()
-	err = mail.SendMail(s.mailPass, user.Email, "Your 2FA Code", fmt.Sprintf("Your 2FA code is: %s", twoFACode))
+	err = mail.SendMail(s.senderMail, s.mailPass, user.Email, "Your 2FA Code", fmt.Sprintf("Your 2FA code is: %s", twoFACode))
 	if err != nil {
 		return nil, err
 	}

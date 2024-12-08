@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -56,8 +55,8 @@ type Questionnaire struct {
 	AnswersVisibleFor          QuestionnairesVisibilityEnum `gorm:"type:questionnaires_visibility_enum"`
 	CreatedAt                  time.Time
 	Owner                      User         `gorm:"foreignKey:OwnerID"`
-	Questions                  []Question   `gorm:"foreignKey:QuestionnaireID"`
-	Submissions                []Submission `gorm:"foreignKey:QuestionnaireID"`
+	Questions                  []Question   `gorm:"foreignKey:QuestionnaireID;constraint:OnDelete:CASCADE;"`
+	Submissions                []Submission `gorm:"foreignKey:QuestionnaireID;constraint:OnDelete:CASCADE;"`
 }
 
 // CreateQuestionnaireDTO represents the data needed to create a new questionnaire
@@ -78,15 +77,15 @@ type CreateQuestionnaireDTO struct {
 type UpdateQuestionnaireDTO struct {
 	CanSubmitFrom              string `json:"can_submit_from,omitempty"`
 	CanSubmitUntil             string `json:"can_submit_until,omitempty"`
-	MaxMinutesToResponse       string `json:"max_minutes_to_response,omitempty"`
-	MaxMinutesToChangeAnswer   string `json:"max_minutes_to_change_answer"`
-	MaxMinutesToGivebackAnswer string `json:"max_minutes_to_giveback_answer,omitempty"`
+	MaxMinutesToResponse       *int   `json:"max_minutes_to_response,omitempty"`
+	MaxMinutesToChangeAnswer   *int   `json:"max_minutes_to_change_answer"`
+	MaxMinutesToGivebackAnswer *int   `json:"max_minutes_to_giveback_answer,omitempty"`
 
-	RandomOrSequential         string `json:"random_or_sequential"`
-	CanBackToPreviousQuestion  string `json:"can_back_to_previous_question"`
-	Title                      string `json:"title"`
-	MaxAllowedSubmissionsCount string `json:"max_allowed_submissions_count"`
-	AnswersVisibleFor          string `json:"answers_visible_for"`
+	RandomOrSequential         *string `json:"random_or_sequential"`
+	CanBackToPreviousQuestion  *bool   `json:"can_back_to_previous_question"`
+	Title                      *string `json:"title"`
+	MaxAllowedSubmissionsCount *int    `json:"max_allowed_submissions_count"`
+	AnswersVisibleFor          *string `json:"answers_visible_for"`
 }
 
 type QuestionnaireResponse struct {
@@ -124,7 +123,6 @@ func ToQuestionnaireResponse(q *Questionnaire) *QuestionnaireResponse {
 		CreatedAt:                  q.CreatedAt,
 	}
 }
-
 
 func (dto CreateQuestionnaireDTO) ValidateAndMakeObjectForCreate() (Questionnaire, error) {
 	questionnaire := new(Questionnaire)
@@ -229,50 +227,39 @@ func (dto UpdateQuestionnaireDTO) ValidateAndMakeObjectForUpdate() (Questionnair
 	}
 
 	// max_minutes_to_response
-	maxMinutesToResponse, err := strconv.Atoi(dto.MaxMinutesToResponse)
-	if err != nil {
-		return *questionnaire, errors.New("max_minutes_to_response is invalid")
+	if dto.MaxMinutesToResponse != nil {
+		if *dto.MaxMinutesToResponse < 1 {
+			return *questionnaire, errors.New("max_minutes_to_response is invalid")
+		}
+		questionnaire.MaxMinutesToResponse = *dto.MaxMinutesToResponse
 	}
-
-	if maxMinutesToResponse < 1 {
-		return *questionnaire, errors.New("max_minutes_to_response is invalid")
-	}
-	questionnaire.MaxMinutesToResponse = maxMinutesToResponse
 
 	if canSubmitUntil.Sub(canSubmitFrom).Minutes() < float64(questionnaire.MaxMinutesToResponse) {
 		return *questionnaire, errors.New("minutes between can_submit_until and can_submit_from must be equal or bigger than max_minutes_to_response")
 	}
 
 	// max_minutes_to_change_answer
-	if len(dto.MaxMinutesToChangeAnswer) > 0 {
-		maxMinutesToChangeAnswer, err := strconv.Atoi(dto.MaxMinutesToChangeAnswer)
-		if err != nil {
+	if dto.MaxMinutesToChangeAnswer != nil {
+		if *dto.MaxMinutesToChangeAnswer < 1 {
 			return *questionnaire, errors.New("max_minutes_to_change_answer is invalid")
 		}
-		if maxMinutesToChangeAnswer < 1 {
-			return *questionnaire, errors.New("max_minutes_to_change_answer is invalid")
-		}
-		questionnaire.MaxMinutesToChangeAnswer = maxMinutesToChangeAnswer
+		questionnaire.MaxMinutesToChangeAnswer = *dto.MaxMinutesToChangeAnswer
 	}
 
 	// max_minutes_to_giveback_answer
-	if len(dto.MaxMinutesToGivebackAnswer) > 0 {
-		maxMinutesToGivebackAnswer, err := strconv.Atoi(dto.MaxMinutesToGivebackAnswer)
-		if err != nil {
+	if dto.MaxMinutesToGivebackAnswer != nil {
+		if *dto.MaxMinutesToGivebackAnswer < 1 {
 			return *questionnaire, errors.New("max_minutes_to_giveback_answer is invalid")
 		}
-		if maxMinutesToGivebackAnswer < 1 {
-			return *questionnaire, errors.New("max_minutes_to_giveback_answer is invalid")
-		}
-		questionnaire.MaxMinutesToGivebackAnswer = maxMinutesToGivebackAnswer
+		questionnaire.MaxMinutesToGivebackAnswer = *dto.MaxMinutesToGivebackAnswer
 	}
 
 	// random_or_sequential
-	if len(dto.RandomOrSequential) > 0 {
+	if dto.RandomOrSequential != nil {
 		switch {
-		case dto.RandomOrSequential == "rand" || dto.RandomOrSequential == "random":
+		case *dto.RandomOrSequential == "rand" || *dto.RandomOrSequential == "random":
 			questionnaire.RandomOrSequential = "random"
-		case dto.RandomOrSequential == "seq" || dto.RandomOrSequential == "sequential":
+		case *dto.RandomOrSequential == "seq" || *dto.RandomOrSequential == "sequential":
 			questionnaire.RandomOrSequential = "sequential"
 		default:
 			return *questionnaire, errors.New("value of random_or_sequential field must be rand or seq")
@@ -280,47 +267,36 @@ func (dto UpdateQuestionnaireDTO) ValidateAndMakeObjectForUpdate() (Questionnair
 	}
 
 	// can_back_to_previous_question
-	if len(dto.CanBackToPreviousQuestion) > 0 {
-		switch {
-		case dto.CanBackToPreviousQuestion == "false" || dto.CanBackToPreviousQuestion == "0":
-			questionnaire.CanBackToPreviousQuestion = false
-		case dto.CanBackToPreviousQuestion == "true" || dto.CanBackToPreviousQuestion == "1":
-			questionnaire.CanBackToPreviousQuestion = true
-		default:
-			return *questionnaire, errors.New("value of can_back_to_previous_question field is invalid")
-		}
+	if dto.CanBackToPreviousQuestion != nil {
+		questionnaire.CanBackToPreviousQuestion = *dto.CanBackToPreviousQuestion
 	}
 
 	// title
-	if len(strings.TrimSpace(dto.Title)) > 0 {
-		if len(strings.TrimSpace(dto.Title)) < 2 {
+	if dto.Title != nil {
+		if len(strings.TrimSpace(*dto.Title)) < 2 {
 			return *questionnaire, errors.New("title is too short")
 		}
-		questionnaire.Title = dto.Title
+		questionnaire.Title = *dto.Title
 	}
 
 	// max_allowed_submissions_count
-	if len(dto.MaxAllowedSubmissionsCount) > 0 {
-		maxAllowedSubmissionsCount, err := strconv.Atoi(dto.MaxAllowedSubmissionsCount)
-		if err != nil {
-			return *questionnaire, errors.New("max_allowed_submissions_count is invalid")
-		}
-		if maxAllowedSubmissionsCount < 1 {
+	if dto.MaxAllowedSubmissionsCount != nil {
+		if *dto.MaxAllowedSubmissionsCount < 1 {
 			return *questionnaire, errors.New("max_allowed_submissions_count must be bigger than 0")
 		}
-		questionnaire.MaxAllowedSubmissionsCount = maxAllowedSubmissionsCount
+		questionnaire.MaxAllowedSubmissionsCount = *dto.MaxAllowedSubmissionsCount
 	}
 
 	// answers_visible_for
-	if len(dto.AnswersVisibleFor) > 0 {
-		switch dto.AnswersVisibleFor {
+	if dto.AnswersVisibleFor != nil {
+		switch *dto.AnswersVisibleFor {
 		case "everybody":
 		case "admin_and_owner":
 		case "nobody":
 		default:
 			return *questionnaire, errors.New("value of answers_visible_for field must be one of these: everybody, admin_and_owner, nobody")
 		}
-		questionnaire.AnswersVisibleFor = QuestionnairesVisibilityEnum(dto.AnswersVisibleFor)
+		questionnaire.AnswersVisibleFor = QuestionnairesVisibilityEnum(*dto.AnswersVisibleFor)
 	}
 
 	return *questionnaire, nil

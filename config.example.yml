@@ -6,6 +6,7 @@ server:
   secret:
   authExpMinute: 30
   authRefreshMinute: 180
+  senderMail: "email@address.com"
   mailPass:
   meiliSearchHost: "http://meilisearch:7700"
 

@@ -26,6 +26,7 @@ type Server struct {
 	Secret            string
 	AuthExpMinute     uint `json:"authExpMin"`
 	AuthRefreshMinute uint `json:"authExpRefreshMin"`
+	SenderMail        string
 	MailPass          string
 }
 

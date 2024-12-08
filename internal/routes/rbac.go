@@ -23,7 +23,7 @@ func RegisterRbacRoutes(router fiber.Router, s *common.Server) {
 	router.Get("/can-do", handlers.CanDo(rbacService))
 	router.Get("/permissions", handlers.GetAllPermissions(rbacService))
 	router.Post("/give-permissions", handlers.GivePermissions(rbacService))
-	router.Post("/revoke-permission", handlers.RevokePermission(rbacService))
+	router.Delete("/revoke-permission", handlers.RevokePermission(rbacService))
 	router.Get("/can-do", handlers.CanDo(rbacService))
 	router.Get("/info", handlers.GetUser(rbacService))
 	router.Get("/roles-with-permissions", handlers.GetUserRolesWithPermissions(rbacService))
