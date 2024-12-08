@@ -19,15 +19,16 @@ type Logger struct {
 }
 
 type Server struct {
-	Host              string
-	Port              string
-	Mode              ServerMode
-	AppVersion        string
-	Secret            string
-	AuthExpMinute     uint `json:"authExpMin"`
-	AuthRefreshMinute uint `json:"authExpRefreshMin"`
-	SenderMail        string
-	MailPass          string
+	Host                        string
+	Port                        string
+	Mode                        ServerMode
+	AppVersion                  string
+	Secret                      string
+	AuthExpMinute               uint `json:"authExpMin"`
+	AuthRefreshMinute           uint `json:"authExpRefreshMin"`
+	MailPass                    string
+	FromMail                    string
+	MaxSecondForChangeBirthdate int
 }
 
 type Postgres struct {
