@@ -259,9 +259,16 @@ func (o *RbacService) MakeFakeUser() (model.User, error) {
 		FirstName:    "ufn" + strconv.Itoa(index),
 		LastName:     "u2ln" + strconv.Itoa(index),
 		Email:        "u2@email" + strconv.Itoa(index),
-		NationalCode: strconv.Itoa(MakeRandomNumber(9999999999)),
+		NationalCode: makeRandomNationalCode(),
 		Password:     "111111111" + strconv.Itoa(index),
 	})
+}
+
+func makeRandomNationalCode() string {
+	min := int64(1000000000)
+	max := int64(9999999999)
+	randomNumber := min + rand.Int63n(max-min+1)
+	return fmt.Sprintf("%d", randomNumber)
 }
 
 func (o *RbacService) MakeFakeQuestionnaire(userID uint) (model.Questionnaire, error) {
