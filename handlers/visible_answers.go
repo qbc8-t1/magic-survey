@@ -147,7 +147,7 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 			return response.Error(c, fiber.StatusForbidden, "you don't have permission to see the answer", nil)
 		case model.QuestionnaireVisibilityNobody:
 			logger.Error("answer is not visible for anyone")
-			return response.Success(c, fiber.StatusOK, "answer is not visible for anyone", nil)
+			return response.Error(c, fiber.StatusForbidden, "answer is not visible for anyone", nil)
 		}
 		return nil
 	}

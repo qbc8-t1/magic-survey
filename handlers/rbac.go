@@ -155,7 +155,7 @@ func GetUser(rbacService service.IRbacService) fiber.Handler {
 		}
 
 		logger.Info("User is fetched: " + user.Email)
-		return c.JSON(user)
+		return c.JSON(model.ToUserResponse(&user))
 	}
 }
 

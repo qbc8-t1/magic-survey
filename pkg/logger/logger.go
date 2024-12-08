@@ -1,10 +1,11 @@
 package logger
 
 import (
-	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"os"
 	"path/filepath"
+
+	"gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/QBC8-Team1/magic-survey/config"
 	"go.uber.org/zap"
@@ -170,6 +171,7 @@ const (
 	LogAnswer        = "answer"
 	LogVisibleAnswer = "visible_answer"
 	LogQuestion      = "question"
+	LogQuestionnaire = "questionnaire"
 	LogOption        = "option"
 	LogRbac          = "rbac"
 	LogSuperAdmin    = "super-admin"

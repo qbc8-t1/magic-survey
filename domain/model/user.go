@@ -97,6 +97,8 @@ type UserResponse struct {
 	Email        string      `json:"email"`
 	NationalCode string      `json:"national_code"`
 	Gender       *GenderEnum `json:"gender"`
+	City         *string     `json:"city"`
+	Birthdate    *string     `json:"birthdate"`
 }
 
 // GetFullName returns the full name of a user
@@ -111,6 +113,9 @@ func ToUserResponse(user *User) *UserResponse {
 		Name:         user.GetFullName(),
 		Email:        user.Email,
 		NationalCode: user.NationalCode,
+		Gender:       user.Gender,
+		City:         &user.City,
+		Birthdate:    &user.Birthdate,
 	}
 }
 

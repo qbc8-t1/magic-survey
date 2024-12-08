@@ -76,7 +76,7 @@ func LimitUserQuestionnaireCount(superadminService service.SuperadminService) fi
 			return response.Error(c, fiber.StatusInternalServerError, "something went wrong with saving limit user questionnaires count", nil)
 		}
 
-		logger.Error("limit questionnaire count successfully")
+		logger.Info("limit questionnaire count successfully")
 		return response.Success(c, fiber.StatusInternalServerError, "questionnaires count limitation saved", nil)
 	}
 }
