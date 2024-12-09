@@ -17,6 +17,9 @@ var (
 	// Creation errors
 	ErrOptionCreateFailed = errors.New("failed to create option")
 
+	// Caption is repetitive
+	ErrOptionRepetitiveCaption = errors.New("option's caption is repetitive")
+
 	// Update errors
 	ErrOptionUpdateFailed = errors.New("failed to update option")
 
@@ -52,7 +55,8 @@ func NewOptionService(optionRepo domain_repository.IOptionRepository, questionRe
 func (s *OptionService) CreateOption(optionDTO *model.CreateOptionDTO) error {
 	// Check if the Question exists
 	questionID := optionDTO.QuestionID
-	_, err := s.questionRepo.GetQuestionByID(questionID)
+
+	question, err := s.questionRepo.GetQuestionByID(questionID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrQuestionNotFound
@@ -62,6 +66,14 @@ func (s *OptionService) CreateOption(optionDTO *model.CreateOptionDTO) error {
 
 	// Convert DTO to model
 	option := model.ToOptionModel(optionDTO)
+
+	// Check whether caption is repetitive or not
+	for _, opt := range *question.Options {
+		if opt.Caption == option.Caption {
+			return ErrOptionRepetitiveCaption
+		}
+	}
+
 	option.CreatedAt = time.Now()
 
 	// Create the option
