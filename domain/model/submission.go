@@ -25,21 +25,21 @@ const (
 
 // Submission represents the submissions table
 type Submission struct {
-	ID                     SubmissionID          `gorm:"primaryKey"`
-	QuestionnaireID        QuestionnaireID       `gorm:"not null"`
-	UserID                 UserId                `gorm:"not null"`
+	ID                     SubmissionID `gorm:"primaryKey"`
+	QuestionnaireID        QuestionnaireID
+	UserID                 UserID
 	Status                 SubmissionsStatusEnum `gorm:"type:submissions_status_enum;default:'answering'"`
 	CurrentQuestionID      *QuestionID           `gorm:"default:null"`
 	LastAnsweredQuestionID *QuestionID           `gorm:"default:null"`
-	CreatedAt              time.Time             `gorm:"autoCreateTime"`
-	UpdatedAt              time.Time             `gorm:"autoUpdateTime"`
-	SubmittedAt            *time.Time            `gorm:"default:null"`
-	SpentMinutes           *int                  `gorm:"default:null"`
-	QuestionOrder          []QuestionID          `gorm:"-" json:"-"`
-	QuestionOrderRaw       []byte                `gorm:"type:jsonb;column:question_order"`
-	Questionnaire          Questionnaire         `gorm:"foreignKey:QuestionnaireID"`
-	User                   User                  `gorm:"foreignKey:UserID"`
-	Answers                []Answer              `gorm:"foreignKey:SubmissionID"`
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+	SubmittedAt            *time.Time    `gorm:"default:null"`
+	SpentMinutes           *int          `gorm:"default:null"`
+	QuestionOrder          []QuestionID  `gorm:"-" json:"-"`
+	QuestionOrderRaw       []byte        `gorm:"type:jsonb;column:question_order"`
+	Questionnaire          Questionnaire `gorm:"foreignKey:QuestionnaireID"`
+	User                   User          `gorm:"foreignKey:UserID"`
+	Answers                []Answer      `gorm:"foreignKey:SubmissionID"`
 }
 
 // Hooks for marshaling/unmarshaling

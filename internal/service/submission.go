@@ -2,12 +2,19 @@ package service
 
 import "errors"
 
+// service errors
 var (
-	ErrSubmissionNotFound  = errors.New("submission not found")
-	ErrInvalidSubmissionID = errors.New("invalid submission ID")
+	// General errors
+	ErrSubmissionNotFound      = errors.New("submission not found")
+	ErrNoActiveSubmissionFound = errors.New("no active submission found")
+	ErrInvalidSubmissionID     = errors.New("invalid submission ID")
 
+	// Creation errors
+	ErrSubmissionCreateFailed = errors.New("failed to create submission")
+
+	// Retrieval errors
 	ErrSubmissionRetrieveFailed = errors.New("failed to retrieve submission")
-	ErrSubmissionCreateFailed   = errors.New("failed to create submission")
-	ErrSubmissionUpdateFailed   = errors.New("faild to update submission")
-	ErrNoActiveSubmissionFound  = errors.New("no active submission found")
+
+	// update errors
+	ErrSubmissionUpdateFailed = errors.New("faild to update submission")
 )

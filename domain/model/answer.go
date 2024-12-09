@@ -18,7 +18,7 @@ var (
 // Answer represents the answers table
 type Answer struct {
 	ID           AnswerID     `gorm:"primaryKey"`
-	UserID       UserId       `gorm:"not null"`
+	UserID       UserID       `gorm:"not null"`
 	SubmissionID SubmissionID `gorm:"not null"`
 	QuestionID   QuestionID   `gorm:"not null"`
 	OptionID     *OptionID    `gorm:"default:null"`
@@ -32,7 +32,7 @@ type Answer struct {
 
 // CreateANswerDTO represents the data needed to create a new answer
 type CreateAnswerDTO struct {
-	UserID       UserId       `json:"user_id"`
+	UserID       UserID       `json:"user_id"`
 	SubmissionID SubmissionID `json:"submission_id"`
 	QuestionID   QuestionID   `json:"question_id"`
 	OptionID     *OptionID    `json:"option_id,omitempty"`
@@ -48,16 +48,11 @@ type UpdateAnswerDTO struct {
 // AnswerResponse represents the answer data returned in API responses
 type AnswerResponse struct {
 	ID           AnswerID     `json:"id"`
-	UserID       UserId       `json:"user_id"`
+	UserID       UserID       `json:"user_id"`
 	SubmissionID SubmissionID `json:"submission_id"`
 	QuestionID   QuestionID   `json:"question_id"`
 	OptionID     *OptionID    `json:"option_id"`
 	AnswerText   *string      `json:"answer_text"`
-	CreatedAt    time.Time    `json:"created_at"`
-	UpdatedAt    time.Time    `json:"updated_at"`
-	Submission   Submission   `json:"submission"`
-	Question     Question     `json:"question"`
-	Option       *Option      `json:"option"`
 }
 
 // ToAnswerResponse maps an Answer model to an AnswerResponseDTO
@@ -69,11 +64,6 @@ func ToAnswerResponse(answer *Answer) *AnswerResponse {
 		QuestionID:   answer.QuestionID,
 		OptionID:     answer.OptionID,
 		AnswerText:   answer.AnswerText,
-		CreatedAt:    answer.CreatedAt,
-		UpdatedAt:    answer.UpdatedAt,
-		Submission:   answer.Submission,
-		Question:     answer.Question,
-		Option:       answer.Option,
 	}
 }
 
@@ -110,11 +100,6 @@ func ToAnswerResponses(answers *[]Answer) *[]AnswerResponse {
 			QuestionID:   answer.QuestionID,
 			OptionID:     answer.OptionID,
 			AnswerText:   answer.AnswerText,
-			CreatedAt:    answer.CreatedAt,
-			UpdatedAt:    answer.UpdatedAt,
-			Submission:   answer.Submission,
-			Question:     answer.Question,
-			Option:       answer.Option,
 		})
 	}
 

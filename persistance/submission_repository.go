@@ -38,7 +38,7 @@ func (r *SubmissionRepository) UpdateSubmission(submission *model.Submission) er
 	return r.db.Save(submission).Error
 }
 
-func (r *SubmissionRepository) GetActiveSubmissionByUserID(userID model.UserId) (*model.Submission, error) {
+func (r *SubmissionRepository) GetActiveSubmissionByUserID(userID model.UserID) (*model.Submission, error) {
 	var submission model.Submission
 	result := r.db.Preload("Questionnaire.Questions.Options").
 		Preload("Answers.Option").

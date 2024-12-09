@@ -58,11 +58,11 @@ func GivePermissions(rbacService service.IRbacService) fiber.Handler {
 		err = rbacService.GivePermissions(uint(giverUser.ID), data.UserID, data.QuestionnaireID, data.Permissions)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to give permissions", err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to give permissions", nil)
 		}
 
-		logger.Info("permissions given to user")
-		return response.Success(c, fiber.StatusCreated, "permissions given to user", nil)
+		logger.Info("permissions have given to user")
+		return response.Success(c, fiber.StatusCreated, "permissions have given to user", nil)
 	}
 }
 
@@ -86,18 +86,17 @@ func RevokePermission(rbacService service.IRbacService) fiber.Handler {
 		err := c.BodyParser(data)
 		if err != nil {
 			logger.Error(err.Error())
-			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+			return response.Error(c, fiber.StatusUnprocessableEntity, "bad data", nil)
 		}
 
 		err = rbacService.RevokePermission(uint(revokerUser.ID), data.UserID, data.QuestionnaireID, data.PermissionName)
 		if err != nil {
 			logger.Error(err.Error())
-			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "bad data", nil)
 		}
 
 		logger.Info("permissions revoked from user")
-		c.Status(fiber.StatusOK).SendString("permissions revoked from user")
-		return nil
+		return response.Success(c, fiber.StatusInternalServerError, "permissions revoked from user", nil)
 	}
 }
 
@@ -120,16 +119,17 @@ func CanDo(rbacService service.IRbacService) fiber.Handler {
 		err := c.BodyParser(data)
 		if err != nil {
 			logger.Error(err.Error())
-			return c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+			return response.Error(c, fiber.StatusUnprocessableEntity, "invalid data entity", nil)
 		}
 
 		has, err := rbacService.CanDo(user.ID, data.QuestionnaireID, data.PermissionName)
 		if err != nil {
 			logger.Error(err.Error())
-			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "internal error", nil)
 		}
+
 		logger.Info("permission checked")
-		return c.JSON(has)
+		return response.Success(c, fiber.StatusOK, "has permission status", has)
 	}
 }
 
@@ -155,7 +155,7 @@ func GetUser(rbacService service.IRbacService) fiber.Handler {
 		}
 
 		logger.Info("User is fetched: " + user.Email)
-		return c.JSON(user)
+		return c.JSON(model.ToUserResponse(&user))
 	}
 }
 
@@ -177,16 +177,16 @@ func GetUserRolesWithPermissions(rbacService service.IRbacService) fiber.Handler
 		roles, err := rbacService.GetUserRolesWithPermissions(user.ID)
 		if err != nil {
 			logger.Error(err.Error())
-			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "something went wrong to get roles and permissions", nil)
 		}
 
 		if len(roles) == 0 {
 			logger.Error("user doesn't have any roles")
-			return c.SendString("user doesn't have any roles")
+			return response.Error(c, fiber.StatusOK, "you don't have any specific roles or permissions", nil)
 		}
 
 		logger.Info("roles given")
-		return c.JSON(roles)
+		return response.Error(c, fiber.StatusOK, "your roles and permissions", roles)
 	}
 }
 

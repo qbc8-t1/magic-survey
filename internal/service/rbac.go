@@ -273,7 +273,7 @@ func makeRandomNationalCode() string {
 
 func (o *RbacService) MakeFakeQuestionnaire(userID uint) (model.Questionnaire, error) {
 	return o.repo.MakeQuestionnaire(model.Questionnaire{
-		OwnerID:                    uint(userID),
+		OwnerID:                    model.UserID(userID),
 		Status:                     model.QuestionnaireStatusOpen,
 		MaxMinutesToResponse:       MakeRandomNumber(100),
 		MaxMinutesToChangeAnswer:   MakeRandomNumber(100),

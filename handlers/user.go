@@ -3,6 +3,8 @@ package handlers
 import (
 	"errors"
 
+	"strconv"
+
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
@@ -11,7 +13,6 @@ import (
 	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
-	"strconv"
 )
 
 /*func ShowUser(userService service.UserService) fiber.Handler {
@@ -122,7 +123,6 @@ func UserCreate(userService service.UserService) fiber.Handler {
 			service.ErrNationalCodeExists,
 			service.ErrWrongEmailPass,
 			service.ErrCodeExpired,
-			service.ErrEmailExists,
 			service.ErrEmailExists,
 		}
 		if err != nil {

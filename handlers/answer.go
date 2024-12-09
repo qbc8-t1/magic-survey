@@ -5,12 +5,12 @@ import (
 
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
 	logger2 "github.com/QBC8-Team1/magic-survey/pkg/logger"
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
-	"github.com/gofiber/fiber/v2"
 )
 
 func CreateAnswerHandler(service service.IAnswerService) fiber.Handler {

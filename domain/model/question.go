@@ -52,7 +52,7 @@ type Question struct {
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	Questionnaire       Questionnaire `gorm:"foreignKey:QuestionnaireID"`
-	Options             *[]Option     `gorm:"foreignKey:QuestionID"`
+	Options             *[]Option     `gorm:"foreignKey:QuestionID;constraint:OnDelete:CASCADE;"`
 }
 
 // CreateQuestionDTO represents the data needed to create a new question
@@ -87,9 +87,6 @@ type QuestionResponse struct {
 	FilePath            *string           `json:"file_path"`
 	DependsOnQuestionID *QuestionID       `json:"depends_on_question_id"`
 	DependsOnOptionID   *OptionID         `json:"depends_on_option_id"`
-	CreatedAt           time.Time         `json:"created_at"`
-	UpdatedAt           time.Time         `json:"updated_at"`
-	Options             *[]Option         `json:"options"`
 }
 
 // ToQuestionResponse maps a Question model to a QuestionResponseDTO
@@ -103,9 +100,6 @@ func ToQuestionResponse(question *Question) *QuestionResponse {
 		FilePath:            question.FilePath,
 		DependsOnQuestionID: question.DependsOnQuestionID,
 		DependsOnOptionID:   question.DependsOnOptionID,
-		CreatedAt:           question.CreatedAt,
-		UpdatedAt:           question.UpdatedAt,
-		Options:             question.Options,
 	}
 }
 
@@ -121,9 +115,6 @@ func ToQuestionResponses(questions *[]Question) *[]QuestionResponse {
 			FilePath:            question.FilePath,
 			DependsOnQuestionID: question.DependsOnQuestionID,
 			DependsOnOptionID:   question.DependsOnOptionID,
-			CreatedAt:           question.CreatedAt,
-			UpdatedAt:           question.UpdatedAt,
-			Options:             question.Options,
 		})
 	}
 

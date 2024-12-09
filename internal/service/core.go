@@ -9,6 +9,7 @@ import (
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 )
 
+// service errors
 var (
 	ErrNoAttemptsLeft          = errors.New("no attempts left for this questionnaire")
 	ErrNoActiveSubmission      = errors.New("no active submission found for user")
@@ -21,15 +22,16 @@ var (
 	ErrDependencyNotSatisfied  = errors.New("cannot answer this question due to unsatisfied dependencies")
 	ErrIncompleteQuestionnaire = errors.New("cannot end submission, not all questions answered")
 	ErrInvalidAnswer           = errors.New("invalid answer format for question type")
+	ErrNextBeforeSubmit        = errors.New("please submit the current question before moving to the next")
 )
 
 // ICoreService defines the main operations of the questionnaire
 type ICoreService interface {
-	Start(questionnaireID model.QuestionnaireID, userID model.UserId) (*model.QuestionResponse, error)
-	Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserId) error
-	Back(userID model.UserId) (*model.QuestionResponse, error)
-	Next(userID model.UserId) (*model.QuestionResponse, error)
-	End(userID model.UserId) error
+	Start(questionnaireID model.QuestionnaireID, userID model.UserID) (*model.QuestionResponse, error)
+	Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserID) error
+	Back(userID model.UserID) (*model.QuestionResponse, error)
+	Next(userID model.UserID) (*model.QuestionResponse, error)
+	End(userID model.UserID) error
 }
 
 type CoreService struct {
@@ -56,7 +58,7 @@ func NewCoreService(
 }
 
 // Start begins a new submission if allowed
-func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.UserId) (*model.QuestionResponse, error) {
+func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.UserID) (*model.QuestionResponse, error) {
 	questionnaire, err := s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
 	if err != nil || questionnaire == nil || questionnaire.Status != model.QuestionnaireStatusOpen {
 		return nil, ErrQuestionnaireNotFound
@@ -81,7 +83,7 @@ func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.
 			// fetch current question
 			q, err := s.questionRepo.GetQuestionByID(*activeSub.CurrentQuestionID)
 			if err != nil {
-				return nil, err
+				return nil, ErrQuestionRetrieveFailed
 			}
 			return model.ToQuestionResponse(q), nil
 		}
@@ -91,7 +93,7 @@ func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.
 	// Create a new submission
 	questions, err := s.questionRepo.GetQuestionsByQuestionnaireID(questionnaireID)
 	if err != nil || len(*questions) == 0 {
-		return nil, errors.New("no questions found for questionnaire")
+		return nil, ErrNoQuestionsInQuestionnaire
 	}
 
 	var questionOrder []model.QuestionID
@@ -116,7 +118,7 @@ func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.
 
 	err = s.submissionRepo.CreateSubmission(newSub)
 	if err != nil {
-		return nil, err
+		return nil, ErrSubmissionCreateFailed
 	}
 
 	// Return first question
@@ -124,7 +126,7 @@ func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.
 	return model.ToQuestionResponse(&firstQuestion), nil
 }
 
-func (s *CoreService) Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserId) error {
+func (s *CoreService) Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserID) error {
 	sub, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
 	if err != nil || sub == nil {
 		return ErrNoActiveSubmission
@@ -187,7 +189,7 @@ func (s *CoreService) Submit(questionID model.QuestionID, answer *model.Answer, 
 	return s.submissionRepo.UpdateSubmission(sub)
 }
 
-func (s *CoreService) Back(userID model.UserId) (*model.QuestionResponse, error) {
+func (s *CoreService) Back(userID model.UserID) (*model.QuestionResponse, error) {
 	sub, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
 	if err != nil || sub == nil {
 		return nil, ErrNoActiveSubmission
@@ -226,12 +228,12 @@ func (s *CoreService) Back(userID model.UserId) (*model.QuestionResponse, error)
 	sub.CurrentQuestionID = &prevQ.ID
 	err = s.submissionRepo.UpdateSubmission(sub)
 	if err != nil {
-		return nil, err
+		return nil, ErrSubmissionUpdateFailed
 	}
 	return model.ToQuestionResponse(prevQ), nil
 }
 
-func (s *CoreService) Next(userID model.UserId) (*model.QuestionResponse, error) {
+func (s *CoreService) Next(userID model.UserID) (*model.QuestionResponse, error) {
 	sub, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
 	if err != nil || sub == nil {
 		return nil, ErrNoActiveSubmission
@@ -255,7 +257,7 @@ func (s *CoreService) Next(userID model.UserId) (*model.QuestionResponse, error)
 	_, err = s.answerRepo.GetAnswerBySubmissionIDAndQuestionID(sub.ID, *sub.CurrentQuestionID)
 	if err != nil {
 		// Current question not answered yet
-		return nil, errors.New("please submit the current question before moving to the next")
+		return nil, ErrNextBeforeSubmit
 	}
 
 	// Find the next question based on QuestionOrder
@@ -272,7 +274,7 @@ func (s *CoreService) Next(userID model.UserId) (*model.QuestionResponse, error)
 		sub.CurrentQuestionID = nil
 		err = s.submissionRepo.UpdateSubmission(sub)
 		if err != nil {
-			return nil, err
+			return nil, ErrSubmissionUpdateFailed
 		}
 		return nil, ErrNoNextQuestion
 	}
@@ -280,20 +282,20 @@ func (s *CoreService) Next(userID model.UserId) (*model.QuestionResponse, error)
 	// Fetch the next question
 	nextQ, err := s.questionRepo.GetQuestionByID(*nextQuestionID)
 	if err != nil {
-		return nil, err
+		return nil, ErrQuestionRetrieveFailed
 	}
 
 	// Update the submission with the new current question
 	sub.CurrentQuestionID = nextQuestionID
 	err = s.submissionRepo.UpdateSubmission(sub)
 	if err != nil {
-		return nil, err
+		return nil, ErrSubmissionUpdateFailed
 	}
 
 	return model.ToQuestionResponse(nextQ), nil
 }
 
-func (s *CoreService) End(userID model.UserId) error {
+func (s *CoreService) End(userID model.UserID) error {
 	sub, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
 	if err != nil || sub == nil {
 		return ErrNoActiveSubmission
@@ -370,7 +372,7 @@ func (s *CoreService) getNextValidQuestion(sub model.Submission) (*model.Questio
 
 	currentQ, err := s.questionRepo.GetQuestionByID(*sub.CurrentQuestionID)
 	if err != nil {
-		return nil, err
+		return nil, ErrQuestionRetrieveFailed
 	}
 
 	// Get next question by order
