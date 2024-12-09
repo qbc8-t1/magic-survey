@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
@@ -9,60 +10,55 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func StartHandler(service service.ICoreService) fiber.Handler {
+// StartHandler starts a questionnaire
+func StartHandler(svc service.ICoreService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Get the user from context
-		user, ok := c.Locals("user").(model.User)
-		if !ok {
-			return response.Error(c, fiber.StatusUnauthorized, "Unauthorized", nil)
-		}
-
-		questionnaireIDStr := c.Params("questionnaire_id")
-		if questionnaireIDStr == "" {
-			return response.Error(c, fiber.StatusBadRequest, "questionnaire_id is required", nil)
-		}
-
-		// Convert to model.QuestionnaireID and add proper error handling if it's not a valid uint
-		questionnaireID, err := strconv.Atoi(questionnaireIDStr)
+		user := c.Locals("user").(model.User)
+		qidStr := c.Params("questionnaire_id")
+		qid, err := strconv.ParseUint(qidStr, 10, 64)
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid questionnaire_id", nil)
 		}
-
-		questionResponse, err := service.Start(model.QuestionnaireID(uint(questionnaireID)), model.UserId(user.ID))
+		question, err := svc.Start(model.QuestionnaireID(qid), model.UserId(user.ID))
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
-
-		return response.Success(c, fiber.StatusOK, "questionnaire started", questionResponse)
+		return response.Success(c, fiber.StatusOK, "started", question)
 	}
 }
 
-func SubmitHandler(service service.ICoreService) fiber.Handler {
+func SubmitHandler(svc service.ICoreService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Get the user from context
+		// Extract user from context
 		user, ok := c.Locals("user").(model.User)
-		if !ok {
-			return response.Error(c, fiber.StatusUnauthorized, "Unauthorized", nil)
+		if !ok || user.ID <= 0 {
+			return response.Error(c, fiber.StatusBadRequest, "userID is required and must be greater than 0", nil)
 		}
 
-		questionIDStr := c.Params("question_id")
-		if questionIDStr == "" {
-			return response.Error(c, fiber.StatusBadRequest, "question_id is required", nil)
-		}
-
-		questionID, err := strconv.Atoi(questionIDStr)
+		// Parse questionID from params
+		qidStr := c.Params("question_id")
+		qid, err := strconv.ParseUint(qidStr, 10, 64)
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid question_id", nil)
 		}
 
-		var ans model.Answer
-
-		if err := c.BodyParser(&ans); err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "invalid body", nil)
+		// Parse the answer DTO from the request body
+		var dto model.CreateAnswerDTO
+		if err := c.BodyParser(&dto); err != nil {
+			return response.Error(c, fiber.StatusBadRequest, "invalid request body", nil)
 		}
 
-		// Call service method
-		err = service.Submit(model.QuestionID(uint(questionID)), &ans, model.UserId(user.ID))
+		// Validate the DTO
+		err = dto.Validate()
+		if err != nil {
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+
+		// Map DTO to Answer model
+		answer := model.ToAnswerModel(&dto)
+
+		// Call the service to submit the answer
+		err = svc.Submit(model.QuestionID(qid), answer, model.UserId(user.ID))
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
@@ -71,55 +67,44 @@ func SubmitHandler(service service.ICoreService) fiber.Handler {
 	}
 }
 
-func BackHandler(service service.ICoreService) fiber.Handler {
+// BackHandler moves user to the previous question
+func BackHandler(svc service.ICoreService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Get the user from context
-		user, ok := c.Locals("user").(model.User)
-		if !ok {
-			return response.Error(c, fiber.StatusUnauthorized, "Unauthorized", nil)
-		}
-
-		// Call the service method
-		questionResponse, err := service.Back(model.UserId(user.ID))
+		user := c.Locals("user").(model.User)
+		q, err := svc.Back(model.UserId(user.ID))
 		if err != nil {
+			if errors.Is(err, service.ErrCannotGoBack) {
+				return response.Error(c, fiber.StatusForbidden, err.Error(), nil)
+			}
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
-
-		return response.Success(c, fiber.StatusOK, "previous question", questionResponse)
+		return response.Success(c, fiber.StatusOK, "previous question", q)
 	}
 }
 
-func NextHandler(service service.ICoreService) fiber.Handler {
+// NextHandler moves user to the next question
+func NextHandler(svc service.ICoreService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Get the user from context
-		user, ok := c.Locals("user").(model.User)
-		if !ok {
-			return response.Error(c, fiber.StatusUnauthorized, "Unauthorized", nil)
-		}
-
-		// Call the service method
-		questionResponse, err := service.Next(model.UserId(user.ID))
+		user := c.Locals("user").(model.User)
+		q, err := svc.Next(model.UserId(user.ID))
 		if err != nil {
+			if errors.Is(err, service.ErrNoNextQuestion) {
+				return response.Error(c, fiber.StatusNotFound, "no more questions left", nil)
+			}
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
-
-		return response.Success(c, fiber.StatusOK, "next question", questionResponse)
+		return response.Success(c, fiber.StatusOK, "next question", q)
 	}
 }
 
-func EndHandler(service service.ICoreService) fiber.Handler {
+// EndHandler finalizes the questionnaire submission
+func EndHandler(svc service.ICoreService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Get the user from context
-		user, ok := c.Locals("user").(model.User)
-		if !ok {
-			return response.Error(c, fiber.StatusUnauthorized, "Unauthorized", nil)
-		}
-
-		err := service.End(model.UserId(user.ID))
+		user := c.Locals("user").(model.User)
+		err := svc.End(model.UserId(user.ID))
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
-
 		return response.Success(c, fiber.StatusOK, "questionnaire ended", nil)
 	}
 }

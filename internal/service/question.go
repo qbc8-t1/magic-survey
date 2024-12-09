@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
@@ -70,7 +69,6 @@ func (s *QuestionService) CreateQuestion(questionDTO *model.CreateQuestionDTO) e
 
 	// Create the question
 	err = s.questionRepo.CreateQuestion(question)
-	fmt.Println(question)
 	if err != nil {
 		return ErrQuestionCreateFailed
 	}

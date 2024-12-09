@@ -62,6 +62,7 @@ func (s *OptionService) CreateOption(optionDTO *model.CreateOptionDTO) error {
 
 	// Convert DTO to model
 	option := model.ToOptionModel(optionDTO)
+
 	option.CreatedAt = time.Now()
 
 	// Create the option

@@ -143,17 +143,6 @@ func UpdateAnswerModel(answer *Answer, answerDTO *UpdateAnswerDTO) {
 
 // ValidateCreateAnswerDTO validates the fields in CreateAnswerDTO
 func (dto *CreateAnswerDTO) Validate() error {
-	// Validate required fields
-	if dto.UserID == 0 {
-		return ErrInvalidUserIDCreate
-	}
-	if dto.SubmissionID == 0 {
-		return ErrInvalidSubmissionIDCreate
-	}
-	if dto.QuestionID == 0 {
-		return ErrInvalidQuestionIDCreate
-	}
-
 	// Validate that either OptionID or AnswerText is provided, but not both
 	if (dto.OptionID != nil && *dto.OptionID != 0) && (dto.AnswerText != nil && strings.TrimSpace(*dto.AnswerText) != "") {
 		return ErrConflictingFields

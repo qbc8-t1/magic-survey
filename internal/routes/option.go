@@ -18,9 +18,9 @@ func RegisterOptionRoutes(api fiber.Router, s *common.Server) {
 
 	withAuthMiddlewalre := middleware.WithAuthMiddleware(s.DB, s.Cfg.Secret)
 
-	api.Get("/:id", withAuthMiddlewalre, handlers.GetOptionHandler(optionService))
-	api.Get("/:question_id", withAuthMiddlewalre, handlers.GetOptionsByQuestionIDHandler(optionService))
 	api.Post("", withAuthMiddlewalre, handlers.CreateOptionHandler(optionService))
+	api.Get("/:id", withAuthMiddlewalre, handlers.GetOptionHandler(optionService))
 	api.Put("/:id", withAuthMiddlewalre, handlers.UpdateOptionHandler(optionService))
 	api.Delete("/:id", withAuthMiddlewalre, handlers.DeleteOptionHandler(optionService))
+	api.Get("/question/:question_id", withAuthMiddlewalre, handlers.GetOptionsByQuestionIDHandler(optionService))
 }
