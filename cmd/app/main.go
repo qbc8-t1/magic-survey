@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/QBC8-Team1/magic-survey/config"
-	"github.com/QBC8-Team1/magic-survey/internal/server"
 	"log"
+
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/QBC8-Team1/magic-survey/config"
+	"github.com/QBC8-Team1/magic-survey/internal/server"
 )
 
 func main() {

@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"fmt"
+
 	"github.com/QBC8-Team1/magic-survey/config"
 	"github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"github.com/gofiber/fiber/v2"

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrInvalidUserID = errors.New("userID is required and must be greater than 0")
+	ErrInvalidUserIDCreate = errors.New("userID is required and must be greater than 0")
 )
 
 type GenderEnum string
@@ -23,17 +23,16 @@ const (
 
 // User represents the database model for a user
 type User struct {
-	ID           uint        `gorm:"primaryKey"`
-	FirstName    string      `gorm:"size:255"`
-	LastName     string      `gorm:"size:255"`
-	Birthdate    string      `gorm:"size:255"`
-	City         string      `gorm:"size:255"`
-	NationalCode string      `gorm:"size:10;unique"`
-	Gender       *GenderEnum `gorm:"type:gender_enum"`
-	Email        string      `gorm:"unique;size:255"`
-	Password     string      `gorm:"not null"`
-	IsActive     bool        `gorm:"not null"`
-	//WalletBalance          int64
+	ID                     uint        `gorm:"primaryKey"`
+	FirstName              string      `gorm:"size:255"`
+	LastName               string      `gorm:"size:255"`
+	Birthdate              string      `gorm:"size:255"`
+	City                   string      `gorm:"size:255"`
+	NationalCode           string      `gorm:"size:10;unique"`
+	Gender                 *GenderEnum `gorm:"type:gender_enum"`
+	Email                  string      `gorm:"unique;size:255"`
+	Password               string      `gorm:"not null"`
+	IsActive               bool        `gorm:"not null"`
 	WalletBalance          int64
 	MaxQuestionnairesCount int `gorm:"null"`
 	CreatedAt              time.Time

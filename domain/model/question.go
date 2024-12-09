@@ -6,16 +6,28 @@ import (
 	"time"
 )
 
+// validation errors
 var (
-	ErrInvalidQuestionID              = errors.New("questionID is required and must be greater than 0")
-	ErrInvalidTitle                   = errors.New("title is required and cannot be empty")
-	ErrInvalidType                    = errors.New("type is required and must be 'multioption' or 'descriptive'")
-	ErrInvalidOrder                   = errors.New("order is required and must be greater than 0")
-	ErrInvalidFilePath                = errors.New("filePath cannot be empty if provided")
-	ErrInvalidDependsOnQuestionID     = errors.New("dependsOnQuestionID must be greater than 0 if provided")
-	ErrInvalidDependsOnOptionID       = errors.New("dependsOnOptionID must be greater than 0 if provided")
-	ErrDependsOnOptionWithoutQuestion = errors.New("dependsOnQuestionID must be provided when DependsOnOptionID is provided")
-	ErrAtLeatOneFieldNeededQuestion   = errors.New("at least one field must be provided for updating question")
+	// create
+	ErrInvalidQuestionIDCreate              = errors.New("questionID is required and must be greater than 0")
+	ErrInvalidTitleCreate                   = errors.New("title is required and cannot be empty")
+	ErrInvalidTypeCreate                    = errors.New("type is required and must be multioption or descriptive")
+	ErrInvalidOrderCreate                   = errors.New("order is required and must be greater than 0")
+	ErrInvalidFilePathCreate                = errors.New("filePath cannot be empty if provided")
+	ErrInvalidDependsOnQuestionIDCreate     = errors.New("dependsOnQuestionID must be greater than 0 if provided")
+	ErrInvalidDependsOnOptionIDCreate       = errors.New("dependsOnOptionID must be greater than 0 if provided")
+	ErrDependsOnOptionWithoutQuestionCreate = errors.New("dependsOnQuestionID must be provided when DependsOnOptionID is provided")
+
+	// update
+	ErrAtLeatOneFieldNeededQuestion         = errors.New("at least one field must be provided for updating question")
+	ErrInvalidQuestionIDUpdate              = errors.New("questionID must be greater than 0")
+	ErrInvalidTitleUpdate                   = errors.New("title cannot be empty")
+	ErrInvalidTypeUpdate                    = errors.New("type must be multioption or descriptive")
+	ErrInvalidOrderUpdate                   = errors.New("order must be greater than 0")
+	ErrInvalidFilePathUpdate                = errors.New("filePath cannot be empty")
+	ErrInvalidDependsOnQuestionIDUpdate     = errors.New("dependsOnQuestionID must be greater than 0")
+	ErrInvalidDependsOnOptionIDUpdate       = errors.New("dependsOnOptionID must be greater than 0")
+	ErrDependsOnOptionWithoutQuestionUpdate = errors.New("dependsOnQuestionID must be provided when DependsOnOptionID is provided")
 )
 
 // QuestionsTypeEnum represents the questions_type_enum type in Postgres
@@ -31,12 +43,12 @@ const (
 type Question struct {
 	ID                  QuestionID        `gorm:"primaryKey"`
 	Title               string            `gorm:"size:255;not null"`
-	Type                QuestionsTypeEnum `gorm:"type:questions_type_enum;not null"`
+	Type                QuestionsTypeEnum `gorm:"not null"`
 	QuestionnaireID     QuestionnaireID   `gorm:"not null"`
 	Order               int               `gorm:"not null"`
 	FilePath            *string           `gorm:"size:255;default:null"`
-	DependsOnQuestionID *uint             `gorm:"default:null"`
-	DependsOnOptionID   *uint             `gorm:"default:null"`
+	DependsOnQuestionID *QuestionID       `gorm:"default:null"`
+	DependsOnOptionID   *OptionID         `gorm:"default:null"`
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	Questionnaire       Questionnaire `gorm:"foreignKey:QuestionnaireID"`
@@ -50,8 +62,8 @@ type CreateQuestionDTO struct {
 	QuestionnaireID     QuestionnaireID   `json:"questionnaire_id" validate:"required"`
 	Order               int               `json:"order" validate:"required"`
 	FilePath            *string           `json:"file_path,omitempty" validate:"omitempty"`
-	DependsOnQuestionID *uint             `json:"depends_on_question_id,omitempty" validate:"omitempty"`
-	DependsOnOptionID   *uint             `json:"depends_on_option_id,omitempty" validate:"omitempty"`
+	DependsOnQuestionID *QuestionID       `json:"depends_on_question_id,omitempty" validate:"omitempty"`
+	DependsOnOptionID   *OptionID         `json:"depends_on_option_id,omitempty" validate:"omitempty"`
 }
 
 // UpdateQuestionDTO represents the data needed to update an existing question
@@ -61,8 +73,8 @@ type UpdateQuestionDTO struct {
 	QuestionnaireID     *QuestionnaireID   `json:"questionnaire_id,omitempty"`
 	Order               *int               `json:"order,omitempty"`
 	FilePath            *string            `json:"file_path,omitempty"`
-	DependsOnQuestionID *uint              `json:"depends_on_question_id,omitempty"`
-	DependsOnOptionID   *uint              `json:"depends_on_option_id,omitempty"`
+	DependsOnQuestionID *QuestionID        `json:"depends_on_question_id,omitempty"`
+	DependsOnOptionID   *OptionID          `json:"depends_on_option_id,omitempty"`
 }
 
 // QuestionResponse represents the question data returned in API responses
@@ -73,17 +85,14 @@ type QuestionResponse struct {
 	QuestionnaireID     QuestionnaireID   `json:"questionnaire_id"`
 	Order               int               `json:"order"`
 	FilePath            *string           `json:"file_path"`
-	DependsOnQuestionID *uint             `json:"depends_on_question_id"`
-	DependsOnOptionID   *uint             `json:"depends_on_option_id"`
-	CreatedAt           time.Time         `json:"created_at"`
-	UpdatedAt           time.Time         `json:"updated_at"`
-	Options             *[]Option         `json:"options"`
+	DependsOnQuestionID *QuestionID       `json:"depends_on_question_id"`
+	DependsOnOptionID   *OptionID         `json:"depends_on_option_id"`
 }
 
 // ToQuestionResponse maps a Question model to a QuestionResponseDTO
 func ToQuestionResponse(question *Question) *QuestionResponse {
 	return &QuestionResponse{
-		ID:                  QuestionID(question.ID),
+		ID:                  question.ID,
 		Title:               question.Title,
 		Type:                question.Type,
 		QuestionnaireID:     question.QuestionnaireID,
@@ -91,9 +100,6 @@ func ToQuestionResponse(question *Question) *QuestionResponse {
 		FilePath:            question.FilePath,
 		DependsOnQuestionID: question.DependsOnQuestionID,
 		DependsOnOptionID:   question.DependsOnOptionID,
-		CreatedAt:           question.CreatedAt,
-		UpdatedAt:           question.UpdatedAt,
-		Options:             question.Options,
 	}
 }
 
@@ -101,7 +107,7 @@ func ToQuestionResponses(questions *[]Question) *[]QuestionResponse {
 	questionResponses := make([]QuestionResponse, 0)
 	for _, question := range *questions {
 		questionResponses = append(questionResponses, QuestionResponse{
-			ID:                  QuestionID(question.ID),
+			ID:                  question.ID,
 			Title:               question.Title,
 			Type:                question.Type,
 			QuestionnaireID:     question.QuestionnaireID,
@@ -109,9 +115,6 @@ func ToQuestionResponses(questions *[]Question) *[]QuestionResponse {
 			FilePath:            question.FilePath,
 			DependsOnQuestionID: question.DependsOnQuestionID,
 			DependsOnOptionID:   question.DependsOnOptionID,
-			CreatedAt:           question.CreatedAt,
-			UpdatedAt:           question.UpdatedAt,
-			Options:             question.Options,
 		})
 	}
 
@@ -160,33 +163,33 @@ func UpdateQuestionModel(question *Question, questionDTO *UpdateQuestionDTO) {
 func (dto *CreateQuestionDTO) Validate() error {
 	// Validate required fields
 	if strings.TrimSpace(dto.Title) == "" {
-		return ErrInvalidTitle
+		return ErrInvalidTitleCreate
 	}
 	// Validate Type
 	if dto.Type != QuestionsTypeMultioption && dto.Type != QuestionsTypeDescriptive {
-		return ErrInvalidType
+		return ErrInvalidTypeCreate
 	}
 	if dto.QuestionnaireID == 0 {
-		return ErrInvalidQuestionnaireID
+		return ErrInvalidQuestionnaireIDCreate
 	}
 	if dto.Order <= 0 {
-		return ErrInvalidOrder
+		return ErrInvalidOrderCreate
 	}
 	// Validate FilePath (optional but cannot be empty if provided)
 	if dto.FilePath != nil && strings.TrimSpace(*dto.FilePath) == "" {
-		return ErrInvalidFilePath
+		return ErrInvalidFilePathCreate
 	}
 	// Validate DependsOnQuestionID (optional but must be > 0 if provided)
 	if dto.DependsOnQuestionID != nil && *dto.DependsOnQuestionID == 0 {
-		return ErrInvalidDependsOnQuestionID
+		return ErrInvalidDependsOnQuestionIDCreate
 	}
 	// Validate DependsOnOptionID (optional but must be > 0 if provided)
 	if dto.DependsOnOptionID != nil && *dto.DependsOnOptionID == 0 {
-		return ErrInvalidDependsOnOptionID
+		return ErrInvalidDependsOnOptionIDCreate
 	}
 	// If DependsOnOptionID is provided, DependsOnQuestionID must also be provided
 	if dto.DependsOnOptionID != nil && dto.DependsOnQuestionID == nil {
-		return ErrDependsOnOptionWithoutQuestion
+		return ErrDependsOnOptionWithoutQuestionCreate
 	}
 	// Removed options validation
 	return nil
@@ -198,37 +201,37 @@ func (dto *UpdateQuestionDTO) Validate() error {
 	}
 	// Validate Title (if provided)
 	if dto.Title != nil && strings.TrimSpace(*dto.Title) == "" {
-		return ErrInvalidTitle
+		return ErrInvalidTitleUpdate
 	}
 	// Validate Type (if provided)
 	if dto.Type != nil {
 		if *dto.Type != QuestionsTypeMultioption && *dto.Type != QuestionsTypeDescriptive {
-			return ErrInvalidType
+			return ErrInvalidTypeUpdate
 		}
 	}
 	// Validate QuestionnaireID (if provided)
 	if dto.QuestionnaireID != nil && *dto.QuestionnaireID == 0 {
-		return ErrInvalidQuestionnaireID
+		return ErrInvalidQuestionnaireIDUpdate
 	}
 	// Validate Order (if provided)
 	if dto.Order != nil && *dto.Order <= 0 {
-		return ErrInvalidOrder
+		return ErrInvalidOrderUpdate
 	}
 	// Validate FilePath (if provided)
 	if dto.FilePath != nil && strings.TrimSpace(*dto.FilePath) == "" {
-		return ErrInvalidFilePath
+		return ErrInvalidFilePathUpdate
 	}
 	// Validate DependsOnQuestionID (if provided)
 	if dto.DependsOnQuestionID != nil && *dto.DependsOnQuestionID == 0 {
-		return ErrInvalidDependsOnQuestionID
+		return ErrInvalidDependsOnQuestionIDUpdate
 	}
 	// Validate DependsOnOptionID (if provided)
 	if dto.DependsOnOptionID != nil && *dto.DependsOnOptionID == 0 {
-		return ErrInvalidDependsOnOptionID
+		return ErrInvalidDependsOnOptionIDUpdate
 	}
 	// If DependsOnOptionID is provided, DependsOnQuestionID must also be provided
 	if dto.DependsOnOptionID != nil && dto.DependsOnQuestionID == nil {
-		return ErrDependsOnOptionWithoutQuestion
+		return ErrDependsOnOptionWithoutQuestionUpdate
 	}
 	// Removed options validation
 	return nil
