@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	ErrInvalidUserID                = errors.New("invalid user ID")
 	ErrUserNotFound                 = errors.New("user not found")
 	ErrUserOnCreate                 = errors.New("cant Create the user")
 	ErrUserOnUpdate                 = errors.New("cant Update the user")

@@ -7,8 +7,11 @@ import (
 )
 
 var (
-	ErrInvalidQuestionnaireID  = errors.New("questionnaireID is required and must be greater than 0")
-	ErrorQuestionnaireNotFound = errors.New("questionnaire not found")
+	// create
+	ErrInvalidQuestionnaireIDCreate = errors.New("questionnaireID is required and must be greater than 0")
+
+	// update
+	ErrInvalidQuestionnaireIDUpdate = errors.New("questionnaireID must be greater than 0")
 )
 
 // QuestionnairesStatusEnum represents the questionnaires_status_enum type in Postgres
@@ -41,7 +44,7 @@ const (
 // Questionnaire represents the questionnaires table
 type Questionnaire struct {
 	ID                         uint `gorm:"primaryKey"`
-	OwnerID                    uint
+	OwnerID                    UserID
 	Status                     QuestionnairesStatusEnum `gorm:"type:questionnaires_status_enum;default:'open'"`
 	CanSubmitFrom              time.Time
 	CanSubmitUntil             time.Time
@@ -61,12 +64,11 @@ type Questionnaire struct {
 
 // CreateQuestionnaireDTO represents the data needed to create a new questionnaire
 type CreateQuestionnaireDTO struct {
-	CanSubmitFrom              string `json:"can_submit_from,omitempty"`
-	CanSubmitUntil             string `json:"can_submit_until,omitempty"`
-	MaxMinutesToResponse       int    `json:"max_minutes_to_response,omitempty"`
-	MaxMinutesToChangeAnswer   int    `json:"max_minutes_to_change_answer"`
-	MaxMinutesToGivebackAnswer int    `json:"max_minutes_to_giveback_answer,omitempty"`
-
+	CanSubmitFrom              string                       `json:"can_submit_from,omitempty"`
+	CanSubmitUntil             string                       `json:"can_submit_until,omitempty"`
+	MaxMinutesToResponse       int                          `json:"max_minutes_to_response,omitempty"`
+	MaxMinutesToChangeAnswer   int                          `json:"max_minutes_to_change_answer"`
+	MaxMinutesToGivebackAnswer int                          `json:"max_minutes_to_giveback_answer,omitempty"`
 	RandomOrSequential         QuestionnairesSequenceEnum   `json:"random_or_sequential"`
 	CanBackToPreviousQuestion  bool                         `json:"can_back_to_previous_question"`
 	Title                      string                       `json:"title"`
@@ -75,12 +77,11 @@ type CreateQuestionnaireDTO struct {
 }
 
 type UpdateQuestionnaireDTO struct {
-	CanSubmitFrom              string `json:"can_submit_from,omitempty"`
-	CanSubmitUntil             string `json:"can_submit_until,omitempty"`
-	MaxMinutesToResponse       *int   `json:"max_minutes_to_response,omitempty"`
-	MaxMinutesToChangeAnswer   *int   `json:"max_minutes_to_change_answer"`
-	MaxMinutesToGivebackAnswer *int   `json:"max_minutes_to_giveback_answer,omitempty"`
-
+	CanSubmitFrom              string  `json:"can_submit_from,omitempty"`
+	CanSubmitUntil             string  `json:"can_submit_until,omitempty"`
+	MaxMinutesToResponse       *int    `json:"max_minutes_to_response,omitempty"`
+	MaxMinutesToChangeAnswer   *int    `json:"max_minutes_to_change_answer"`
+	MaxMinutesToGivebackAnswer *int    `json:"max_minutes_to_giveback_answer,omitempty"`
 	RandomOrSequential         *string `json:"random_or_sequential"`
 	CanBackToPreviousQuestion  *bool   `json:"can_back_to_previous_question"`
 	Title                      *string `json:"title"`
@@ -90,7 +91,7 @@ type UpdateQuestionnaireDTO struct {
 
 type QuestionnaireResponse struct {
 	ID                         uint `gorm:"primaryKey"`
-	OwnerID                    uint
+	OwnerID                    UserID
 	Status                     QuestionnairesStatusEnum `gorm:"type:questionnaires_status_enum;default:'open'"`
 	CanSubmitFrom              time.Time
 	CanSubmitUntil             time.Time
@@ -108,7 +109,7 @@ type QuestionnaireResponse struct {
 func ToQuestionnaireResponse(q *Questionnaire) *QuestionnaireResponse {
 	return &QuestionnaireResponse{
 		ID:                         q.ID,
-		OwnerID:                    q.OwnerID,
+		OwnerID:                    UserID(q.OwnerID),
 		Status:                     q.Status,
 		CanSubmitFrom:              q.CanSubmitFrom,
 		CanSubmitUntil:             q.CanSubmitUntil,
@@ -120,7 +121,6 @@ func ToQuestionnaireResponse(q *Questionnaire) *QuestionnaireResponse {
 		Title:                      q.Title,
 		MaxAllowedSubmissionsCount: q.MaxAllowedSubmissionsCount,
 		AnswersVisibleFor:          q.AnswersVisibleFor,
-		CreatedAt:                  q.CreatedAt,
 	}
 }
 

@@ -13,7 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func CreateQuestionHandler(service service.IQuestionService) fiber.Handler {
+func CreateQuestionHandler(svc service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestion))
 
@@ -27,21 +27,21 @@ func CreateQuestionHandler(service service.IQuestionService) fiber.Handler {
 
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
-		err = service.CreateQuestion(&questionDTO)
+		err = svc.CreateQuestion(&questionDTO)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in creating the question", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("question created")
-		return response.Success(c, fiber.StatusCreated, "question created", nil)
+		return response.Success(c, fiber.StatusCreated, "question created successfully", nil)
 	}
 }
 
-func GetQuestionHandler(service service.IQuestionService) fiber.Handler {
+func GetQuestionHandler(svc service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestion))
 
@@ -52,18 +52,18 @@ func GetQuestionHandler(service service.IQuestionService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
-		res, err := service.GetQuestionByID(model.QuestionID(id))
+		res, err := svc.GetQuestionByID(model.QuestionID(id))
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in retrieving the question", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("question Found")
-		return response.Success(c, fiber.StatusOK, "question Found", res)
+		return response.Success(c, fiber.StatusOK, "question found successfully", res)
 	}
 }
 
-func GetQuestionsByQuestionnaireIDHandler(service service.IQuestionService) fiber.Handler {
+func GetQuestionsByQuestionnaireIDHandler(svc service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestion))
 
@@ -74,10 +74,10 @@ func GetQuestionsByQuestionnaireIDHandler(service service.IQuestionService) fibe
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
-		questions, err := service.GetQuestionsByQuestionnaireID(model.QuestionnaireID(questionnaireId))
+		questions, err := svc.GetQuestionsByQuestionnaireID(model.QuestionnaireID(questionnaireId))
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to fetch questions", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("questions retrieved")
@@ -85,7 +85,7 @@ func GetQuestionsByQuestionnaireIDHandler(service service.IQuestionService) fibe
 	}
 }
 
-func UpdateQuestionHandler(service service.IQuestionService) fiber.Handler {
+func UpdateQuestionHandler(svc service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestion))
 
@@ -105,13 +105,13 @@ func UpdateQuestionHandler(service service.IQuestionService) fiber.Handler {
 		err = questionDTO.Validate()
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
-		err = service.UpdateQuestion(model.QuestionID(id), &questionDTO)
+		err = svc.UpdateQuestion(model.QuestionID(id), &questionDTO)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in updating the question", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("question updated")
@@ -119,7 +119,7 @@ func UpdateQuestionHandler(service service.IQuestionService) fiber.Handler {
 	}
 }
 
-func DeleteQuestionHandler(service service.IQuestionService) fiber.Handler {
+func DeleteQuestionHandler(svc service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestion))
 
@@ -130,13 +130,13 @@ func DeleteQuestionHandler(service service.IQuestionService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
-		err = service.DeleteQuestion(model.QuestionID(id))
+		err = svc.DeleteQuestion(model.QuestionID(id))
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "error in deleting the question", nil)
+			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("question deleted")
-		return response.Success(c, fiber.StatusOK, "question deleted", nil)
+		return response.Success(c, fiber.StatusOK, "question deleted successfully", nil)
 	}
 }

@@ -9,13 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
+// service errors
 var (
 	// General errors
-	ErrAnswerNotFound      = errors.New("answer not found")
-	ErrSubmissionNotFound  = errors.New("submission not found")
-	ErrInvalidAnswerID     = errors.New("invalid answer ID")
-	ErrInvalidUserID       = errors.New("invalid user ID")
-	ErrInvalidSubmissionID = errors.New("invalid submission ID")
+	ErrAnswerNotFound  = errors.New("answer not found")
+	ErrInvalidAnswerID = errors.New("invalid answer ID")
 
 	// Creation errors
 	ErrAnswerCreateFailed = errors.New("failed to create answer")

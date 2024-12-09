@@ -40,7 +40,6 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 
 		// get questionnaire object by id
 		questionnaire, err := questionnaireService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
-
 		if err != nil {
 			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, "failed to get questionnaireID", nil)
@@ -55,7 +54,7 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 		}
 
 		// check if question is for the questionnaire
-		is, err := questionService.IsQuestionForQuestionnaire(data.QuestionID, questionnaire.ID)
+		is, err := questionService.IsQuestionForQuestionnaire(model.QuestionID(data.QuestionID), model.QuestionnaireID(questionnaire.ID))
 		if err != nil {
 			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, "failed to get question", nil)
@@ -82,7 +81,7 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 		case model.QuestionnaireVisibilityEverybody:
 			// check if logged in user is superadmin or the owner of the questionnaire
 			isSuperadmin, _ := rbacService.CanDoAsSuperadmin(loggedInUser.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
-			if questionnaire.OwnerID == loggedInUser.ID || isSuperadmin {
+			if questionnaire.OwnerID == model.UserID(loggedInUser.ID) || isSuperadmin {
 				answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserID(data.UserID))
 				if err != nil {
 					logger.Error(err.Error())
@@ -133,7 +132,7 @@ func GetAnotherUserAnswer(answerService service.IAnswerService, rbacService serv
 		case model.QuestionnaireVisibilityAdminAndOwner:
 			isSuperadmin, _ := rbacService.CanDoAsSuperadmin(loggedInUser.ID, model.PERMISSION_SEE_SELECTED_USERS_ANSWERS)
 
-			if questionnaire.OwnerID == loggedInUser.ID || isSuperadmin {
+			if questionnaire.OwnerID == model.UserID(loggedInUser.ID) || isSuperadmin {
 				answers, err := answerService.GetUserAnswers(model.QuestionID(data.QuestionID), model.UserID(data.UserID))
 				if err != nil {
 					logger.Error(err.Error())

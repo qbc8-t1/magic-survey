@@ -9,11 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
+// service errors
 var (
 	// General errors
-	ErrQuestionNotFound      = errors.New("question not found")
-	ErrQuestionnaireNotFound = errors.New("questionnaire not found")
-	ErrInvalidQuestionID     = errors.New("invalid question ID")
+	ErrQuestionNotFound  = errors.New("question not found")
+	ErrInvalidQuestionID = errors.New("invalid question ID")
 
 	// Creation errors
 	ErrQuestionCreateFailed = errors.New("failed to create question")
@@ -34,7 +34,7 @@ type IQuestionService interface {
 	GetQuestionsByQuestionnaireID(quesionnaireID model.QuestionnaireID) (*[]model.QuestionResponse, error)
 	UpdateQuestion(id model.QuestionID, questionDTO *model.UpdateQuestionDTO) error
 	DeleteQuestion(id model.QuestionID) error
-	IsQuestionForQuestionnaire(questionID uint, questionnaireID uint) (bool, error)
+	IsQuestionForQuestionnaire(questionID model.QuestionID, questionnaireID model.QuestionnaireID) (bool, error)
 }
 
 type QuestionService struct {
@@ -143,13 +143,13 @@ func (s *QuestionService) DeleteQuestion(id model.QuestionID) error {
 	return nil
 }
 
-func (s *QuestionService) IsQuestionForQuestionnaire(questionID uint, questionnaireID uint) (bool, error) {
-	question, err := s.questionRepo.FindQuestionByQuestionIDAndQuestionnaireID(questionID, questionnaireID)
+func (s *QuestionService) IsQuestionForQuestionnaire(questionID model.QuestionID, questionnaireID model.QuestionnaireID) (bool, error) {
+	question, err := s.questionRepo.GetQuestionByQuestionIDAndQuestionnaireID(questionID, questionnaireID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
-		return false, err
+		return false, ErrQuestionRetrieveFailed
 	}
 	if question.ID == 0 {
 		return false, nil

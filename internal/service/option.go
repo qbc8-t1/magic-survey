@@ -73,7 +73,6 @@ func (s *OptionService) CreateOption(optionDTO *model.CreateOptionDTO) error {
 			return ErrOptionRepetitiveCaption
 		}
 	}
-
 	option.CreatedAt = time.Now()
 
 	// Create the option

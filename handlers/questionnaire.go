@@ -15,6 +15,7 @@ import (
 func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestionnaire))
+
 		localUser := c.Locals("user")
 		if localUser == nil {
 			logger.Error("user variable was't in locals")
@@ -49,7 +50,7 @@ func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
-		questionnaireRawObject.OwnerID = user.ID
+		questionnaireRawObject.OwnerID = model.UserID(user.ID)
 		questionnaire, err := qService.CreateQuestionnaire(&questionnaireRawObject)
 		if err != nil {
 			logger.Error(err.Error())

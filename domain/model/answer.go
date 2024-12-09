@@ -53,11 +53,6 @@ type AnswerResponse struct {
 	QuestionID   QuestionID   `json:"question_id"`
 	OptionID     *OptionID    `json:"option_id"`
 	AnswerText   *string      `json:"answer_text"`
-	CreatedAt    time.Time    `json:"created_at"`
-	UpdatedAt    time.Time    `json:"updated_at"`
-	Submission   Submission   `json:"submission"`
-	Question     Question     `json:"question"`
-	Option       *Option      `json:"option"`
 }
 
 // ToAnswerResponse maps an Answer model to an AnswerResponseDTO
@@ -69,11 +64,6 @@ func ToAnswerResponse(answer *Answer) *AnswerResponse {
 		QuestionID:   answer.QuestionID,
 		OptionID:     answer.OptionID,
 		AnswerText:   answer.AnswerText,
-		CreatedAt:    answer.CreatedAt,
-		UpdatedAt:    answer.UpdatedAt,
-		Submission:   answer.Submission,
-		Question:     answer.Question,
-		Option:       answer.Option,
 	}
 }
 
@@ -110,11 +100,6 @@ func ToAnswerResponses(answers *[]Answer) *[]AnswerResponse {
 			QuestionID:   answer.QuestionID,
 			OptionID:     answer.OptionID,
 			AnswerText:   answer.AnswerText,
-			CreatedAt:    answer.CreatedAt,
-			UpdatedAt:    answer.UpdatedAt,
-			Submission:   answer.Submission,
-			Question:     answer.Question,
-			Option:       answer.Option,
 		})
 	}
 
@@ -143,17 +128,6 @@ func UpdateAnswerModel(answer *Answer, answerDTO *UpdateAnswerDTO) {
 
 // ValidateCreateAnswerDTO validates the fields in CreateAnswerDTO
 func (dto *CreateAnswerDTO) Validate() error {
-	// Validate required fields
-	if dto.UserID == 0 {
-		return ErrInvalidUserID
-	}
-	if dto.SubmissionID == 0 {
-		return ErrInvalidSubmissionID
-	}
-	if dto.QuestionID == 0 {
-		return ErrInvalidQuestionID
-	}
-
 	// Validate that either OptionID or AnswerText is provided, but not both
 	if (dto.OptionID != nil && *dto.OptionID != 0) && (dto.AnswerText != nil && strings.TrimSpace(*dto.AnswerText) != "") {
 		return ErrConflictingFields
