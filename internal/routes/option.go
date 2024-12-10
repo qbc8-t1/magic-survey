@@ -20,4 +20,5 @@ func RegisterOptionRoutes(api fiber.Router, s *common.Server) {
 	api.Post("", handlers.CreateOptionHandler(optionService))
 	api.Put("/:id", handlers.UpdateOptionHandler(optionService))
 	api.Delete("/:id", handlers.DeleteOptionHandler(optionService))
+
 }

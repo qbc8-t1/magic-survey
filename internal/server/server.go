@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/QBC8-Team1/magic-survey/config"

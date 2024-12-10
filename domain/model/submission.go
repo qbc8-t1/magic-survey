@@ -1,12 +1,15 @@
 package model
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 var (
-	ErrInvalidSubmissionID = errors.New("submissionID is required and must be greater than 0")
+	ErrInvalidSubmissionIDCreate = errors.New("submissionID is required and must be greater than 0")
 )
 
 // SubmissionsStatusEnum represents the submissions_status_enum type in postgres
@@ -26,10 +29,36 @@ type Submission struct {
 	QuestionnaireID        QuestionnaireID
 	UserID                 UserID
 	Status                 SubmissionsStatusEnum `gorm:"type:submissions_status_enum;default:'answering'"`
-	LastAnsweredQuestionID *QuestionID
-	SubmittedAt            *time.Time
-	SpentMinutes           *int
+	CurrentQuestionID      *QuestionID           `gorm:"default:null"`
+	LastAnsweredQuestionID *QuestionID           `gorm:"default:null"`
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+	SubmittedAt            *time.Time    `gorm:"default:null"`
+	SpentMinutes           *int          `gorm:"default:null"`
+	QuestionOrder          []QuestionID  `gorm:"-" json:"-"`
+	QuestionOrderRaw       []byte        `gorm:"type:jsonb;column:question_order"`
 	Questionnaire          Questionnaire `gorm:"foreignKey:QuestionnaireID"`
 	User                   User          `gorm:"foreignKey:UserID"`
 	Answers                []Answer      `gorm:"foreignKey:SubmissionID"`
+}
+
+// Hooks for marshaling/unmarshaling
+func (s *Submission) BeforeSave(tx *gorm.DB) error {
+	data, err := json.Marshal(s.QuestionOrder)
+	if err != nil {
+		return err
+	}
+	s.QuestionOrderRaw = data
+	return nil
+}
+
+func (s *Submission) AfterFind(tx *gorm.DB) error {
+	if len(s.QuestionOrderRaw) > 0 {
+		var questionOrder []QuestionID
+		if err := json.Unmarshal(s.QuestionOrderRaw, &questionOrder); err != nil {
+			return err
+		}
+		s.QuestionOrder = questionOrder
+	}
+	return nil
 }

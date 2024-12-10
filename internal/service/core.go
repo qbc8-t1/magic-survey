@@ -2,46 +2,30 @@ package service
 
 import (
 	"errors"
+	"math/rand"
 	"time"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
-	"gorm.io/gorm"
 )
 
-// TODO:
-// func GetNextQuestionWithDependency(nextQuestion *model.Question, s *CoreService, submission *model.Submission) (*model.Question, error) {
-// 	if nextQuestion.DependsOnQuestionID != nil {
-// 		answer, err := s.AnswerRepo.GetAnswerBySubmissionIDAndQuestionID(submission.ID, model.QuestionID(*nextQuestion.DependsOnQuestionID))
-// 		if err != nil {
-// 			if errors.Is(err, gorm.ErrRecordNotFound) {
-// 				return nil, ErrQuestionNotFound
-// 			}
+// service errors
+var (
+	ErrNoAttemptsLeft          = errors.New("no attempts left for this questionnaire")
+	ErrNoActiveSubmission      = errors.New("no active submission found for user")
+	ErrWrongQuestionOrder      = errors.New("attempt to submit a question not matching current question")
+	ErrTimeExpired             = errors.New("time to answer expired")
+	ErrCannotGoBack            = errors.New("cannot go back to previous question")
+	ErrNoNextQuestion          = errors.New("no next question available")
+	ErrSubmissionNotAnswering  = errors.New("submission not in answering status")
+	ErrAlreadySubmitted        = errors.New("submission is already submitted")
+	ErrDependencyNotSatisfied  = errors.New("cannot answer this question due to unsatisfied dependencies")
+	ErrIncompleteQuestionnaire = errors.New("cannot end submission, not all questions answered")
+	ErrInvalidAnswer           = errors.New("invalid answer format for question type")
+	ErrNextBeforeSubmit        = errors.New("please submit the current question before moving to the next")
+)
 
-// 			return nil, ErrAnswerRetrieveFailed
-// 		}
-// 		if nextQuestion.Type == model.QuestionsTypeDescriptive && answer.AnswerText == nil {
-// 			return s.QuestionRepo.GetQuestionByID(model.QuestionID(*nextQuestion.DependsOnQuestionID))
-// 		} else if nextQuestion.Type == model.QuestionsTypeDescriptive && answer.AnswerText != nil {
-// 			return nextQuestion, nil
-// 		} else if nextQuestion.Type == model.QuestionsTypeMultioption {
-// 			dq, err := s.QuestionRepo.GetQuestionByID(model.QuestionID(*nextQuestion.DependsOnQuestionID))
-// 			// error handling
-// 			answer_dq, err := s.AnswerRepo.GetAnswerBySubmissionIDAndQuestionID(submission.ID, dq.ID)
-// 			// TODO: error handling
-// 			if answer_dq.OptionID == *model.OptionID(nextQuestion.DependsOnOptionID) {
-// 				return nextQuestion, nil
-// 			} else {
-// 				submission.LastAnsweredQuestionID = &nextQuestion.ID
-// 				err = s.SubmissionRepo.UpdateSubmission(submission)
-// 				// error handling
-// 				return GetNextQuestionWithDependency(dq, s, submission)
-// 			}
-// 		}
-// 	}
-// 	return nextQuestion, nil
-// }
-
+// ICoreService defines the main operations of the questionnaire
 type ICoreService interface {
 	Start(questionnaireID model.QuestionnaireID, userID model.UserID) (*model.QuestionResponse, error)
 	Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserID) error
@@ -73,294 +57,396 @@ func NewCoreService(
 	}
 }
 
+// Start begins a new submission if allowed
 func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.UserID) (*model.QuestionResponse, error) {
-	// Check if questionnaire exists
-	_, err := s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, model.ErrorQuestionnaireNotFound
+	questionnaire, err := s.questionnaireRepo.GetQuestionnaireByID(questionnaireID)
+	if err != nil || questionnaire == nil || questionnaire.Status != model.QuestionnaireStatusOpen {
+		return nil, ErrQuestionnaireNotFound
+	}
+
+	// Check attempts left
+	subCount := 0
+	for _, sub := range questionnaire.Submissions {
+		if sub.UserID == userID && (sub.Status == model.SubmissionsStatusSubmitted || sub.Status == model.SubmissionsStatusAnswering) {
+			subCount++
 		}
-		return nil, ErrQuestionnaireRetrieveFailed
+	}
+	if subCount >= questionnaire.MaxAllowedSubmissionsCount {
+		return nil, ErrNoAttemptsLeft
 	}
 
-	// Check if user already has an active submission for this questionnaire
-	activeSubmission, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, ErrSubmissionRetrieveFailed
-	}
-
-	// If there's an active submission for a different questionnaire, we might need to handle that case
-	// For now, let's assume the user can only have one active submission at a time.
-	if activeSubmission != nil && activeSubmission.QuestionnaireID == questionnaireID {
-		// If the submission is for the same questionnaire, resume from where they left off
-		// Get the next question based on LastAnsweredQuestionID
-		var nextQuestion *model.Question
-		if activeSubmission.LastAnsweredQuestionID != nil {
-			currentQ, err := s.questionRepo.GetQuestionByID(*activeSubmission.LastAnsweredQuestionID)
+	// If user currently has an active submission for this questionnaire, either continue that or fail
+	activeSub, _ := s.submissionRepo.GetActiveSubmissionByUserID(userID)
+	if activeSub != nil && activeSub.QuestionnaireID == questionnaireID {
+		// They already started this questionnaire, return current question if still answering
+		if activeSub.Status == model.SubmissionsStatusAnswering {
+			// fetch current question
+			q, err := s.questionRepo.GetQuestionByID(*activeSub.CurrentQuestionID)
 			if err != nil {
 				return nil, ErrQuestionRetrieveFailed
 			}
-			nextQuestion, err = s.questionnaireRepo.GetNextQuestion(questionnaireID, currentQ.Order)
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return nil, ErrNoNextQuestionAvailable
-				}
-				return nil, ErrQuestionRetrieveFailed
-			}
-		} else {
-			// If LastAnsweredQuestionID is nil, this means the user has not answered anything yet
-			nextQuestion, err = s.questionnaireRepo.GetFirstQuestion(questionnaireID)
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return nil, ErrNoQuestionsInQuestionnaire
-				}
-				return nil, ErrQuestionRetrieveFailed
-			}
+			return model.ToQuestionResponse(q), nil
 		}
-
-		if nextQuestion.Type == model.QuestionsTypeMultioption {
-			options, err := s.optionRepo.GetOptionsByQuestionID(nextQuestion.ID)
-			if err != nil {
-				return nil, ErrOptionRetrieveFailed
-			}
-			nextQuestion.Options = options
-		}
-
-		return model.ToQuestionResponse(nextQuestion), nil
+		// If status is not answering, they need to start a new submission if possible
 	}
 
-	// Otherwise, create a new submission
-	newSubmission := &model.Submission{
-		QuestionnaireID: questionnaireID,
-		UserID:          userID,
-		Status:          model.SubmissionsStatusAnswering,
-		// LastAnsweredQuestionID remains nil at start
+	// Create a new submission
+	questions, err := s.questionRepo.GetQuestionsByQuestionnaireID(questionnaireID)
+	if err != nil || len(*questions) == 0 {
+		return nil, ErrNoQuestionsInQuestionnaire
 	}
 
-	err = s.submissionRepo.CreateSubmission(newSubmission)
+	var questionOrder []model.QuestionID
+
+	if questionnaire.RandomOrSequential == model.QuestionnaireTypeRandom {
+		questions = RandomizeQuestions(*questions)
+	}
+	for _, q := range *questions {
+		questionOrder = append(questionOrder, q.ID)
+	}
+
+	// Create new submission
+	firstQuestionID := questionOrder[0]
+
+	newSub := &model.Submission{
+		QuestionnaireID:   questionnaireID,
+		UserID:            userID,
+		Status:            model.SubmissionsStatusAnswering,
+		CurrentQuestionID: &firstQuestionID,
+		QuestionOrder:     questionOrder,
+	}
+
+	err = s.submissionRepo.CreateSubmission(newSub)
 	if err != nil {
 		return nil, ErrSubmissionCreateFailed
 	}
 
-	// Get the first question of the questionnaire
-	firstQuestion, err := s.questionnaireRepo.GetFirstQuestion(questionnaireID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrNoQuestionsInQuestionnaire
-		}
-		return nil, ErrQuestionRetrieveFailed
-	}
-
-	// Load options if multioption
-	if firstQuestion.Type == model.QuestionsTypeMultioption {
-		options, err := s.optionRepo.GetOptionsByQuestionID(firstQuestion.ID)
-		if err != nil {
-			return nil, ErrOptionRetrieveFailed
-		}
-		firstQuestion.Options = options
-	}
-
-	return model.ToQuestionResponse(firstQuestion), nil
+	// Return first question
+	firstQuestion := (*questions)[0]
+	return model.ToQuestionResponse(&firstQuestion), nil
 }
 
 func (s *CoreService) Submit(questionID model.QuestionID, answer *model.Answer, userID model.UserID) error {
-	// Retrieve the user's active submission
-	submission, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
+	sub, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
+	if err != nil || sub == nil {
+		return ErrNoActiveSubmission
+	}
+	if sub.Status != model.SubmissionsStatusAnswering {
+		return ErrSubmissionNotAnswering
+	}
+
+	// Check time limit
+	if isTimeExpired(sub) {
+		finalizeSubmission(sub)
+		return s.submissionRepo.UpdateSubmission(sub)
+	}
+
+	// Ensure current question matches questionID
+	if sub.CurrentQuestionID == nil || *sub.CurrentQuestionID != questionID {
+		return ErrWrongQuestionOrder
+	}
+
+	// Check question type and validate answer format
+	q, err := s.questionRepo.GetQuestionByID(questionID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrNoActiveSubmissionFound
-		}
-		return ErrSubmissionRetrieveFailed
+		return err
 	}
 
-	// Ensure that the question exists and belongs to the questionnaire
-	question, err := s.questionRepo.GetQuestionByID(questionID)
+	// Check dependencies
+	err = s.checkDependencies(*sub, questionID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrQuestionNotFound
+		return err
+	}
+
+	switch q.Type {
+	case model.QuestionsTypeMultioption:
+		// Multioption questions must have OptionID set and AnswerText not set
+		if answer.OptionID == nil || (answer.AnswerText != nil && *answer.AnswerText != "") {
+			return ErrInvalidAnswer
 		}
-		return ErrQuestionRetrieveFailed
+	case model.QuestionsTypeDescriptive:
+		// Descriptive questions must have AnswerText set and OptionID not set
+		if answer.AnswerText == nil || (answer.OptionID != nil) {
+			return ErrInvalidAnswer
+		}
+	default:
+		return ErrInvalidAnswer
 	}
 
-	// Optional: Validate that the question belongs to the same questionnaire
-	if question.QuestionnaireID != submission.QuestionnaireID {
-		return ErrQuestionDoesNotBelongToQuestionnaire
-	}
-
-	// Prepare the answer for submission
-	answer.SubmissionID = submission.ID
+	// Save answer
+	answer.UserID = userID
+	answer.SubmissionID = sub.ID
 	answer.QuestionID = questionID
 
-	// Check if an answer already exists for this question
-	existingAnswer, err := s.answerRepo.GetAnswerBySubmissionIDAndQuestionID(submission.ID, questionID)
+	err = s.answerRepo.CreateAnswer(answer)
 	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrAnswerRetrieveFailed
-		}
-		// If not found, we create a new answer
-		err = s.answerRepo.CreateAnswer(answer)
-		if err != nil {
-			return ErrAnswerCreateFailed
-		}
-	} else {
-		// If found, we update the existing answer
-		existingAnswer.AnswerText = answer.AnswerText
-		existingAnswer.OptionID = answer.OptionID
-		err = s.answerRepo.UpdateAnswer(existingAnswer)
-		if err != nil {
-			return ErrAnswerUpdateFailed
-		}
+		return err
 	}
 
-	// Update the LastAnsweredQuestionID in the submission
-	submission.LastAnsweredQuestionID = &questionID
-	err = s.submissionRepo.UpdateSubmission(submission)
-	if err != nil {
-		return ErrSubmissionUpdateFailed
-	}
+	// Update submission last answered question
+	sub.LastAnsweredQuestionID = &questionID
 
-	return nil
+	return s.submissionRepo.UpdateSubmission(sub)
 }
 
-// TODO:
 func (s *CoreService) Back(userID model.UserID) (*model.QuestionResponse, error) {
-	// Retrieve the user's active submission
-	submission, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
+	sub, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
+	if err != nil || sub == nil {
+		return nil, ErrNoActiveSubmission
+	}
+	if sub.Status != model.SubmissionsStatusAnswering {
+		return nil, ErrSubmissionNotAnswering
+	}
+
+	// Check time limit
+	if isTimeExpired(sub) {
+		finalizeSubmission(sub)
+		s.submissionRepo.UpdateSubmission(sub)
+		return nil, ErrTimeExpired
+	}
+
+	// Check if questionnaire allows going back
+	qnr, err := s.questionnaireRepo.GetQuestionnaireByID(sub.QuestionnaireID)
+	if err != nil || qnr == nil {
+		return nil, ErrQuestionnaireNotFound
+	}
+	if !qnr.CanBackToPreviousQuestion {
+		return nil, ErrCannotGoBack
+	}
+
+	// Find previous question by order
+	currentQ, err := s.questionRepo.GetQuestionByID(*sub.CurrentQuestionID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("no active submission found")
-		}
-		return nil, ErrSubmissionRetrieveFailed
+		return nil, ErrQuestionNotFound
 	}
 
-	// Check if LastAnsweredQuestionID is set
-	if submission.LastAnsweredQuestionID == nil {
-		return nil, errors.New("already at the first question")
+	prevQ, err := s.questionnaireRepo.GetPreviousQuestion(sub.QuestionnaireID, currentQ.Order)
+	if err != nil || prevQ == nil {
+		return nil, ErrCannotGoBack
 	}
 
-	// Get the current question
-	currentQuestion, err := s.questionRepo.GetQuestionByID(*submission.LastAnsweredQuestionID)
+	sub.CurrentQuestionID = &prevQ.ID
+	err = s.submissionRepo.UpdateSubmission(sub)
 	if err != nil {
-		return nil, ErrQuestionRetrieveFailed
+		return nil, ErrSubmissionUpdateFailed
 	}
-
-	// Find the previous question
-	prevQuestion, err := s.questionnaireRepo.GetPreviousQuestion(submission.QuestionnaireID, currentQuestion.Order)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("already at the first question")
-		}
-		return nil, ErrQuestionRetrieveFailed
-	}
-
-	// Get options if it's a multioption question
-	if prevQuestion.Type == model.QuestionsTypeMultioption {
-		options, err := s.optionRepo.GetOptionsByQuestionID(prevQuestion.ID)
-		if err != nil {
-			return nil, ErrOptionRetrieveFailed
-		}
-		prevQuestion.Options = options
-	}
-
-	// Return the previous question
-	questionResponse := model.ToQuestionResponse(prevQuestion)
-	return questionResponse, nil
+	return model.ToQuestionResponse(prevQ), nil
 }
 
-// TODO:
 func (s *CoreService) Next(userID model.UserID) (*model.QuestionResponse, error) {
-	// Retrieve the user's active submission
-	submission, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
+	sub, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
+	if err != nil || sub == nil {
+		return nil, ErrNoActiveSubmission
+	}
+	if sub.Status != model.SubmissionsStatusAnswering {
+		return nil, ErrSubmissionNotAnswering
+	}
+
+	// Check time limit
+	if isTimeExpired(sub) {
+		finalizeSubmission(sub)
+		s.submissionRepo.UpdateSubmission(sub)
+		return nil, ErrTimeExpired
+	}
+
+	// Ensure current question is answered
+	if sub.CurrentQuestionID == nil {
+		return nil, ErrNoNextQuestion // No current question means we are done
+	}
+
+	_, err = s.answerRepo.GetAnswerBySubmissionIDAndQuestionID(sub.ID, *sub.CurrentQuestionID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("no active submission found")
-		}
-		return nil, ErrSubmissionRetrieveFailed
+		// Current question not answered yet
+		return nil, ErrNextBeforeSubmit
 	}
 
-	var nextQuestion *model.Question
-
-	if submission.LastAnsweredQuestionID != nil {
-		// Get the current question
-		currentQuestion, err := s.questionRepo.GetQuestionByID(*submission.LastAnsweredQuestionID)
-		if err != nil {
-			return nil, ErrQuestionRetrieveFailed
-		}
-
-		// Find the next question
-		nextQuestion, err = s.questionnaireRepo.GetNextQuestion(submission.QuestionnaireID, currentQuestion.Order)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, errors.New("no next question available")
-			}
-			return nil, ErrQuestionRetrieveFailed
-		}
-	} else {
-		// Get the first question
-		nextQuestion, err = s.questionnaireRepo.GetFirstQuestion(submission.QuestionnaireID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, errors.New("no questions available in this questionnaire")
-			}
-			return nil, ErrQuestionRetrieveFailed
+	// Find the next question based on QuestionOrder
+	var nextQuestionID *model.QuestionID
+	for i, qID := range sub.QuestionOrder {
+		if qID == *sub.CurrentQuestionID && i < len(sub.QuestionOrder)-1 {
+			nextQuestionID = &sub.QuestionOrder[i+1]
+			break
 		}
 	}
 
-	// if nextQuestion.DependsOnQuestionID != nil {
-	// 	answer, err := s.answerRepo.GetAnswerBySubmissionIDAndQuestionID(submission.ID, model.QuestionID(*nextQuestion.DependsOnQuestionID))
-	// 	if err != nil {
-	// 		if errors.Is(err, gorm.ErrRecordNotFound) {
-	// 			return nil, errors.New("next question not found")
-	// 		}
-
-	// 		return nil, ErrAnswerRetrieveFailed
-	// 	}
-	// 	if nextQuestion.Type == model.QuestionsTypeDescriptive && answer.AnswerText == nil {
-	// 		nextQuestion, err = s.questionRepo.GetQuestionByID(model.QuestionID(*nextQuestion.DependsOnQuestionID))
-	// 	} else if nextQuestion.Type == model.QuestionsTypeDescriptive && answer.AnswerText == nil {
-
-	// 	} else if nextQuestion.Type == model.QuestionsTypeMultioption {
-	// 		answer_dq, err := s.answerRepo.GetAnswerBySubmissionIDAndQuestionID(submission.ID, model.QuestionID(*nextQuestion.DependsOnQuestionID))
-	// 		// TODO: error handling
-	// 		if answer_dq.OptionID != (*model.OptionID)(nextQuestion.DependsOnOptionID) {
-	// 			nextQuestion = s.
-	// 		}
-	// 	}
-	// }
-
-	// Load options if it's a multioption question
-	if nextQuestion.Type == model.QuestionsTypeMultioption {
-		options, err := s.optionRepo.GetOptionsByQuestionID(nextQuestion.ID)
+	// Handle no next question
+	if nextQuestionID == nil {
+		sub.CurrentQuestionID = nil
+		err = s.submissionRepo.UpdateSubmission(sub)
 		if err != nil {
-			return nil, ErrOptionRetrieveFailed
+			return nil, ErrSubmissionUpdateFailed
 		}
-		nextQuestion.Options = options
+		return nil, ErrNoNextQuestion
 	}
 
-	// Return the next question
-	questionResponse := model.ToQuestionResponse(nextQuestion)
-	return questionResponse, nil
+	// Fetch the next question
+	nextQ, err := s.questionRepo.GetQuestionByID(*nextQuestionID)
+	if err != nil {
+		return nil, ErrQuestionRetrieveFailed
+	}
+
+	// Update the submission with the new current question
+	sub.CurrentQuestionID = nextQuestionID
+	err = s.submissionRepo.UpdateSubmission(sub)
+	if err != nil {
+		return nil, ErrSubmissionUpdateFailed
+	}
+
+	return model.ToQuestionResponse(nextQ), nil
 }
 
 func (s *CoreService) End(userID model.UserID) error {
-	// Retrieve the user's active submission
-	submission, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrNoActiveSubmissionFound
+	sub, err := s.submissionRepo.GetActiveSubmissionByUserID(userID)
+	if err != nil || sub == nil {
+		return ErrNoActiveSubmission
+	}
+
+	if sub.Status != model.SubmissionsStatusAnswering {
+		return ErrSubmissionNotAnswering
+	}
+
+	// Check time
+	if isTimeExpired(sub) {
+		// Notify user that time is over
+		err = s.safelyFinalizeSubmission(sub)
+		if err != nil {
+			return err
 		}
-		return ErrSubmissionRetrieveFailed
+		return errors.New("time is over, submission has been finalized")
 	}
 
-	// Mark the submission as submitted
-	now := time.Now()
-	submission.Status = model.SubmissionsStatusSubmitted
-	submission.SubmittedAt = &now
-
-	err = s.submissionRepo.UpdateSubmission(submission)
+	// Ensure all questions have been answered before ending
+	unanswered, err := s.questionRepo.GetUnansweredQuestions(sub.QuestionnaireID, sub.ID)
 	if err != nil {
-		return ErrSubmissionUpdateFailed
+		return err
+	}
+	if unanswered != nil && len(*unanswered) > 0 {
+		return ErrIncompleteQuestionnaire
 	}
 
+	// All answered, finalize
+	err = s.safelyFinalizeSubmission(sub)
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+// Helper Methods
+
+func isTimeExpired(sub *model.Submission) bool {
+	// Retrieve questionnaire to check max time
+	qnr := sub.Questionnaire
+	if qnr.MaxMinutesToResponse <= 0 {
+		// no time limit
+		return false
+	}
+	if sub.CreatedAt.IsZero() {
+		return false
+	}
+	elapsed := time.Since(sub.CreatedAt)
+	maxDuration := time.Duration(qnr.MaxMinutesToResponse) * time.Minute
+	return elapsed > maxDuration
+}
+
+func finalizeSubmission(sub *model.Submission) {
+	sub.Status = model.SubmissionsStatusSubmitted
+	now := time.Now()
+	sub.SubmittedAt = &now
+	elapsed := time.Since(sub.CreatedAt)
+	subMin := int(elapsed.Minutes())
+	sub.SpentMinutes = &subMin
+	sub.CurrentQuestionID = nil
+}
+
+// Helper Method: Finalize Submission Safely
+func (s *CoreService) safelyFinalizeSubmission(sub *model.Submission) error {
+	finalizeSubmission(sub)
+	return s.submissionRepo.UpdateSubmission(sub)
+}
+
+func (s *CoreService) getNextValidQuestion(sub model.Submission) (*model.Question, error) {
+	if sub.CurrentQuestionID == nil {
+		return nil, ErrNoNextQuestion
+	}
+
+	currentQ, err := s.questionRepo.GetQuestionByID(*sub.CurrentQuestionID)
+	if err != nil {
+		return nil, ErrQuestionRetrieveFailed
+	}
+
+	// Get next question by order
+	nextQ, err := s.questionnaireRepo.GetNextQuestion(sub.QuestionnaireID, currentQ.Order)
+	if err != nil || nextQ == nil {
+		return nil, ErrNoNextQuestion
+	}
+
+	// Check dependencies for next question and skip if not satisfied
+	for nextQ != nil {
+		if s.isDependencySatisfied(sub, nextQ) {
+			return nextQ, nil
+		}
+		// Get next one
+		nextQ, err = s.questionnaireRepo.GetNextQuestion(sub.QuestionnaireID, nextQ.Order)
+		if err != nil || nextQ == nil {
+			return nil, ErrNoNextQuestion
+		}
+	}
+
+	return nil, ErrNoNextQuestion
+}
+
+func (s *CoreService) isDependencySatisfied(sub model.Submission, q *model.Question) bool {
+	// If no dependency, it's satisfied
+	if q.DependsOnQuestionID == nil {
+		return true
+	}
+
+	// If depends on a previous question
+	ans, err := s.answerRepo.GetAnswerBySubmissionIDAndQuestionID(sub.ID, *q.DependsOnQuestionID)
+	if err != nil || ans == nil {
+		// no answer for dependency question means not satisfied
+		return false
+	}
+
+	// If also depends on an option, check if answered option matches
+	if q.DependsOnOptionID != nil {
+		// If the answered option is not the one required, dependency fails
+		if ans.OptionID == nil || *ans.OptionID != *q.DependsOnOptionID {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (s *CoreService) checkDependencies(sub model.Submission, questionID model.QuestionID) error {
+	q, err := s.questionRepo.GetQuestionByID(questionID)
+	if err != nil {
+		return err
+	}
+	if q.DependsOnQuestionID == nil {
+		return nil
+	}
+	// depends on a previous question
+	ans, err := s.answerRepo.GetAnswerBySubmissionIDAndQuestionID(sub.ID, *q.DependsOnQuestionID)
+	if err != nil {
+		return ErrDependencyNotSatisfied
+	}
+
+	if q.DependsOnOptionID != nil {
+		if ans.OptionID == nil || *ans.OptionID != *q.DependsOnOptionID {
+			return ErrDependencyNotSatisfied
+		}
+	}
+	return nil
+}
+
+// RandomizeQuestions generates a randomized order of questions for the questionnaire
+func RandomizeQuestions(questions []model.Question) *[]model.Question {
+	r := rand.New(rand.NewSource(time.Now().UnixNano())) // Create a new random generator
+	r.Shuffle(len(questions), func(i, j int) {
+		questions[i], questions[j] = questions[j], questions[i]
+	})
+	return &questions
 }

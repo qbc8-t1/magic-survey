@@ -7,8 +7,11 @@ import (
 )
 
 var (
+	ErrInvalidCaptionCreate = errors.New("caption is required and cannot be empty or more than 255 characters")
+
+	ErrInvalidCaptionUpdate = errors.New("caption cannot be empty or more than 255 characters")
+
 	ErrInvalidOptionID            = errors.New("optionID must be greater than 0 if provided")
-	ErrInvalidCaption             = errors.New("caption is required and cannot be empty or more than 255 characters")
 	ErrInvalidIsCorrect           = errors.New("is_correct must be 'true' or 'false' if provided")
 	ErrAtLeatOneFieldNeededOption = errors.New("at least one field must be provided for updating option")
 )
@@ -103,15 +106,15 @@ func UpdateOptionModel(option *Option, optionDTO *UpdateOptionDTO) {
 func (dto *CreateOptionDTO) Validate() error {
 	// Check if QuestionID is valid (non-zero)
 	if dto.QuestionID == 0 {
-		return ErrInvalidQuestionID
+		return ErrInvalidQuestionIDCreate
 	}
 	// Check if Order is positive
 	if dto.Order <= 0 {
-		return ErrInvalidOrder
+		return ErrInvalidOrderCreate
 	}
 	// Check if Caption is not empty and within length limits
 	if len(strings.TrimSpace(dto.Caption)) == 0 && len(dto.Caption) > 255 {
-		return ErrInvalidCaption
+		return ErrInvalidCaptionCreate
 	}
 	// No validation needed for IsCorrect since it can be nil
 	return nil
@@ -123,12 +126,12 @@ func (dto *UpdateOptionDTO) Validate() error {
 		return ErrAtLeatOneFieldNeededOption
 	}
 	if dto.Order != nil && *dto.Order <= 0 {
-		return ErrInvalidOrder
+		return ErrInvalidOrderUpdate
 	}
 	if dto.Caption != nil {
 		caption := strings.TrimSpace(*dto.Caption)
 		if len(caption) == 0 && len(*dto.Caption) > 255 {
-			return ErrInvalidCaption
+			return ErrInvalidCaptionUpdate
 		}
 	}
 	// No validation needed for IsCorrect since it can be nil

@@ -15,6 +15,7 @@ import (
 func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestionnaire))
+
 		localUser := c.Locals("user")
 		if localUser == nil {
 			logger.Error("user variable was't in locals")
