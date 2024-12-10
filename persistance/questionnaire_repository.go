@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const PAGE_SIZE = 2
+const PAGE_SIZE = 10
 
 type QuestionnaireRepository struct {
 	db *gorm.DB
