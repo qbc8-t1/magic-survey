@@ -1,10 +1,11 @@
 package handlers
 
 import (
+	"strconv"
+
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
 	logger2 "github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"go.uber.org/zap"
-	"strconv"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
@@ -70,12 +71,12 @@ func GetOptionsByQuestionIDHandler(service service.IOptionService) fiber.Handler
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
-		questions, err := service.GetOptionsByQuestionID(model.QuestionID(questionId))
+		options, err := service.GetOptionsByQuestionID(model.QuestionID(questionId))
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "failed to fetch options", nil)
 		}
 
-		return response.Success(c, fiber.StatusOK, "options retrieved successfully", questions)
+		return response.Success(c, fiber.StatusOK, "options retrieved successfully", options)
 	}
 }
 

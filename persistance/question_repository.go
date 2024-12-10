@@ -45,7 +45,7 @@ func (r *QuestionRepository) DeleteQuestion(id model.QuestionID) error {
 	return r.db.Delete(&model.Question{}, id).Error
 }
 
-func (r *QuestionRepository) FindQuestionByQuestionIDAndQuestionnaireID(questionID uint, questionnaireID uint) (model.Question, error) {
+func (r *QuestionRepository) FindQuestionByQuestionIDAndQuestionnaireID(questionID model.QuestionID, questionnaireID model.QuestionnaireID) (model.Question, error) {
 	question := model.Question{}
 	err := r.db.Find(&question, "id = ? and questionnaire_id = ?", questionID, questionnaireID).Error
 	return question, err

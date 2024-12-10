@@ -5,7 +5,7 @@ import "database/sql"
 // RolePermission represents the role_permission table
 type RolePermission struct {
 	ID                      uint `gorm:"primaryKey"`
-	QuestionnaireID         uint
+	QuestionnaireID         QuestionnaireID
 	RoleID                  uint
 	PermissionID            uint
 	ExpireAt                sql.NullTime

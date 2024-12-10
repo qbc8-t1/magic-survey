@@ -16,7 +16,7 @@ func RegisterOptionRoutes(api fiber.Router, s *common.Server) {
 	optionService := service.NewOptionService(optionRepo, questionRepo)
 
 	api.Get("/:id", handlers.GetOptionHandler(optionService))
-	api.Get("/:question_id", handlers.GetOptionsByQuestionIDHandler(optionService))
+	api.Get("/question/:question_id", handlers.GetOptionsByQuestionIDHandler(optionService))
 	api.Post("", handlers.CreateOptionHandler(optionService))
 	api.Put("/:id", handlers.UpdateOptionHandler(optionService))
 	api.Delete("/:id", handlers.DeleteOptionHandler(optionService))

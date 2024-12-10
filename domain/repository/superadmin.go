@@ -10,7 +10,7 @@ type ISuperadminRepository interface {
 	MakeSuperadminPermission(tx *gorm.DB, superadminID uint, permissionID uint) error
 	GetSuperadmin(userID uint) (model.Superadmin, error)
 	FindSuperadminPermission(superadminID uint, permissionID uint) (bool, error)
-	FindPermission(permissionName string) (uint, error)
+	FindPermission(permissionName model.PermissionName) (uint, error)
 	Transaction(f func(tx *gorm.DB) error) error
 	IsUserExist(userID uint) error
 	LimitUserQuestionnaireCount(userID uint, max int) error

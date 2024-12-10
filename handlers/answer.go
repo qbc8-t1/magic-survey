@@ -1,10 +1,11 @@
 package handlers
 
 import (
+	"strconv"
+
 	"github.com/QBC8-Team1/magic-survey/internal/middleware"
 	logger2 "github.com/QBC8-Team1/magic-survey/pkg/logger"
 	"go.uber.org/zap"
-	"strconv"
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	"github.com/QBC8-Team1/magic-survey/internal/service"
@@ -25,7 +26,7 @@ func CreateAnswerHandler(service service.IAnswerService) fiber.Handler {
 
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
 		err = service.CreateAnswer(&answerDTO)

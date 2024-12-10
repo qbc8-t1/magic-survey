@@ -27,7 +27,7 @@ func CreateQuestionHandler(service service.IQuestionService) fiber.Handler {
 
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
 		err = service.CreateQuestion(&questionDTO)
@@ -89,6 +89,12 @@ func UpdateQuestionHandler(service service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestion))
 
+		owner, ok := c.Locals("user").(model.User)
+		if !ok {
+			logger.Error("unauthorized")
+			return response.Error(c, fiber.StatusBadRequest, "unauthorized", nil)
+		}
+
 		idStr := c.Params("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil || id <= 0 {
@@ -105,10 +111,10 @@ func UpdateQuestionHandler(service service.IQuestionService) fiber.Handler {
 		err = questionDTO.Validate()
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
-		err = service.UpdateQuestion(model.QuestionID(id), &questionDTO)
+		err = service.UpdateQuestion(model.QuestionID(id), owner.ID, &questionDTO)
 		if err != nil {
 			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, "error in updating the question", nil)

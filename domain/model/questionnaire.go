@@ -40,7 +40,7 @@ const (
 
 // Questionnaire represents the questionnaires table
 type Questionnaire struct {
-	ID                         uint `gorm:"primaryKey"`
+	ID                         QuestionnaireID `gorm:"primaryKey"`
 	OwnerID                    uint
 	Status                     QuestionnairesStatusEnum `gorm:"type:questionnaires_status_enum;default:'open'"`
 	CanSubmitFrom              time.Time
@@ -89,7 +89,7 @@ type UpdateQuestionnaireDTO struct {
 }
 
 type QuestionnaireResponse struct {
-	ID                         uint `gorm:"primaryKey"`
+	ID                         QuestionnaireID `gorm:"primaryKey"`
 	OwnerID                    uint
 	Status                     QuestionnairesStatusEnum `gorm:"type:questionnaires_status_enum;default:'open'"`
 	CanSubmitFrom              time.Time

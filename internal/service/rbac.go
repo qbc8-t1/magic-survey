@@ -11,6 +11,7 @@ import (
 
 	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
+	"github.com/QBC8-Team1/magic-survey/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -21,16 +22,19 @@ var (
 
 type IRbacService interface {
 	GetAllPermissions() []string
-	GivePermissions(giverUserID uint, receiverUserId uint, questionnaireID uint, permissions []PermissionType) error
-	CanDo(userID uint, questionnaireID uint, permissionName string) (bool, error)
-	RevokePermission(revokerUserID uint, targetUserID uint, questionnaireID uint, permissionName string) error
-	HasPermission(userID uint, questionnaireID uint, permissionName string) (bool, error)
+	GivePermissions(giverUserID uint, receiverUserId uint, questionnaireID model.QuestionnaireID, permissions []PermissionType) error
+	CanDo(userID uint, questionnaireID model.QuestionnaireID, permissionName model.PermissionName) (bool, error)
+	RevokePermission(revokerUserID uint, targetUserID uint, questionnaireID model.QuestionnaireID, permissionName model.PermissionName) error
+	HasPermission(userID uint, questionnaireID model.QuestionnaireID, permissionName model.PermissionName) (bool, error)
 	MakeFakeUser() (model.User, error)
 	MakeFakeQuestionnaire(userID uint) (model.Questionnaire, error)
 	GetUser(userID uint) (model.User, error)
 	GetUserRolesWithPermissions(userID uint) ([]domain_repository.RoleWithPermissions, error)
-	CanDoAsSuperadmin(userID uint, permissionName string) (bool, error)
-	GetUsersIDsWithVisibleAnswers(questionnaireID uint, userID uint) ([]uint, error)
+	CanDoAsSuperadmin(userID uint, permissionName model.PermissionName) (bool, error)
+	GetUsersIDsWithVisibleAnswers(questionnaireID model.QuestionnaireID, userID uint) ([]uint, error)
+	GetQuestionnaireIDByQuestionID(questionID model.QuestionID) (model.QuestionnaireID, error)
+	GetQuestionnaireIDByOptionID(optionID model.OptionID) (model.QuestionnaireID, error)
+	GetQuestionnaireAnswers(questionnaireID model.QuestionnaireID) []domain_repository.AnswersResult
 }
 
 type RbacService struct {
@@ -45,21 +49,21 @@ func NewRbacService(repo domain_repository.IRbacRepository) *RbacService {
 
 type PermissionType struct {
 	ID               uint
-	Name             string `json:"name"`
-	ExpireDate       string `json:"expire_date"`
-	SelectedUsersIds []uint `json:"selected_users_ids"`
+	Name             model.PermissionName `json:"name"`
+	ExpireDate       string               `json:"expire_date"`
+	SelectedUsersIds []uint               `json:"selected_users_ids"`
 }
 
 func (o *RbacService) GetAllPermissions() []string {
 	permissions := o.repo.GetPermissions()
 	permissionNames := make([]string, 0, len(permissions))
 	for _, permission := range permissions {
-		permissionNames = append(permissionNames, permission.Name)
+		permissionNames = append(permissionNames, string(permission.Name))
 	}
 	return permissionNames
 }
 
-func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, questionnaireID uint, permissions []PermissionType) error {
+func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, questionnaireID model.QuestionnaireID, permissions []PermissionType) error {
 	if err := o.repo.IsUserExist(giverUserID); err != nil {
 		return err
 	}
@@ -83,7 +87,7 @@ func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, que
 
 	roleName := ""
 	for index, permission := range permissions {
-		id, err := o.repo.FindPermission(permission.Name)
+		id, err := o.repo.FindPermissionForRegularUsers(permission.Name)
 		if err != nil {
 			return err
 		}
@@ -92,7 +96,7 @@ func (o *RbacService) GivePermissions(giverUserID uint, receiverUserId uint, que
 			return ErrorSelectedUsersIdsFieldIsRequired
 		}
 
-		roleName = makeAbbreviation(permission.Name) + "_"
+		roleName = makeAbbreviation(string(permission.Name)) + "_"
 		permissions[index].ID = id
 	}
 
@@ -159,7 +163,7 @@ func makeAbbreviation(name string) string {
 	return result
 }
 
-func (o *RbacService) CanDo(userID uint, questionnaireID uint, permissionName string) (bool, error) {
+func (o *RbacService) CanDo(userID uint, questionnaireID model.QuestionnaireID, permissionName model.PermissionName) (bool, error) {
 	err := o.repo.IsOwnerOfQuestionnaire(userID, questionnaireID)
 	if err == nil {
 		return true, nil
@@ -168,7 +172,7 @@ func (o *RbacService) CanDo(userID uint, questionnaireID uint, permissionName st
 	return o.HasPermission(userID, questionnaireID, permissionName)
 }
 
-func (o *RbacService) RevokePermission(revokerUserID uint, targetUserID uint, questionnaireID uint, permissionName string) error {
+func (o *RbacService) RevokePermission(revokerUserID uint, targetUserID uint, questionnaireID model.QuestionnaireID, permissionName model.PermissionName) error {
 	if err := o.repo.IsUserExist(revokerUserID); err != nil {
 		return err
 	}
@@ -205,7 +209,7 @@ func (o *RbacService) RevokePermission(revokerUserID uint, targetUserID uint, qu
 	return nil
 }
 
-func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissionName string) (bool, error) {
+func (o *RbacService) HasPermission(userID uint, questionnaireID model.QuestionnaireID, permissionName model.PermissionName) (bool, error) {
 	user, err := o.repo.GetUserWithRoles(userID)
 	if err != nil {
 		return false, err
@@ -224,6 +228,7 @@ func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissio
 	if err != nil {
 		return false, err
 	}
+
 	if superadmin.ID != 0 {
 		hasSuperadminPermission, err := o.repo.FindSuperadminPermission(superadmin.ID, permissionID)
 		if err != nil {
@@ -255,12 +260,14 @@ func (o *RbacService) HasPermission(userID uint, questionnaireID uint, permissio
 
 func (o *RbacService) MakeFakeUser() (model.User, error) {
 	index := MakeRandomNumber(400)
+	pass, _ := utils.HashPassword("password")
 	return o.repo.MakeUser(model.User{
 		FirstName:    "ufn" + strconv.Itoa(index),
 		LastName:     "u2ln" + strconv.Itoa(index),
-		Email:        "u2@email" + strconv.Itoa(index),
+		Email:        fmt.Sprintf("user%d@email.com", index),
 		NationalCode: makeRandomNationalCode(),
-		Password:     "111111111" + strconv.Itoa(index),
+		Password:     pass,
+		IsActive:     true,
 	})
 }
 
@@ -299,7 +306,7 @@ func (o *RbacService) GetUserRolesWithPermissions(userID uint) ([]domain_reposit
 	return o.repo.GetUserRolesWithPermissions(userID)
 }
 
-func (o *RbacService) CanDoAsSuperadmin(userID uint, permissionName string) (bool, error) {
+func (o *RbacService) CanDoAsSuperadmin(userID uint, permissionName model.PermissionName) (bool, error) {
 	if err := o.repo.IsUserExist(userID); err != nil {
 		return false, err
 	}
@@ -329,7 +336,7 @@ func (o *RbacService) CanDoAsSuperadmin(userID uint, permissionName string) (boo
 	return true, nil
 }
 
-func (o *RbacService) GetUsersIDsWithVisibleAnswers(questionnaireID uint, userID uint) ([]uint, error) {
+func (o *RbacService) GetUsersIDsWithVisibleAnswers(questionnaireID model.QuestionnaireID, userID uint) ([]uint, error) {
 	roles, err := o.repo.GetUserRoles(userID)
 	if err != nil {
 		return nil, err
@@ -362,4 +369,35 @@ func (o *RbacService) GetUsersIDsWithVisibleAnswers(questionnaireID uint, userID
 	}
 
 	return usersIDs, nil
+}
+
+func (o *RbacService) GetQuestionnaireIDByAnswerID(answerID model.AnswerID) (model.QuestionnaireID, error) {
+	question, err := o.repo.GetQuestionByAnswerID(answerID)
+	if err != nil {
+		return model.QuestionnaireID(0), err
+	}
+
+	return question.QuestionnaireID, err
+}
+
+func (o *RbacService) GetQuestionnaireIDByQuestionID(questionID model.QuestionID) (model.QuestionnaireID, error) {
+	question, err := o.repo.GetQuestionByID(questionID)
+	if err != nil {
+		return model.QuestionnaireID(0), err
+	}
+
+	return question.QuestionnaireID, err
+}
+
+func (o *RbacService) GetQuestionnaireIDByOptionID(optionID model.OptionID) (model.QuestionnaireID, error) {
+	question, err := o.repo.GetQuestionByOptionID(optionID)
+	if err != nil {
+		return model.QuestionnaireID(0), err
+	}
+
+	return question.QuestionnaireID, err
+}
+
+func (o *RbacService) GetQuestionnaireAnswers(questionnaireID model.QuestionnaireID) []domain_repository.AnswersResult {
+	return o.repo.GetAnswersForQuestionnaire(questionnaireID)
 }

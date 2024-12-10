@@ -1,6 +1,8 @@
 package domain_repository
 
-import "github.com/QBC8-Team1/magic-survey/domain/model"
+import (
+	"github.com/QBC8-Team1/magic-survey/domain/model"
+)
 
 // IAnswerRepository interface defines the repository methods
 type IAnswerRepository interface {

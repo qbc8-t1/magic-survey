@@ -20,7 +20,7 @@ func RegisterAnswerRoutes(router fiber.Router, s *common.Server) {
 	answerService := service.NewAnswerService(answerRepo, userRepo, submissionRepo, questionRepo, optionRepo)
 
 	router.Get("/:id", handlers.GetAnswerHandler(answerService))
-	router.Post("", handlers.CreateAnswerHandler(answerService))
+	router.Post("/", handlers.CreateAnswerHandler(answerService))
 	router.Put("/:id", handlers.UpdateAnswerHandler(answerService))
 	router.Delete("/:id", handlers.DeleteAnswerHandler(answerService))
 }

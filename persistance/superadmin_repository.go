@@ -75,7 +75,7 @@ func (s *SuperadminRepository) FindSuperadminPermission(superadminID uint, permi
 	return true, nil
 }
 
-func (s *SuperadminRepository) FindPermission(permissionName string) (uint, error) {
+func (s *SuperadminRepository) FindPermission(permissionName model.PermissionName) (uint, error) {
 	var permission model.Permission
 	err := s.db.First(&permission, "name = ?", permissionName).Error
 	if err != nil {

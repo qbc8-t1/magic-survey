@@ -79,7 +79,6 @@ func (s *CoreService) Start(questionnaireID model.QuestionnaireID, userID model.
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, model.ErrorQuestionnaireNotFound
-
 		}
 		return nil, ErrQuestionnaireRetrieveFailed
 	}

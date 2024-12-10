@@ -12,19 +12,19 @@ import (
 
 type GivePermissionsData struct {
 	UserID          uint                     `json:"user_id"`
-	QuestionnaireID uint                     `json:"questionnaire_id"`
+	QuestionnaireID model.QuestionnaireID    `json:"questionnaire_id"`
 	Permissions     []service.PermissionType `json:"permissions"`
 }
 
 type RevokePermissionData struct {
-	UserID          uint   `json:"user_id"`
-	QuestionnaireID uint   `json:"questionnaire_id"`
-	PermissionName  string `json:"permission_name"`
+	UserID          uint                  `json:"user_id"`
+	QuestionnaireID model.QuestionnaireID `json:"questionnaire_id"`
+	PermissionName  model.PermissionName  `json:"permission_name"`
 }
 
 type HasPermissionData struct {
-	QuestionnaireID uint   `json:"questionnaire_id"`
-	PermissionName  string `json:"permission_name"`
+	QuestionnaireID model.QuestionnaireID `json:"questionnaire_id"`
+	PermissionName  model.PermissionName  `json:"permission_name"`
 }
 
 func GetAllPermissions(rbacService service.IRbacService) fiber.Handler {
@@ -58,7 +58,7 @@ func GivePermissions(rbacService service.IRbacService) fiber.Handler {
 		err = rbacService.GivePermissions(uint(giverUser.ID), data.UserID, data.QuestionnaireID, data.Permissions)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to give permissions", nil)
+			return response.Error(c, fiber.StatusInternalServerError, "failed to give permissions", err.Error())
 		}
 
 		logger.Info("permissions have given to user")
