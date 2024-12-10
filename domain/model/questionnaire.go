@@ -43,8 +43,8 @@ const (
 
 // Questionnaire represents the questionnaires table
 type Questionnaire struct {
-	ID                         uint `gorm:"primaryKey"`
-	OwnerID                    UserID
+	ID                         QuestionnaireID `gorm:"primaryKey"`
+	OwnerID                    uint
 	Status                     QuestionnairesStatusEnum `gorm:"type:questionnaires_status_enum;default:'open'"`
 	CanSubmitFrom              time.Time
 	CanSubmitUntil             time.Time
@@ -90,8 +90,8 @@ type UpdateQuestionnaireDTO struct {
 }
 
 type QuestionnaireResponse struct {
-	ID                         uint `gorm:"primaryKey"`
-	OwnerID                    UserID
+	ID                         QuestionnaireID `gorm:"primaryKey"`
+	OwnerID                    uint
 	Status                     QuestionnairesStatusEnum `gorm:"type:questionnaires_status_enum;default:'open'"`
 	CanSubmitFrom              time.Time
 	CanSubmitUntil             time.Time
@@ -109,7 +109,7 @@ type QuestionnaireResponse struct {
 func ToQuestionnaireResponse(q *Questionnaire) *QuestionnaireResponse {
 	return &QuestionnaireResponse{
 		ID:                         q.ID,
-		OwnerID:                    UserID(q.OwnerID),
+		OwnerID:                    q.OwnerID,
 		Status:                     q.Status,
 		CanSubmitFrom:              q.CanSubmitFrom,
 		CanSubmitUntil:             q.CanSubmitUntil,
@@ -121,6 +121,7 @@ func ToQuestionnaireResponse(q *Questionnaire) *QuestionnaireResponse {
 		Title:                      q.Title,
 		MaxAllowedSubmissionsCount: q.MaxAllowedSubmissionsCount,
 		AnswersVisibleFor:          q.AnswersVisibleFor,
+		CreatedAt:                  q.CreatedAt,
 	}
 }
 

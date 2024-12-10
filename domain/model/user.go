@@ -64,11 +64,12 @@ type CreateUserDTO struct {
 
 // UpdateUserDTO represents the data needed to update an existing user
 type UpdateUserDTO struct {
-	FirstName string     `json:"first_name" validate:"required"`
-	LastName  string     `json:"last_name" validate:"required"`
-	Birthdate string     `json:"birthdate" validate:"required"`
-	Gender    GenderEnum `json:"gender" validate:"required,oneof=male female"`
-	City      string     `json:"city" validate:"required"`
+	FirstName    *string     `json:"first_name" validate:"required"`
+	LastName     *string     `json:"last_name" validate:"required"`
+	Birthdate    *string     `json:"birthdate" validate:"required"`
+	Gender       *GenderEnum `json:"gender" validate:"required,oneof=male female"`
+	City         *string     `json:"city" validate:"required"`
+	NationalCode *string     `json:"national_code" validate:"required"`
 }
 
 // IncreaseWalletBalanceDTO represents the data needed to update credit user
@@ -166,37 +167,32 @@ func ToUserModel(dto *CreateUserDTO) *User {
 
 // ToUserModelForUpdate maps a UpdateUserDTO to a User model
 func ToUserModelForUpdate(user User, dto *UpdateUserDTO) User {
-	user.FirstName = dto.FirstName
-	user.LastName = dto.LastName
-	user.Birthdate = strings.TrimSpace(dto.Birthdate)
-	user.City = strings.TrimSpace(dto.City)
-	return user
-}
-
-// UpdateUserModel updates the fields of a User model from an UpdateUserDTO
-/*func UpdateUserModel(user *User, dto *UpdateUserDTO) {
 	if dto.FirstName != nil {
 		user.FirstName = *dto.FirstName
 	}
+
 	if dto.LastName != nil {
 		user.LastName = *dto.LastName
 	}
-	if dto.Email != nil {
-		user.Email = *dto.Email
-	}
-	if dto.NationalCode != nil {
-		user.NationalCode = *dto.NationalCode
-	}
-	if dto.Password != nil {
-		user.Password = *dto.Password
+
+	if dto.Birthdate != nil {
+		user.Birthdate = *dto.Birthdate
 	}
 
 	if dto.Gender != nil {
-		user.Gender = *dto.Gender
+		user.Gender = dto.Gender
 	}
-}*/
 
-//}
+	if dto.City != nil {
+		user.City = *dto.City
+	}
+
+	if dto.NationalCode != nil {
+		user.NationalCode = *dto.NationalCode
+	}
+
+	return user
+}
 
 // Validate checks the User struct for common validation rules.
 func (u *User) Validate() error {
@@ -221,38 +217,51 @@ func (u *User) Validate() error {
 	if len(u.Password) < 6 {
 		return errors.New("password must be at least 6 characters long")
 	}
-	// isValid, message := utils.IsValidBirthdate(u.Birthdate)
-	// if !isValid {
-	// 	return errors.New("birthdate - " + message)
-	// }
-
-	// isValid, message = utils.IsValidCity(u.City)
-	// if !isValid {
-	// 	return errors.New("city - " + message)
-	// }
 
 	return nil
 }
 
-// UpdateValidate checks the User struct for common validation rules.
-func (u *User) UpdateValidate() error {
-
-	err := u.Validate()
-	if err != nil {
-		return err
+func (u *UpdateUserDTO) ValidateForUpdate() error {
+	if u.FirstName != nil {
+		if strings.TrimSpace(*u.FirstName) == "" {
+			return errors.New("first name can not empty string")
+		}
 	}
 
-	if u.City != "" {
-		isValid, message := utils.IsValidCity(u.City)
+	if u.LastName != nil {
+		if strings.TrimSpace(*u.LastName) == "" {
+			return errors.New("last name can not empty string")
+		}
+	}
+
+	if u.NationalCode != nil {
+		isValidNationalCode, err := utils.IsValidNationalCode(*u.NationalCode)
+		if err != nil {
+			return errors.New("national code validation failed")
+		}
+
+		if !isValidNationalCode {
+			return errors.New("national code is not valid")
+		}
+	}
+
+	if u.Birthdate != nil {
+		isValid, message := utils.IsValidBirthdate(*u.Birthdate)
+		if !isValid {
+			return errors.New("birthdate - " + message)
+		}
+	}
+
+	if u.City != nil {
+		isValid, message := utils.IsValidCity(*u.City)
 		if !isValid {
 			return errors.New("city - " + message)
 		}
 	}
 
-	if u.Birthdate != "" {
-		isValid, message := utils.IsValidBirthdate(u.Birthdate)
-		if !isValid {
-			return errors.New("birthdate - " + message)
+	if u.Gender != nil {
+		if *u.Gender != Male && *u.Gender != Female {
+			return errors.New("gender value is invalid")
 		}
 	}
 

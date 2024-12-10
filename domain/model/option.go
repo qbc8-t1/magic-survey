@@ -40,10 +40,9 @@ type CreateOptionDTO struct {
 
 // UpdateOptionDTO represents the data needed to update an existing option
 type UpdateOptionDTO struct {
-	QuestionID *QuestionID `json:"question_id,omitempty"`
-	Order      *int        `json:"order,omitempty"`
-	Caption    *string     `json:"caption,omitempty"`
-	IsCorrect  *bool       `json:"is_correct,omitempty"`
+	Order     *int    `json:"order,omitempty"`
+	Caption   *string `json:"caption,omitempty"`
+	IsCorrect *bool   `json:"is_correct,omitempty"`
 }
 
 // OptionResponse represents the option data returned in API responses
@@ -93,9 +92,6 @@ func ToOptionModel(optionDTO *CreateOptionDTO) *Option {
 
 // UpdateOptionModel updates the fields of an Option model from an UpdateOptionDTO
 func UpdateOptionModel(option *Option, optionDTO *UpdateOptionDTO) {
-	if optionDTO.QuestionID != nil {
-		option.QuestionID = *optionDTO.QuestionID
-	}
 	if optionDTO.Order != nil {
 		option.Order = *optionDTO.Order
 	}
@@ -126,12 +122,8 @@ func (dto *CreateOptionDTO) Validate() error {
 
 func (dto *UpdateOptionDTO) Validate() error {
 	// Ensure at least one field is provided
-	if dto.QuestionID == nil && dto.Order == nil && dto.Caption == nil && dto.IsCorrect == nil {
+	if dto.Order == nil && dto.Caption == nil && dto.IsCorrect == nil {
 		return ErrAtLeatOneFieldNeededOption
-	}
-	// Validate each provided field
-	if dto.QuestionID != nil && *dto.QuestionID == 0 {
-		return ErrInvalidQuestionIDUpdate
 	}
 	if dto.Order != nil && *dto.Order <= 0 {
 		return ErrInvalidOrderUpdate

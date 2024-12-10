@@ -50,7 +50,7 @@ func QuestionnaireCreate(qService service.IQuestionnaireService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
-		questionnaireRawObject.OwnerID = model.UserID(user.ID)
+		questionnaireRawObject.OwnerID = user.ID
 		questionnaire, err := qService.CreateQuestionnaire(&questionnaireRawObject)
 		if err != nil {
 			logger.Error(err.Error())
@@ -166,6 +166,100 @@ func QuestionnaireUpdate(qService service.IQuestionnaireService) fiber.Handler {
 
 		logger.Info("questionnaire updated")
 		return response.Success(c, fiber.StatusCreated, "questionnaire updated", nil)
+	}
+}
+
+func QuestionnaireCancel(qService service.IQuestionnaireService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestionnaire))
+
+		localUser := c.Locals("user")
+		if localUser == nil {
+			logger.Error("failed to get user from locals")
+			return response.Error(c, fiber.StatusUnauthorized, "you are not logged in", nil)
+		}
+
+		_, ok := localUser.(model.User)
+		if !ok {
+			logger.Error("failed to cast locals user")
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get user", nil)
+		}
+
+		questionnaireID, err := c.ParamsInt("questionnaire_id")
+		if err != nil {
+			logger.Error(err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "questionnaire_id param is invalid", nil)
+		}
+
+		questionnaire, err := qService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
+		if err != nil {
+			logger.Error(err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "failed to get the questionnaire", nil)
+		}
+
+		if questionnaire.Status != model.QuestionnaireStatusOpen {
+			logger.Error("can not cancel questionnaire because it's not open")
+			return response.Error(c, fiber.StatusBadRequest, "questionnaire is not open", nil)
+		}
+
+		err = qService.UpdateQuestionaire(questionnaire.ID,
+			&model.Questionnaire{
+				Status: model.QuestionnaireStatusCancelled,
+			})
+		if err != nil {
+			logger.Error(err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to cancel questionnaire", nil)
+		}
+
+		logger.Info("questionnaire cancelled")
+		return response.Success(c, fiber.StatusCreated, "questionnaire cancelled", nil)
+	}
+}
+
+func QuestionnaireClose(qService service.IQuestionnaireService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestionnaire))
+
+		localUser := c.Locals("user")
+		if localUser == nil {
+			logger.Error("failed to get user from locals")
+			return response.Error(c, fiber.StatusUnauthorized, "you are not logged in", nil)
+		}
+
+		_, ok := localUser.(model.User)
+		if !ok {
+			logger.Error("failed to cast locals user")
+			return response.Error(c, fiber.StatusInternalServerError, "failed to get user", nil)
+		}
+
+		questionnaireID, err := c.ParamsInt("questionnaire_id")
+		if err != nil {
+			logger.Error(err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "questionnaire_id param is invalid", nil)
+		}
+
+		questionnaire, err := qService.GetQuestionnaireByID(model.QuestionnaireID(questionnaireID))
+		if err != nil {
+			logger.Error(err.Error())
+			return response.Error(c, fiber.StatusBadRequest, "failed to get the questionnaire", nil)
+		}
+
+		if questionnaire.Status != model.QuestionnaireStatusOpen {
+			logger.Error("can not close questionnaire because it's not open")
+			return response.Error(c, fiber.StatusBadRequest, "questionnaire is not open", nil)
+		}
+
+		err = qService.UpdateQuestionaire(questionnaire.ID,
+			&model.Questionnaire{
+				Status: model.QuestionnaireStatusClosed,
+			})
+		if err != nil {
+			logger.Error(err.Error())
+			return response.Error(c, fiber.StatusInternalServerError, "failed to close questionnaire", nil)
+		}
+
+		logger.Info("questionnaire closed")
+		return response.Success(c, fiber.StatusCreated, "questionnaire closed", nil)
 	}
 }
 

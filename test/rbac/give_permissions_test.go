@@ -139,7 +139,7 @@ func TestIsReceiverUserExist(t *testing.T) {
 	})
 
 	questionnaire := model.Questionnaire{
-		OwnerID:                    model.UserID(user1.ID),
+		OwnerID:                    user1.ID,
 		Status:                     model.QuestionnaireStatusOpen,
 		MaxMinutesToResponse:       100,
 		MaxMinutesToChangeAnswer:   100,
@@ -193,7 +193,7 @@ func TestNotFoundPermission(t *testing.T) {
 	})
 
 	questionnaire := model.Questionnaire{
-		OwnerID:                    model.UserID(user1.ID),
+		OwnerID:                    user1.ID,
 		Status:                     model.QuestionnaireStatusOpen,
 		MaxMinutesToResponse:       100,
 		MaxMinutesToChangeAnswer:   100,
@@ -247,7 +247,7 @@ func TestMakeNewRole(t *testing.T) {
 	})
 
 	questionnaire := model.Questionnaire{
-		OwnerID:                    model.UserID(user1.ID),
+		OwnerID:                    user1.ID,
 		Status:                     model.QuestionnaireStatusOpen,
 		MaxMinutesToResponse:       100,
 		MaxMinutesToChangeAnswer:   100,

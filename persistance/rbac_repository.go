@@ -40,7 +40,7 @@ func (rr *RbacRepo) GetUserWithRoles(userID uint) (model.User, error) {
 	return *user, err
 }
 
-func (rr *RbacRepo) IsQuestionnaireExist(questionnaireID uint) error {
+func (rr *RbacRepo) IsQuestionnaireExist(questionnaireID model.QuestionnaireID) error {
 	var questionnaire model.Questionnaire
 	err := rr.db.First(&questionnaire, "id = ?", questionnaireID).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -49,7 +49,7 @@ func (rr *RbacRepo) IsQuestionnaireExist(questionnaireID uint) error {
 	return err
 }
 
-func (rr *RbacRepo) IsOwnerOfQuestionnaire(userID uint, questionnaireID uint) error {
+func (rr *RbacRepo) IsOwnerOfQuestionnaire(userID uint, questionnaireID model.QuestionnaireID) error {
 	var questionnaire model.Questionnaire
 	err := rr.db.First(&questionnaire, "id = ? and owner_id = ?", questionnaireID, userID).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -58,9 +58,22 @@ func (rr *RbacRepo) IsOwnerOfQuestionnaire(userID uint, questionnaireID uint) er
 	return err
 }
 
-func (rr *RbacRepo) FindPermission(permissionName string) (uint, error) {
+func (rr *RbacRepo) FindPermission(permissionName model.PermissionName) (uint, error) {
 	var permission model.Permission
 	err := rr.db.First(&permission, "name = ?", permissionName).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, model.ErrorNotFoundPermission
+		}
+		return 0, err
+	}
+
+	return permission.ID, nil
+}
+
+func (rr *RbacRepo) FindPermissionForRegularUsers(permissionName model.PermissionName) (uint, error) {
+	var permission model.Permission
+	err := rr.db.First(&permission, "name = ? and for_superadmin = false", permissionName).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return 0, model.ErrorNotFoundPermission
@@ -77,7 +90,7 @@ func (rr *RbacRepo) GetUserRoles(userID uint) ([]model.Role, error) {
 	return user.Roles, err
 }
 
-func (rr *RbacRepo) HasPermission(questionnaireID uint, permissionID uint) error {
+func (rr *RbacRepo) HasPermission(questionnaireID model.QuestionnaireID, permissionID uint) error {
 	var rolePermission model.RolePermission
 	err := rr.db.First(&rolePermission, "questionnaire_id = ? and permission_id = ?", questionnaireID, permissionID).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -99,7 +112,7 @@ func (rr *RbacRepo) MakeNewRole(tx *gorm.DB, name string) (uint, error) {
 	return role.ID, nil
 }
 
-func (rr *RbacRepo) MakeRolePermission(tx *gorm.DB, roleID uint, questionnaireID uint, permissionID uint, expireDate sql.NullTime) (uint, error) {
+func (rr *RbacRepo) MakeRolePermission(tx *gorm.DB, roleID uint, questionnaireID model.QuestionnaireID, permissionID uint, expireDate sql.NullTime) (uint, error) {
 	var rolePermission = model.RolePermission{
 		RoleID:          roleID,
 		QuestionnaireID: questionnaireID,
@@ -212,11 +225,11 @@ func (rr *RbacRepo) GetUserRolesWithPermissions(userID uint) ([]domain_repositor
 	return rolesWithPermissions, nil
 }
 
-func (rr *RbacRepo) DeleteRolePermissions(roleID uint, questionnaireID uint, permissionID uint) error {
+func (rr *RbacRepo) DeleteRolePermissions(roleID uint, questionnaireID model.QuestionnaireID, permissionID uint) error {
 	return rr.db.Delete(&model.RolePermission{}, "role_id = ? and questionnaire_id = ? and permission_id = ?", roleID, questionnaireID, permissionID).Error
 }
 
-func (rr *RbacRepo) HasRolePermission(roleID uint, questionnaireID uint, permissionID uint) (bool, error) {
+func (rr *RbacRepo) HasRolePermission(roleID uint, questionnaireID model.QuestionnaireID, permissionID uint) (bool, error) {
 	rolePermission := new(model.RolePermission)
 	err := rr.db.First(rolePermission, "role_id = ? and questionnaire_id = ? and permission_id = ? and (expire_at IS NULL OR expire_at > NOW())", roleID, questionnaireID, permissionID).Error
 	if err != nil {
@@ -255,7 +268,7 @@ func (rr *RbacRepo) FindSuperadminPermission(superadminID uint, permissionID uin
 	return true, nil
 }
 
-func (rr *RbacRepo) FindRolePermission(roleID, questionnaireID, permissionID uint) (*model.RolePermission, error) {
+func (rr *RbacRepo) FindRolePermission(roleID uint, questionnaireID model.QuestionnaireID, permissionID uint) (*model.RolePermission, error) {
 	rolePermission := new(model.RolePermission)
 	err := rr.db.First(&rolePermission, "role_id = ? and questionnaire_id = ? and permission_id = ? and (expire_at IS NULL OR expire_at > NOW())", roleID, questionnaireID, permissionID).Error
 	return rolePermission, err
@@ -265,4 +278,42 @@ func (rr *RbacRepo) FindUsersWithVisibleAnswers(rolePermissionID uint) ([]uint, 
 	var userIDs []uint
 	err := rr.db.Model(&model.UsersWithVisibleAnswers{}).Where("role_permission_id = ?", rolePermissionID).Pluck("user_id", &userIDs).Error
 	return userIDs, err
+}
+
+func (rr *RbacRepo) GetQuestionByAnswerID(answerID model.AnswerID) (model.Question, error) {
+	answer := new(model.Answer)
+	err := rr.db.Preload("Question").Where("id = ?", answerID).First(answer).Error
+	return answer.Question, err
+}
+
+func (rr *RbacRepo) GetQuestionByID(questionID model.QuestionID) (model.Question, error) {
+	question := new(model.Question)
+	err := rr.db.First(question, questionID).Error
+	return *question, err
+}
+
+func (rr *RbacRepo) GetQuestionByOptionID(optionID model.OptionID) (model.Question, error) {
+	option := new(model.Option)
+	err := rr.db.Preload("Question").Where("id = ?", optionID).First(option).Error
+	return option.Question, err
+}
+
+func (rr *RbacRepo) GetAnswersForQuestionnaire(questionnaireID model.QuestionnaireID) []domain_repository.AnswersResult {
+	results := []domain_repository.AnswersResult{}
+
+	rr.db.Table("answers").
+		Joins("JOIN questions ON answers.question_id = questions.id").
+		Where("questions.questionnaire_id = ?", questionnaireID).
+		Order("answers.id").
+		Select(`
+		answers.user_id, 
+		answers.answer_text, 
+		answers.submission_id,
+		answers.option_id,  
+		questions.id AS question_id, 
+		questions.title AS question_text
+	`).
+		Scan(&results)
+
+	return results
 }
