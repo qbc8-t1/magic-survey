@@ -168,8 +168,8 @@ func ToUserModel(dto *CreateUserDTO) *User {
 func ToUserModelForUpdate(user User, dto *UpdateUserDTO) User {
 	user.FirstName = dto.FirstName
 	user.LastName = dto.LastName
-	user.Birthdate = dto.Birthdate
-	user.City = dto.City
+	user.Birthdate = strings.TrimSpace(dto.Birthdate)
+	user.City = strings.TrimSpace(dto.City)
 	return user
 }
 
@@ -230,6 +230,31 @@ func (u *User) Validate() error {
 	// if !isValid {
 	// 	return errors.New("city - " + message)
 	// }
+
+	return nil
+}
+
+// UpdateValidate checks the User struct for common validation rules.
+func (u *User) UpdateValidate() error {
+
+	err := u.Validate()
+	if err != nil {
+		return err
+	}
+
+	if u.City != "" {
+		isValid, message := utils.IsValidCity(u.City)
+		if !isValid {
+			return errors.New("city - " + message)
+		}
+	}
+
+	if u.Birthdate != "" {
+		isValid, message := utils.IsValidBirthdate(u.Birthdate)
+		if !isValid {
+			return errors.New("birthdate - " + message)
+		}
+	}
 
 	return nil
 }
