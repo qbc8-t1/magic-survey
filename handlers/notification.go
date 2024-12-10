@@ -5,6 +5,7 @@ import (
 	"github.com/QBC8-Team1/magic-survey/internal/service"
 	"github.com/QBC8-Team1/magic-survey/pkg/response"
 	"github.com/gofiber/fiber/v2"
+	"strconv"
 )
 
 func CreateNotification(notificationService service.NotificationService) fiber.Handler {
@@ -25,7 +26,7 @@ func CreateNotification(notificationService service.NotificationService) fiber.H
 	}
 }
 
-/*func MarkNotificationAsSeen(notificationService service.NotificationService) fiber.Handler {
+func MarkNotificationAsSeen(notificationService service.NotificationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Get notification ID from URL params
 		notificationID, err := strconv.Atoi(c.Params("id"))
@@ -35,13 +36,13 @@ func CreateNotification(notificationService service.NotificationService) fiber.H
 
 		userID := c.Locals("user").(model.User).ID // Logged-in user's ID
 
-		if err := notificationService.MarkAsSeen(notificationID, userID); err != nil {
+		if err := notificationService.MarkAsSeen(uint(notificationID), userID); err != nil {
 			return response.Error(c, fiber.StatusForbidden, err.Error(), nil)
 		}
 
 		return response.Success(c, fiber.StatusOK, "Notification marked as seen", nil)
 	}
-}*/
+}
 
 /*func ListNotifications(notificationService service.NotificationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {

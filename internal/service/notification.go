@@ -28,7 +28,7 @@ func (s *NotificationService) CreateNotification(notification *model.Notificatio
 }
 
 // MarkAsSeen marks a notification as seen if it belongs to the logged-in user
-/*func (s *NotificationService) MarkAsSeen(notificationID, userID int) error {
+func (s *NotificationService) MarkAsSeen(notificationID, userID uint) error {
 	notification, err := s.repo.GetNotificationByID(notificationID)
 	if err != nil {
 		return ErrNotificationNotFound
@@ -37,10 +37,8 @@ func (s *NotificationService) CreateNotification(notification *model.Notificatio
 	if notification.UserID != userID {
 		return ErrUnauthorizedAccess
 	}
-
-	notification.Seen = true
-	return s.repo.UpdateNotification(notification)
-}*/
+	return s.repo.SetSeen(notification.ID)
+}
 
 // ListNotifications retrieves paginated notifications for a user
 /*func (s *NotificationService) ListNotifications(userID, page, limit int) ([]model.Notification, error) {
