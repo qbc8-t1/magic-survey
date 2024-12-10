@@ -47,12 +47,12 @@ func MarkNotificationAsSeen(notificationService service.NotificationService) fib
 func ListNotifications(notificationService service.NotificationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Parse pagination parameters
-		page, _ := strconv.Atoi(c.Query("page", "1"))
+		offset, _ := strconv.Atoi(c.Query("offset", "1"))
 		limit, _ := strconv.Atoi(c.Query("limit", "10"))
 
 		userID := c.Locals("user").(model.User).ID // Logged-in user's ID
 
-		notifications, err := notificationService.ListNotifications(userID, page, limit)
+		notifications, err := notificationService.ListNotifications(userID, limit, offset)
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch notifications", err)
 		}

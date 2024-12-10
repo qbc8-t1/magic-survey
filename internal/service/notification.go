@@ -41,6 +41,6 @@ func (s *NotificationService) MarkAsSeen(notificationID, userID uint) error {
 }
 
 // ListNotifications retrieves paginated notifications for a user
-func (s *NotificationService) ListNotifications(userID uint, page, limit int) ([]model.Notification, error) {
-	return s.repo.GetUserNotifications(userID, page, limit)
+func (s *NotificationService) ListNotifications(userID uint, limit, offset int) ([]model.Notification, error) {
+	return s.repo.GetUserNotifications(userID, limit, offset)
 }
