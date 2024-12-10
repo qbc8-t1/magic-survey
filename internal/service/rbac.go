@@ -351,7 +351,9 @@ func (o *RbacService) GetUsersIDsWithVisibleAnswers(questionnaireID model.Questi
 	for _, role := range roles {
 		rolePermission, err = o.repo.FindRolePermission(role.ID, questionnaireID, permissionID)
 		if err != nil {
-			return nil, err
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, err
+			}
 		}
 
 		if rolePermission.ID != 0 {
