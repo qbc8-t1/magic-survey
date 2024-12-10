@@ -19,5 +19,5 @@ func RegisterNotificationRoutes(auth fiber.Router, s *common.Server) {
 	// Routes with authentication
 	auth.Post("/", withAuthMiddleware, handlers.CreateNotification(*notificationService))
 	auth.Put("/:id/seen", withAuthMiddleware, handlers.MarkNotificationAsSeen(*notificationService))
-	//auth.Get("notifications", withAuthMiddleware, handlers.ListNotifications(*notificationService))
+	auth.Get("/", withAuthMiddleware, handlers.ListNotifications(*notificationService))
 }

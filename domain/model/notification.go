@@ -10,7 +10,7 @@ type Notification struct {
 	Description string `gorm:"size:255"`
 	IsSeen      bool   `gorm:"default:false"`
 	CreatedAt   time.Time
-	User        User `gorm:"foreignKey:UserID"`
+	//User        User `gorm:"foreignKey:UserID"`
 }
 
 // CreateNotificationDTO represents the data needed to create a new notification

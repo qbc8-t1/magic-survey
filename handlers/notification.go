@@ -44,7 +44,7 @@ func MarkNotificationAsSeen(notificationService service.NotificationService) fib
 	}
 }
 
-/*func ListNotifications(notificationService service.NotificationService) fiber.Handler {
+func ListNotifications(notificationService service.NotificationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Parse pagination parameters
 		page, _ := strconv.Atoi(c.Query("page", "1"))
@@ -59,4 +59,4 @@ func MarkNotificationAsSeen(notificationService service.NotificationService) fib
 
 		return response.Success(c, fiber.StatusOK, "Notifications fetched successfully", notifications)
 	}
-}*/
+}
