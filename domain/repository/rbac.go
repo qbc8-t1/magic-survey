@@ -54,6 +54,7 @@ type IRbacRepository interface {
 type AnswersResult struct {
 	QuestionID   uint
 	QuestionText string
+	SubmissionID uint
 	UserID       uint
 	AnswerText   string
 	OptionID     uint

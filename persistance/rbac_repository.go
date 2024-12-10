@@ -304,9 +304,11 @@ func (rr *RbacRepo) GetAnswersForQuestionnaire(questionnaireID model.Questionnai
 	rr.db.Table("answers").
 		Joins("JOIN questions ON answers.question_id = questions.id").
 		Where("questions.questionnaire_id = ?", questionnaireID).
+		Order("answers.id").
 		Select(`
 		answers.user_id, 
 		answers.answer_text, 
+		answers.submission_id,
 		answers.option_id,  
 		questions.id AS question_id, 
 		questions.title AS question_text
