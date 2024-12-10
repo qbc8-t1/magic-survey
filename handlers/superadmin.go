@@ -77,6 +77,6 @@ func LimitUserQuestionnaireCount(superadminService service.SuperadminService) fi
 		}
 
 		logger.Info("limit questionnaire count successfully")
-		return response.Success(c, fiber.StatusInternalServerError, "questionnaires count limitation saved", nil)
+		return response.Success(c, fiber.StatusCreated, "questionnaires count limitation saved", nil)
 	}
 }

@@ -121,6 +121,7 @@ func ToQuestionnaireResponse(q *Questionnaire) *QuestionnaireResponse {
 		Title:                      q.Title,
 		MaxAllowedSubmissionsCount: q.MaxAllowedSubmissionsCount,
 		AnswersVisibleFor:          q.AnswersVisibleFor,
+		CreatedAt:                  q.CreatedAt,
 	}
 }
 
