@@ -74,14 +74,14 @@ func GetOptionsByQuestionIDHandler(service service.IOptionService) fiber.Handler
 			return response.Error(c, fiber.StatusBadRequest, "invalid ID. the ID must be a posetive integer", nil)
 		}
 
-		questions, err := service.GetOptionsByQuestionID(model.QuestionID(questionId))
+		options, err := service.GetOptionsByQuestionID(model.QuestionID(questionId))
 		if err != nil {
 			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 
 		logger.Info("options found by questionID")
-		return response.Success(c, fiber.StatusOK, "options retrieved successfully", questions)
+		return response.Success(c, fiber.StatusOK, "options retrieved successfully", options)
 	}
 }
 

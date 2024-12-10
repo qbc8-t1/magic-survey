@@ -89,6 +89,12 @@ func UpdateQuestionHandler(svc service.IQuestionService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		logger := middleware.GetLogger(c).With(zap.String("category", logger2.LogQuestion))
 
+		owner, ok := c.Locals("user").(model.User)
+		if !ok {
+			logger.Error("unauthorized")
+			return response.Error(c, fiber.StatusBadRequest, "unauthorized", nil)
+		}
+
 		idStr := c.Params("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil || id <= 0 {
@@ -108,7 +114,7 @@ func UpdateQuestionHandler(svc service.IQuestionService) fiber.Handler {
 			return response.Error(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 
-		err = svc.UpdateQuestion(model.QuestionID(id), &questionDTO)
+		err = svc.UpdateQuestion(model.QuestionID(id), owner.ID, &questionDTO)
 		if err != nil {
 			logger.Error(err.Error())
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)

@@ -26,13 +26,15 @@ var (
 
 	// Retrieval errors
 	ErrQuestionRetrieveFailed = errors.New("failed to retrieve question")
+
+	ErrNotOwnerOfQuestionnaire = errors.New("not owner of questionnaire")
 )
 
 type IQuestionService interface {
 	CreateQuestion(questionDTO *model.CreateQuestionDTO) error
 	GetQuestionByID(id model.QuestionID) (*model.QuestionResponse, error)
 	GetQuestionsByQuestionnaireID(quesionnaireID model.QuestionnaireID) (*[]model.QuestionResponse, error)
-	UpdateQuestion(id model.QuestionID, questionDTO *model.UpdateQuestionDTO) error
+	UpdateQuestion(id model.QuestionID, ownerID uint, questionDTO *model.UpdateQuestionDTO) error
 	DeleteQuestion(id model.QuestionID) error
 	IsQuestionForQuestionnaire(questionID model.QuestionID, questionnaireID model.QuestionnaireID) (bool, error)
 }
@@ -76,7 +78,7 @@ func (s *QuestionService) CreateQuestion(questionDTO *model.CreateQuestionDTO) e
 	return nil
 }
 
-func (s *QuestionService) UpdateQuestion(id model.QuestionID, questionDTO *model.UpdateQuestionDTO) error {
+func (s *QuestionService) UpdateQuestion(id model.QuestionID, ownerID uint, questionDTO *model.UpdateQuestionDTO) error {
 	// Check if the question exists
 	existingQuestion, err := s.questionRepo.GetQuestionByID(id)
 	if err != nil {
@@ -88,12 +90,16 @@ func (s *QuestionService) UpdateQuestion(id model.QuestionID, questionDTO *model
 
 	// If QuestionnaireID is being updated, check if the new Questionnaire exists
 	if questionDTO.QuestionnaireID != nil {
-		_, err := s.questionnaireRepo.GetQuestionnaireByID(model.QuestionnaireID(*questionDTO.QuestionnaireID))
+		questionnaire, err := s.questionnaireRepo.GetQuestionnaireByID(model.QuestionnaireID(*questionDTO.QuestionnaireID))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return ErrQuestionnaireNotFound
 			}
 			return ErrQuestionnaireRetrieveFailed
+		}
+
+		if questionnaire.OwnerID != uint(ownerID) {
+			return ErrNotOwnerOfQuestionnaire
 		}
 	}
 

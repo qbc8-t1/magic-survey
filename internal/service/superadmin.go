@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 
+	"github.com/QBC8-Team1/magic-survey/domain/model"
 	domain_repository "github.com/QBC8-Team1/magic-survey/domain/repository"
 	"gorm.io/gorm"
 )
@@ -17,7 +18,7 @@ func NewSuperadminService(repo domain_repository.ISuperadminRepository) *Superad
 	}
 }
 
-func (o *SuperadminService) MakeSuperadmin(giverUserID uint, userID uint, permissionsNames []string) error {
+func (o *SuperadminService) MakeSuperadmin(giverUserID uint, userID uint, permissionsNames []model.PermissionName) error {
 	if err := o.repo.IsUserExist(userID); err != nil {
 		return err
 	}

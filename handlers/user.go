@@ -56,17 +56,16 @@ func UpdateProfile(userService service.UserService) fiber.Handler {
 		}
 
 		// all validation params
-		user := c.Locals("user").(model.User)
-		newUser := model.ToUserModelForUpdate(user, &dto)
-		err := newUser.Validate()
+		user := c.Locals("user").(model.User)		
+		err := dto.ValidateForUpdate()
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
+		newUser := model.ToUserModelForUpdate(user, &dto)
+
 		// call service
-
 		res, err := userService.UpdateUser(&user, &newUser)
-
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}

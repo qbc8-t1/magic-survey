@@ -26,7 +26,7 @@ func CreateAnswerHandler(service service.IAnswerService) fiber.Handler {
 
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusBadRequest, "invalid request params", nil)
+			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())
 		}
 
 		err = service.CreateAnswer(&answerDTO)

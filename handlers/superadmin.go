@@ -11,8 +11,8 @@ import (
 )
 
 type MakeSuperadminData struct {
-	UserID      uint     `json:"user_id"`
-	Permissions []string `json:"permissions"`
+	UserID      uint                   `json:"user_id"`
+	Permissions []model.PermissionName `json:"permissions"`
 }
 
 type LimitUserQuestionnaireCountData struct {
@@ -47,7 +47,7 @@ func MakeSuperadmin(superadminService service.SuperadminService) fiber.Handler {
 		err = superadminService.MakeSuperadmin(loggedInUser.ID, data.UserID, data.Permissions)
 		if err != nil {
 			logger.Error(err.Error())
-			return response.Error(c, fiber.StatusInternalServerError, "failed to make super admin", nil)
+			return response.Error(c, fiber.StatusInternalServerError, "failed to make super admin", err.Error())
 		}
 
 		logger.Info("super admin created")
@@ -77,6 +77,6 @@ func LimitUserQuestionnaireCount(superadminService service.SuperadminService) fi
 		}
 
 		logger.Info("limit questionnaire count successfully")
-		return response.Success(c, fiber.StatusInternalServerError, "questionnaires count limitation saved", nil)
+		return response.Success(c, fiber.StatusCreated, "questionnaires count limitation saved", nil)
 	}
 }

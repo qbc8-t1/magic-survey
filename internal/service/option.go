@@ -94,17 +94,6 @@ func (s *OptionService) UpdateOption(id model.OptionID, optionDTO *model.UpdateO
 		return ErrOptionRetrieveFailed
 	}
 
-	// If QuestionID is being updated, check if the new Question exists
-	if optionDTO.QuestionID != nil {
-		_, err := s.questionRepo.GetQuestionByID(*optionDTO.QuestionID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return ErrQuestionNotFound
-			}
-			return ErrQuestionRetrieveFailed
-		}
-	}
-
 	existingOption.UpdatedAt = time.Now()
 	model.UpdateOptionModel(existingOption, optionDTO)
 

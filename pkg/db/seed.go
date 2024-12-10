@@ -23,11 +23,11 @@ func seed(db *gorm.DB) error {
 	return nil
 }
 
-func seedPermissions(db *gorm.DB, permissions []string, forSuperadmin bool) error {
+func seedPermissions(db *gorm.DB, permissions []model.PermissionName, forSuperadmin bool) error {
 	for _, permissionName := range permissions {
 		err := db.Create(&model.Permission{
 			Name:          permissionName,
-			Description:   strings.Replace(permissionName, "_", " ", -1),
+			Description:   strings.Replace(string(permissionName), "_", " ", -1),
 			ForSuperadmin: forSuperadmin,
 		}).Error
 		if err != nil {
