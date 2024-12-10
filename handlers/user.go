@@ -56,7 +56,7 @@ func UpdateProfile(userService service.UserService) fiber.Handler {
 		}
 
 		// all validation params
-		user := c.Locals("user").(model.User)		
+		user := c.Locals("user").(model.User)
 		err := dto.ValidateForUpdate()
 		if err != nil {
 			return response.Error(c, fiber.StatusBadRequest, "invalid request params", err.Error())

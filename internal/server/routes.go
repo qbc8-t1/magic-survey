@@ -46,6 +46,7 @@ func registerRoutes(s *common.Server, secret string) {
 	visibleAnswers := api.Group("/visible-answers")
 	superadmin := api.Group("/superadmin")
 	core := api.Group("/core")
+	notification := api.Group("/notification")
 
 	routes.RegisterVisibleAnswersRoutes(visibleAnswers, s)
 	routes.RegisterQuestionnaireRoutes(questionnaires, s)
@@ -56,4 +57,5 @@ func registerRoutes(s *common.Server, secret string) {
 	routes.RegisterCoreRoutes(core, s)
 	routes.RegisterSuperadminRoutes(superadmin, s)
 	routes.RegisterUserRoutes(auth, s)
+	routes.RegisterNotificationRoutes(notification, s)
 }
